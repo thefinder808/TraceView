@@ -23,9 +23,9 @@ struct SidebarView: View {
             // System Logs section
             sectionHeader("System Logs", theme: theme)
 
-            SidebarSystemRow(label: "All System", icon: "waveform")
-            SidebarSystemRow(label: "Kernel", icon: "cpu")
-            SidebarSystemRow(label: "User", icon: "person")
+            SidebarSystemRow(label: "All System", icon: "waveform", predicate: nil)
+            SidebarSystemRow(label: "Kernel", icon: "cpu", predicate: "process == 'kernel'")
+            SidebarSystemRow(label: "User", icon: "person", predicate: "senderImagePath CONTAINS '/usr'")
 
             Spacer()
 
@@ -115,30 +115,37 @@ struct SidebarDocumentRow: View {
     }
 }
 
-// MARK: - System Log Row (placeholder for Phase 4)
+// MARK: - System Log Row
 
 struct SidebarSystemRow: View {
     let label: String
     let icon: String
+    let predicate: String?
+    @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         let theme = themeManager.current
 
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 12))
-                .foregroundStyle(theme.secondaryText)
+        Button {
+            appState.startUnifiedLogStream(predicate: predicate, label: label)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundStyle(theme.secondaryText)
 
-            Text(label)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(theme.secondaryText)
+                Text(label)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(theme.secondaryText)
 
-            Spacer()
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 34)
+            .padding(.horizontal, 6)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 12)
-        .frame(height: 34)
-        .padding(.horizontal, 6)
-        .contentShape(Rectangle())
+        .buttonStyle(.plain)
     }
 }

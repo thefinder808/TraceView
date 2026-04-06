@@ -35,6 +35,11 @@ struct TraceViewApp: App {
                 Button("Open Log File...") { appState.openFile() }
                     .keyboardShortcut("o", modifiers: .command)
 
+                Button("Stream System Log") {
+                    appState.startUnifiedLogStream()
+                }
+                .keyboardShortcut("u", modifiers: [.command, .shift])
+
                 Divider()
 
                 Button("Close Tab") {

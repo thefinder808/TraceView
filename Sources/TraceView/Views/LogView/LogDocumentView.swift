@@ -29,7 +29,7 @@ struct LogDocumentView: View {
             StatusBarView(document: document, viewModel: viewModel)
         }
         .onAppear {
-            viewModel.loadFile()
+            viewModel.load()
         }
     }
 }

@@ -10,6 +10,7 @@ final class LogDocumentViewModel: ObservableObject {
 
     private var parser: any LogParser = PlainTextParser()
     private var fileWatcher: FileWatcher?
+    private var logStream: UnifiedLogStream?
     private var partialLineBuffer: String = ""
     private var filterTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
@@ -21,11 +22,40 @@ final class LogDocumentViewModel: ObservableObject {
 
     deinit {
         fileWatcher?.stop()
+        logStream?.stop()
     }
 
     // MARK: - Loading
 
-    func loadFile() {
+    func load() {
+        switch document.source {
+        case .file:
+            loadFile()
+        case .unifiedLog(let predicate):
+            startLogStream(predicate: predicate)
+        case .stdin:
+            break
+        }
+    }
+
+    private func startLogStream(predicate: String?) {
+        parser = UnifiedLogParser()
+        let stream = UnifiedLogStream()
+        stream.onNewLines = { [weak self] lines in
+            self?.appendLines(lines)
+        }
+        stream.start(predicate: predicate)
+        logStream = stream
+        document.isLive = true
+    }
+
+    func stopStream() {
+        logStream?.stop()
+        logStream = nil
+        document.isLive = false
+    }
+
+    private func loadFile() {
         guard case .file(let url) = document.source else { return }
 
         // Detect parser

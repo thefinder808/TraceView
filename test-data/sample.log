@@ -28,3 +28,6 @@
 2026-04-06T10:23:05.889Z [INFO] loginwindow: Screen lock state: unlocked
 2026-04-06T10:23:06.001Z [CRITICAL] kernel: Panic: userspace watchdog timeout: bluetoothd exceeded 30s deadline
 2026-04-06T10:23:06.112Z [INFO] ReportCrash: Saved crash report for bluetoothd to /Library/Logs/DiagnosticReports/
+2026-04-06T10:24:00.001Z [INFO] kernel: Real-time tail test line 1
+2026-04-06T10:24:01.002Z [ERROR] testd: This error should appear in real-time
+2026-04-06T10:24:02.003Z [WARNING] testd: Warning line appended live

@@ -79,6 +79,17 @@ final class AppState: ObservableObject {
         addDocument(doc)
     }
 
+    // MARK: - Unified Log Streaming
+
+    func startUnifiedLogStream(predicate: String? = nil, label: String = "System Log") {
+        let doc = LogDocument(
+            source: .unifiedLog(predicate: predicate),
+            displayName: label
+        )
+        doc.isLive = true
+        addDocument(doc)
+    }
+
     // MARK: - Navigation
 
     func selectDocument(at index: Int) {

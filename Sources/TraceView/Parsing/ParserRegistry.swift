@@ -4,11 +4,10 @@ final class ParserRegistry {
     static let shared = ParserRegistry()
 
     private let parsers: [any LogParser] = [
-        // Higher-specificity parsers first (added in Phase 4)
-        // UnifiedLogParser(),
-        // JSONLogParser(),
-        // CSVLogParser(),
-        // SCCMLogParser(),
+        SCCMLogParser(),
+        UnifiedLogParser(),
+        JSONLogParser(),
+        CSVLogParser(),
         PlainTextParser()  // Fallback
     ]
 

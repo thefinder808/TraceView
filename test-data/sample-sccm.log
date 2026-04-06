@@ -1,0 +1,7 @@
+<![LOG[Successfully connected to management point mp01.contoso.com]LOG]!><time="10:23:01.442+000" date="04-06-2026" component="CcmMessaging" context="" type="1" thread="4128" file="ccmmessaging.cpp">
+<![LOG[Sending state message body to MP]LOG]!><time="10:23:02.100+000" date="04-06-2026" component="StateMessage" context="" type="1" thread="4128" file="statemsg.cpp">
+<![LOG[Failed to download policy from http://mp01.contoso.com/SMS_MP/.sms_pol - error 0x80004005]LOG]!><time="10:23:02.334+000" date="04-06-2026" component="PolicyAgent" context="" type="3" thread="5240" file="policyagent.cpp">
+<![LOG[Retrying policy download in 15 minutes]LOG]!><time="10:23:02.500+000" date="04-06-2026" component="PolicyAgent" context="" type="2" thread="5240" file="policyagent.cpp">
+<![LOG[Software update scan completed successfully, 3 updates applicable]LOG]!><time="10:23:03.100+000" date="04-06-2026" component="ScanAgent" context="" type="1" thread="6012" file="scanagent.cpp">
+<![LOG[Content download failed for update KB5034441: hash mismatch]LOG]!><time="10:23:07.500+000" date="04-06-2026" component="ContentTransferManager" context="" type="3" thread="6012" file="contenttransfermanager.cpp">
+<![LOG[Client certificate validation succeeded]LOG]!><time="10:23:08.000+000" date="04-06-2026" component="CcmCertificateMaintenance" context="" type="1" thread="4128" file="certmaintenance.cpp">
