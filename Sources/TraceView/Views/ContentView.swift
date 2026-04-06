@@ -29,5 +29,12 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.prominentDetail)
         .background(WindowAccessor())
+        .overlay {
+            if appState.showCommandPalette {
+                CommandPalette()
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            }
+        }
+        .animation(.spring(duration: 0.2), value: appState.showCommandPalette)
     }
 }

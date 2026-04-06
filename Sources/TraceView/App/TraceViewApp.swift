@@ -53,6 +53,11 @@ struct TraceViewApp: App {
 
             // Navigate menu
             CommandMenu("Navigate") {
+                Button("Command Palette") { appState.showCommandPalette.toggle() }
+                    .keyboardShortcut("k", modifiers: .command)
+
+                Divider()
+
                 Button("Jump to Bottom") { appState.jumpToBottom() }
                     .keyboardShortcut(.downArrow, modifiers: .command)
 
@@ -80,6 +85,14 @@ struct TraceViewApp: App {
             CommandMenu("Tools") {
                 Button("Error Code Lookup") { appState.showErrorLookup.toggle() }
                     .keyboardShortcut("l", modifiers: [.command, .shift])
+
+                Button("Reload File") { appState.reloadCurrentFile() }
+                    .keyboardShortcut("r", modifiers: .command)
+
+                Divider()
+
+                Button("Export Filtered Log...") { appState.showExport = true }
+                    .keyboardShortcut("s", modifiers: [.command, .shift])
             }
 
             // Theme menu

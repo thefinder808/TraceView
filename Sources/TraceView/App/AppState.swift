@@ -7,6 +7,7 @@ final class AppState: ObservableObject {
     @Published var showSettings: Bool = false
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
+    @Published var showExport: Bool = false
     @Published var focusSearch: Bool = false
 
     private var documentSubscriptions: [UUID: AnyCancellable] = [:]
@@ -103,5 +104,13 @@ final class AppState: ObservableObject {
 
     func jumpToBottom() {
         selectedDocument?.isFollowing = true
+    }
+
+    func reloadCurrentFile() {
+        // Handled by LogDocumentViewModel — triggers via notification
+        guard let doc = selectedDocument, case .file = doc.source else { return }
+        doc.entries.removeAll()
+        doc.lastReadOffset = 0
+        doc.objectWillChange.send()
     }
 }
