@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TraceView — UI Design Mockup</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    /* Dark Theme (default) */
+    --window-bg: #1A1A1E;
+    --sidebar-bg: #232328;
+    --table-bg: #1E1E22;
+    --filter-bar-bg: #232328;
+    --status-bar-bg: #19191D;
+    --card-bg: #28282D;
+    --input-bg: #2C2C31;
+
+    --border: #3A3A3F;
+    --border-subtle: #2E2E33;
+    --focus-ring: rgba(74, 158, 255, 0.4);
+
+    --text-primary: #E5E5EA;
+    --text-secondary: #8E8E93;
+    --text-tertiary: #636366;
+    --text-timestamp: #7EB6FF;
+    --text-component: #A9A9AE;
+
+    --sidebar-hover: #2C2C31;
+    --sidebar-active: #343439;
+    --row-hover: rgba(255,255,255,0.04);
+    --row-selected: rgba(74,158,255,0.15);
+    --accent: #4A9EFF;
+
+    --error-row-bg: rgba(255,69,58,0.12);
+    --error-text: #FF6961;
+    --error-badge-bg: rgba(255,69,58,0.85);
+    --critical-row-bg: rgba(255,69,58,0.18);
+    --warning-row-bg: rgba(255,214,10,0.10);
+    --warning-text: #FFD60A;
+    --warning-badge-bg: rgba(255,214,10,0.80);
+    --warning-badge-text: #1A1A1E;
+    --info-badge-bg: rgba(99,99,102,0.30);
+    --info-badge-text: #A9A9AE;
+    --debug-badge-bg: rgba(99,99,102,0.15);
+    --debug-text: #636366;
+    --notice-badge-bg: rgba(74,158,255,0.20);
+    --notice-badge-text: #7EB6FF;
+
+    --following: #32D74B;
+    --paused: #636366;
+    --search-highlight: rgba(255,214,10,0.30);
+    --error-link: #64D2FF;
+    --live-dot: #FF9F0A;
+
+    --font-mono: 'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
+    --font-ui: 'DM Sans', -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  }
+
+  .theme-light {
+    --window-bg: #F5F5F7;
+    --sidebar-bg: #EEEFF1;
+    --table-bg: #FFFFFF;
+    --filter-bar-bg: #EEEFF1;
+    --status-bar-bg: #E8E8ED;
+    --card-bg: #FFFFFF;
+    --input-bg: #FFFFFF;
+
+    --border: #D1D1D6;
+    --border-subtle: #E5E5EA;
+
+    --text-primary: #1D1D1F;
+    --text-secondary: #86868B;
+    --text-tertiary: #AEAEB2;
+    --text-timestamp: #0060CC;
+    --text-component: #6E6E73;
+
+    --sidebar-hover: #E5E5EA;
+    --sidebar-active: #DCDCE0;
+    --row-hover: rgba(0,0,0,0.03);
+    --row-selected: rgba(0,122,255,0.12);
+    --accent: #007AFF;
+
+    --error-row-bg: rgba(255,59,48,0.08);
+    --error-text: #D32F2F;
+    --error-badge-bg: rgba(255,59,48,0.85);
+    --critical-row-bg: rgba(255,59,48,0.12);
+    --warning-row-bg: rgba(255,149,0,0.10);
+    --warning-text: #996300;
+    --warning-badge-bg: rgba(255,149,0,0.85);
+    --warning-badge-text: #FFFFFF;
+    --info-badge-bg: rgba(134,134,139,0.15);
+    --info-badge-text: #6E6E73;
+    --debug-badge-bg: rgba(174,174,178,0.12);
+    --debug-text: #AEAEB2;
+    --notice-badge-bg: rgba(0,122,255,0.12);
+    --notice-badge-text: #007AFF;
+
+    --following: #34C759;
+    --paused: #AEAEB2;
+    --search-highlight: rgba(255,149,0,0.25);
+    --error-link: #007AFF;
+    --live-dot: #FF9500;
+  }
+
+  .theme-neon {
+    --window-bg: #0D0D12;
+    --sidebar-bg: #12121A;
+    --table-bg: #0F0F16;
+    --filter-bar-bg: #12121A;
+    --status-bar-bg: #0A0A10;
+    --card-bg: #18182A;
+    --input-bg: #1A1A2E;
+
+    --border: #2A2A40;
+    --border-subtle: #1E1E30;
+    --focus-ring: rgba(0,212,255,0.5);
+
+    --text-primary: #E0E0F0;
+    --text-secondary: #7878A0;
+    --text-tertiary: #4A4A6A;
+    --text-timestamp: #00D4FF;
+    --text-component: #9898C0;
+
+    --sidebar-hover: #1A1A2E;
+    --sidebar-active: #222240;
+    --row-hover: rgba(0,212,255,0.04);
+    --row-selected: rgba(0,212,255,0.15);
+    --accent: #00D4FF;
+
+    --error-row-bg: rgba(255,0,64,0.14);
+    --error-text: #FF4070;
+    --error-badge-bg: rgba(255,0,64,0.85);
+    --critical-row-bg: rgba(255,0,64,0.20);
+    --warning-row-bg: rgba(255,224,0,0.12);
+    --warning-text: #FFE000;
+    --warning-badge-bg: rgba(255,224,0,0.80);
+    --warning-badge-text: #0D0D12;
+    --info-badge-bg: rgba(74,74,106,0.30);
+    --info-badge-text: #7878A0;
+    --debug-badge-bg: rgba(74,74,106,0.15);
+    --debug-text: #4A4A6A;
+    --notice-badge-bg: rgba(0,212,255,0.20);
+    --notice-badge-text: #00D4FF;
+
+    --following: #00FF88;
+    --paused: #4A4A6A;
+    --search-highlight: rgba(255,224,0,0.30);
+    --error-link: #00D4FF;
+    --live-dot: #FF6600;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-ui);
+    background: #111;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  h1.page-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: #888;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .theme-switcher {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 32px;
+    background: #222;
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .theme-switcher button {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    color: #888;
+    transition: all 0.15s ease;
+  }
+
+  .theme-switcher button.active {
+    background: #444;
+    color: #fff;
+  }
+
+  .theme-switcher button:hover:not(.active) {
+    color: #bbb;
+  }
+
+  /* ── Window Chrome ───────────────────────────────────── */
+
+  .window {
+    width: 1200px;
+    max-width: 95vw;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.08);
+    background: var(--window-bg);
+  }
+
+  .titlebar {
+    height: 38px;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 8px;
+    -webkit-app-region: drag;
+  }
+
+  .traffic-lights {
+    display: flex;
+    gap: 7px;
+    margin-right: 8px;
+  }
+
+  .traffic-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .tl-close { background: #FF5F57; }
+  .tl-minimize { background: #FFBD2E; }
+  .tl-maximize { background: #28C840; }
+
+  .titlebar-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    flex: 1;
+    text-align: center;
+    margin-right: 52px;
+  }
+
+  /* ── Toolbar ─────────────────────────────────────────── */
+
+  .toolbar {
+    height: 36px;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 4px;
+  }
+
+  .toolbar-btn {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.12s ease;
+  }
+
+  .toolbar-btn:hover {
+    background: var(--sidebar-hover);
+    color: var(--text-primary);
+  }
+
+  .toolbar-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .toolbar-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+    margin: 0 6px;
+  }
+
+  .toolbar-spacer { flex: 1; }
+
+  /* ── Main Layout ─────────────────────────────────────── */
+
+  .main-layout {
+    display: flex;
+    height: 580px;
+  }
+
+  /* ── Sidebar ─────────────────────────────────────────── */
+
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-section-header {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    padding: 16px 12px 6px;
+  }
+
+  .sidebar-item {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin: 1px 6px;
+    transition: background 0.1s ease;
+  }
+
+  .sidebar-item:hover {
+    background: var(--sidebar-hover);
+  }
+
+  .sidebar-item.active {
+    background: var(--sidebar-active);
+  }
+
+  .sidebar-icon {
+    width: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .sidebar-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sidebar-badge {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--card-bg);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+
+  .sidebar-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--live-dot);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .sidebar-spacer { flex: 1; }
+
+  .sidebar-bottom {
+    height: 36px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .sidebar-bottom svg {
+    width: 14px;
+    height: 14px;
+    color: var(--text-secondary);
+  }
+
+  /* ── Content Area ────────────────────────────────────── */
+
+  .content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* ── Filter Bar ──────────────────────────────────────── */
+
+  .filter-bar {
+    height: 36px;
+    min-height: 36px;
+    background: var(--filter-bar-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .search-group {
+    display: flex;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 8px;
+    height: 26px;
+    gap: 6px;
+    min-width: 220px;
+  }
+
+  .search-group:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  .search-icon {
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+
+  .search-input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    width: 180px;
+  }
+
+  .search-input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .filter-toggle {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+
+  .filter-toggle.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .filter-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+  }
+
+  .level-chips {
+    display: flex;
+    gap: 3px;
+  }
+
+  .level-chip {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+  }
+
+  .level-chip.crt { background: var(--error-badge-bg); color: #fff; }
+  .level-chip.err { background: var(--error-badge-bg); color: #fff; }
+  .level-chip.wrn { background: var(--warning-badge-bg); color: var(--warning-badge-text); }
+  .level-chip.not { background: var(--notice-badge-bg); color: var(--notice-badge-text); }
+  .level-chip.inf { background: var(--info-badge-bg); color: var(--info-badge-text); }
+  .level-chip.dbg { background: var(--debug-badge-bg); color: var(--debug-text); }
+
+  .level-chip.off {
+    opacity: 0.3;
+  }
+
+  .filter-spacer { flex: 1; }
+
+  .match-count {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Log Table ───────────────────────────────────────── */
+
+  .log-table-wrapper {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--table-bg);
+  }
+
+  .log-header {
+    height: 24px;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--filter-bar-bg);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    user-select: none;
+  }
+
+  .log-header > div {
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  .log-rows {
+    flex: 1;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+  }
+
+  .log-rows::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .log-rows::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .log-rows::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+
+  .log-rows::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+  }
+
+  .log-row {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 12px;
+    transition: background 0.06s ease;
+    cursor: default;
+  }
+
+  .log-row:hover {
+    background: var(--row-hover);
+  }
+
+  .log-row.selected {
+    background: var(--row-selected);
+  }
+
+  .log-row.level-error {
+    background: var(--error-row-bg);
+  }
+
+  .log-row.level-error:hover {
+    background: var(--error-row-bg);
+    filter: brightness(1.1);
+  }
+
+  .log-row.level-critical {
+    background: var(--critical-row-bg);
+  }
+
+  .log-row.level-warning {
+    background: var(--warning-row-bg);
+  }
+
+  .log-row.level-warning:hover {
+    background: var(--warning-row-bg);
+    filter: brightness(1.1);
+  }
+
+  .log-row > div {
+    padding: 0 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .col-line { width: 48px; text-align: right; color: var(--text-tertiary); font-size: 11px; }
+  .col-time { width: 140px; color: var(--text-timestamp); }
+  .col-level { width: 64px; display: flex; justify-content: center; }
+  .col-component { width: 120px; color: var(--text-component); }
+  .col-message { flex: 1; color: var(--text-primary); }
+
+  .log-row.level-error .col-message { color: var(--error-text); }
+  .log-row.level-critical .col-message { color: var(--error-text); font-weight: 500; }
+  .log-row.level-warning .col-message { color: var(--warning-text); }
+  .log-row.level-debug .col-message { color: var(--debug-text); }
+
+  .level-badge {
+    font-family: var(--font-ui);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 3px;
+    line-height: 16px;
+  }
+
+  .badge-crt { background: var(--error-badge-bg); color: #fff; }
+  .badge-err { background: var(--error-badge-bg); color: #fff; }
+  .badge-wrn { background: var(--warning-badge-bg); color: var(--warning-badge-text); }
+  .badge-not { background: var(--notice-badge-bg); color: var(--notice-badge-text); }
+  .badge-inf { background: var(--info-badge-bg); color: var(--info-badge-text); }
+  .badge-dbg { background: var(--debug-badge-bg); color: var(--debug-text); }
+
+  .error-code-link {
+    color: var(--error-link);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .search-match {
+    background: var(--search-highlight);
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  /* ── Status Bar ──────────────────────────────────────── */
+
+  .status-bar {
+    height: 28px;
+    min-height: 28px;
+    background: var(--status-bar-bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 0;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+  }
+
+  .status-item:first-child { padding-left: 0; }
+
+  .status-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--border-subtle);
+  }
+
+  .status-spacer { flex: 1; }
+
+  .following-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--following);
+    animation: pulse-follow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-follow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .following-text {
+    color: var(--following);
+    font-weight: 500;
+  }
+
+  /* ── Error Lookup Panel ──────────────────────────────── */
+
+  .error-panel {
+    width: 280px;
+    min-width: 280px;
+    background: var(--sidebar-bg);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .error-panel-header {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+
+  .error-panel-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .error-panel-close {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .error-panel-close:hover {
+    background: var(--sidebar-hover);
+    color: var(--text-primary);
+  }
+
+  .error-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .error-search {
+    width: 100%;
+    height: 30px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 10px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+  }
+
+  .error-search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  .error-search::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .domain-tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--card-bg);
+    border-radius: 6px;
+    padding: 2px;
+  }
+
+  .domain-tab {
+    font-family: var(--font-ui);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 3px 6px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    transition: all 0.1s;
+  }
+
+  .domain-tab.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .domain-tab:hover:not(.active) {
+    color: var(--text-secondary);
+  }
+
+  .error-result {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .error-result-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .error-domain-badge {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .error-symbol {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .error-values {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .error-desc {
+    font-size: 12px;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+
+  .error-recent-header {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+  }
+
+  .error-recent-item {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .error-recent-item:hover { color: var(--accent); }
+
+  .error-recent-label {
+    color: var(--text-tertiary);
+    font-family: var(--font-ui);
+    font-size: 10px;
+  }
+
+  /* ── View label ──────────────────────────────────────── */
+
+  .view-label {
+    text-align: center;
+    font-size: 11px;
+    color: #666;
+    margin-top: 16px;
+    margin-bottom: 40px;
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── Second mockup: with lookup panel ─────────────────── */
+
+  .mockup-group {
+    margin-bottom: 20px;
+    width: 1200px;
+    max-width: 95vw;
+  }
+
+  .mockup-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">TraceView Design Mockup</h1>
+
+<div class="theme-switcher">
+  <button class="active" onclick="setTheme('dark')">Dark</button>
+  <button onclick="setTheme('light')">Light</button>
+  <button onclick="setTheme('neon')">Neon</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MOCKUP 1: Main View (no error lookup panel)
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="mockup-group">
+  <div class="mockup-label">Main View</div>
+</div>
+
+<div class="window" id="main-window">
+  <!-- Titlebar -->
+  <div class="titlebar">
+    <div class="traffic-lights">
+      <div class="traffic-light tl-close"></div>
+      <div class="traffic-light tl-minimize"></div>
+      <div class="traffic-light tl-maximize"></div>
+    </div>
+    <div class="titlebar-text">system.log — TraceView</div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="toolbar-btn">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M6 2v8"/></svg>
+      Open
+    </button>
+    <button class="toolbar-btn">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="3"/><path d="M6 1v2M6 9v2M1 6h2M9 6h2"/></svg>
+      Stream
+    </button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn active">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h8M2 6h6M2 9h4"/></svg>
+      Filter
+    </button>
+    <div class="toolbar-spacer"></div>
+    <button class="toolbar-btn">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l6 6M9 3l-6 6"/></svg>
+      Lookup
+    </button>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section-header">Open Files</div>
+
+      <div class="sidebar-item active">
+        <span class="sidebar-icon">&#9783;</span>
+        <span class="sidebar-label">system.log</span>
+        <div class="sidebar-live-dot"></div>
+        <span class="sidebar-badge">45.2K</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">&#9783;</span>
+        <span class="sidebar-label">install.log</span>
+        <span class="sidebar-badge">1,204</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">&#9783;</span>
+        <span class="sidebar-label">wifi.log</span>
+        <span class="sidebar-badge">892</span>
+      </div>
+
+      <div class="sidebar-section-header">System Logs</div>
+
+      <div class="sidebar-item">
+        <span class="sidebar-icon">&#9673;</span>
+        <span class="sidebar-label">All System</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">&#9673;</span>
+        <span class="sidebar-label">Kernel</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">&#9673;</span>
+        <span class="sidebar-label">User</span>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-bottom">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-area">
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="search-group">
+          <span class="search-icon">&#8981;</span>
+          <input class="search-input" type="text" placeholder="Filter log..." value="timeout">
+        </div>
+        <button class="filter-toggle" title="Regex">.*</button>
+        <button class="filter-toggle active" title="Case sensitive">Aa</button>
+        <div class="filter-sep"></div>
+        <div class="level-chips">
+          <button class="level-chip crt">CRT</button>
+          <button class="level-chip err">ERR</button>
+          <button class="level-chip wrn">WRN</button>
+          <button class="level-chip not">NOT</button>
+          <button class="level-chip inf off">INF</button>
+          <button class="level-chip dbg off">DBG</button>
+        </div>
+        <div class="filter-spacer"></div>
+        <span class="match-count">127 of 45,231</span>
+      </div>
+
+      <!-- Log Table -->
+      <div class="log-table-wrapper">
+        <div class="log-header">
+          <div class="col-line">#</div>
+          <div class="col-time">Timestamp</div>
+          <div class="col-level">Level</div>
+          <div class="col-component">Component</div>
+          <div class="col-message">Message</div>
+        </div>
+        <div class="log-rows">
+          <div class="log-row">
+            <div class="col-line">12041</div>
+            <div class="col-time">10:23:01.442</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">kernel</div>
+            <div class="col-message">IOGPU: power state change complete, GPU idle</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12042</div>
+            <div class="col-time">10:23:01.558</div>
+            <div class="col-level"><span class="level-badge badge-dbg">DBG</span></div>
+            <div class="col-component">mDNSResponder</div>
+            <div class="col-message">Query suppressed for _companion-link._tcp.local</div>
+          </div>
+          <div class="log-row level-warning">
+            <div class="col-line">12043</div>
+            <div class="col-time">10:23:02.107</div>
+            <div class="col-level"><span class="level-badge badge-wrn">WARN</span></div>
+            <div class="col-component">WindowServer</div>
+            <div class="col-message">Connection <span class="search-match">timeout</span> for display link client 0x7fa3</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12044</div>
+            <div class="col-time">10:23:02.201</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">launchd</div>
+            <div class="col-message">Service com.apple.metadata.mds exited with code 0</div>
+          </div>
+          <div class="log-row level-error">
+            <div class="col-line">12045</div>
+            <div class="col-time">10:23:02.334</div>
+            <div class="col-level"><span class="level-badge badge-err">ERR</span></div>
+            <div class="col-component">bluetoothd</div>
+            <div class="col-message">Failed to connect to device: <span class="error-code-link">0xE00002BC</span> — connection <span class="search-match">timeout</span></div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12046</div>
+            <div class="col-time">10:23:02.441</div>
+            <div class="col-level"><span class="level-badge badge-not">NOT</span></div>
+            <div class="col-component">kernel</div>
+            <div class="col-message">AppleACPICPU: processor 4 entered low-power state</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12047</div>
+            <div class="col-time">10:23:02.552</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">syslogd</div>
+            <div class="col-message">ASL sender statistics: messages forwarded = 2,841</div>
+          </div>
+          <div class="log-row level-error">
+            <div class="col-line">12048</div>
+            <div class="col-time">10:23:02.663</div>
+            <div class="col-level"><span class="level-badge badge-err">ERR</span></div>
+            <div class="col-component">bluetoothd</div>
+            <div class="col-message">Retry attempt 2/3 failed: <span class="search-match">timeout</span> after 5000ms, errno=<span class="error-code-link">60</span></div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12049</div>
+            <div class="col-time">10:23:03.102</div>
+            <div class="col-level"><span class="level-badge badge-dbg">DBG</span></div>
+            <div class="col-component">configd</div>
+            <div class="col-message">Network interface en0: link quality 95%</div>
+          </div>
+          <div class="log-row level-warning">
+            <div class="col-line">12050</div>
+            <div class="col-time">10:23:03.211</div>
+            <div class="col-level"><span class="level-badge badge-wrn">WARN</span></div>
+            <div class="col-component">SecurityAgent</div>
+            <div class="col-message">Keychain access <span class="search-match">timeout</span>: client exceeded 10s deadline</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12051</div>
+            <div class="col-time">10:23:03.308</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">thermalmond</div>
+            <div class="col-message">CPU thermal pressure: nominal (42°C)</div>
+          </div>
+          <div class="log-row level-critical">
+            <div class="col-line">12052</div>
+            <div class="col-time">10:23:03.440</div>
+            <div class="col-level"><span class="level-badge badge-crt">CRT</span></div>
+            <div class="col-component">kernel</div>
+            <div class="col-message">IOKit assertion failure: kIOReturnTimeout (<span class="error-code-link">0xE00000B5</span>) in AppleBCMWLAN::handleFirmwareCrash</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12053</div>
+            <div class="col-time">10:23:03.551</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">UserEventAgent</div>
+            <div class="col-message">Display sleep prevented by assertion: PreventUserIdleDisplaySleep</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12054</div>
+            <div class="col-time">10:23:03.662</div>
+            <div class="col-level"><span class="level-badge badge-dbg">DBG</span></div>
+            <div class="col-component">mDNSResponder</div>
+            <div class="col-message">Cache flush for _airplay._tcp.local. — 0 records</div>
+          </div>
+          <div class="log-row level-error">
+            <div class="col-line">12055</div>
+            <div class="col-time">10:23:04.101</div>
+            <div class="col-level"><span class="level-badge badge-err">ERR</span></div>
+            <div class="col-component">bluetoothd</div>
+            <div class="col-message">Device connection abandoned after <span class="search-match">timeout</span>: OSStatus <span class="error-code-link">-536870212</span></div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12056</div>
+            <div class="col-time">10:23:04.220</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">launchd</div>
+            <div class="col-message">Service com.apple.bluetoothd scheduled restart in 5 seconds</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12057</div>
+            <div class="col-time">10:23:04.334</div>
+            <div class="col-level"><span class="level-badge badge-not">NOT</span></div>
+            <div class="col-component">powerd</div>
+            <div class="col-message">Sleep/Wake reason: EC.LidOpen (User)</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12058</div>
+            <div class="col-time">10:23:04.442</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">diskarbitrationd</div>
+            <div class="col-message">Disk appeared: disk3s1, mount point /Volumes/Backup</div>
+          </div>
+          <div class="log-row level-warning">
+            <div class="col-line">12059</div>
+            <div class="col-time">10:23:04.558</div>
+            <div class="col-level"><span class="level-badge badge-wrn">WARN</span></div>
+            <div class="col-component">fseventsd</div>
+            <div class="col-message">Event queue overflow for /private/var/log — <span class="search-match">timeout</span> draining backlog</div>
+          </div>
+          <div class="log-row selected">
+            <div class="col-line">12060</div>
+            <div class="col-time">10:23:04.671</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">kernel</div>
+            <div class="col-message">AppleBCMWLAN: firmware recovery initiated, channel scan paused</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-item">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+          45,231 lines
+        </div>
+        <div class="status-sep"></div>
+        <div class="status-item">UTF-8</div>
+        <div class="status-sep"></div>
+        <div class="status-item">2.3 MB</div>
+        <div class="status-spacer"></div>
+        <div class="status-item">
+          <div class="following-dot"></div>
+          <span class="following-text">Following</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="view-label">Main view — filter active, real-time following</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MOCKUP 2: With Error Lookup Panel
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="mockup-group">
+  <div class="mockup-label">With Error Lookup Panel</div>
+</div>
+
+<div class="window" id="lookup-window">
+  <div class="titlebar">
+    <div class="traffic-lights">
+      <div class="traffic-light tl-close"></div>
+      <div class="traffic-light tl-minimize"></div>
+      <div class="traffic-light tl-maximize"></div>
+    </div>
+    <div class="titlebar-text">system.log — TraceView</div>
+  </div>
+
+  <div class="toolbar">
+    <button class="toolbar-btn">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8M6 2v8"/></svg>
+      Open
+    </button>
+    <button class="toolbar-btn">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="3"/><path d="M6 1v2M6 9v2M1 6h2M9 6h2"/></svg>
+      Stream
+    </button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h8M2 6h6M2 9h4"/></svg>
+      Filter
+    </button>
+    <div class="toolbar-spacer"></div>
+    <button class="toolbar-btn active">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l6 6M9 3l-6 6"/></svg>
+      Lookup
+    </button>
+  </div>
+
+  <div class="main-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section-header">Open Files</div>
+      <div class="sidebar-item active">
+        <span class="sidebar-icon">&#9783;</span>
+        <span class="sidebar-label">system.log</span>
+        <div class="sidebar-live-dot"></div>
+        <span class="sidebar-badge">45.2K</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">&#9783;</span>
+        <span class="sidebar-label">install.log</span>
+        <span class="sidebar-badge">1,204</span>
+      </div>
+      <div class="sidebar-section-header">System Logs</div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">&#9673;</span>
+        <span class="sidebar-label">All System</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="sidebar-icon">&#9673;</span>
+        <span class="sidebar-label">Kernel</span>
+      </div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-bottom">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Content (narrower to make room for panel) -->
+    <div class="content-area">
+      <div class="filter-bar">
+        <div class="search-group">
+          <span class="search-icon">&#8981;</span>
+          <input class="search-input" type="text" placeholder="Filter log...">
+        </div>
+        <button class="filter-toggle">.*</button>
+        <button class="filter-toggle">Aa</button>
+        <div class="filter-sep"></div>
+        <div class="level-chips">
+          <button class="level-chip crt">CRT</button>
+          <button class="level-chip err">ERR</button>
+          <button class="level-chip wrn">WRN</button>
+          <button class="level-chip not">NOT</button>
+          <button class="level-chip inf">INF</button>
+          <button class="level-chip dbg">DBG</button>
+        </div>
+        <div class="filter-spacer"></div>
+        <span class="match-count">45,231</span>
+      </div>
+
+      <div class="log-table-wrapper">
+        <div class="log-header">
+          <div class="col-line">#</div>
+          <div class="col-time">Timestamp</div>
+          <div class="col-level">Level</div>
+          <div class="col-component">Component</div>
+          <div class="col-message">Message</div>
+        </div>
+        <div class="log-rows">
+          <div class="log-row">
+            <div class="col-line">12044</div>
+            <div class="col-time">10:23:02.201</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">launchd</div>
+            <div class="col-message">Service com.apple.metadata.mds exited with code 0</div>
+          </div>
+          <div class="log-row level-error selected">
+            <div class="col-line">12045</div>
+            <div class="col-time">10:23:02.334</div>
+            <div class="col-level"><span class="level-badge badge-err">ERR</span></div>
+            <div class="col-component">bluetoothd</div>
+            <div class="col-message">Failed to connect to device: <span class="error-code-link">0xE00002BC</span> — connection timeout</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12046</div>
+            <div class="col-time">10:23:02.441</div>
+            <div class="col-level"><span class="level-badge badge-not">NOT</span></div>
+            <div class="col-component">kernel</div>
+            <div class="col-message">AppleACPICPU: processor 4 entered low-power state</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12047</div>
+            <div class="col-time">10:23:02.552</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">syslogd</div>
+            <div class="col-message">ASL sender statistics: messages forwarded = 2,841</div>
+          </div>
+          <div class="log-row level-error">
+            <div class="col-line">12048</div>
+            <div class="col-time">10:23:02.663</div>
+            <div class="col-level"><span class="level-badge badge-err">ERR</span></div>
+            <div class="col-component">bluetoothd</div>
+            <div class="col-message">Retry attempt 2/3 failed: timeout after 5000ms, errno=<span class="error-code-link">60</span></div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12049</div>
+            <div class="col-time">10:23:03.102</div>
+            <div class="col-level"><span class="level-badge badge-dbg">DBG</span></div>
+            <div class="col-component">configd</div>
+            <div class="col-message">Network interface en0: link quality 95%</div>
+          </div>
+          <div class="log-row level-warning">
+            <div class="col-line">12050</div>
+            <div class="col-time">10:23:03.211</div>
+            <div class="col-level"><span class="level-badge badge-wrn">WARN</span></div>
+            <div class="col-component">SecurityAgent</div>
+            <div class="col-message">Keychain access timeout: client exceeded 10s deadline</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12051</div>
+            <div class="col-time">10:23:03.308</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">thermalmond</div>
+            <div class="col-message">CPU thermal pressure: nominal (42°C)</div>
+          </div>
+          <div class="log-row level-critical">
+            <div class="col-line">12052</div>
+            <div class="col-time">10:23:03.440</div>
+            <div class="col-level"><span class="level-badge badge-crt">CRT</span></div>
+            <div class="col-component">kernel</div>
+            <div class="col-message">IOKit assertion failure: kIOReturnTimeout (<span class="error-code-link">0xE00000B5</span>)</div>
+          </div>
+          <div class="log-row">
+            <div class="col-line">12053</div>
+            <div class="col-time">10:23:03.551</div>
+            <div class="col-level"><span class="level-badge badge-inf">INFO</span></div>
+            <div class="col-component">UserEventAgent</div>
+            <div class="col-message">Display sleep prevented by assertion</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <div class="status-item">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+          45,231 lines
+        </div>
+        <div class="status-sep"></div>
+        <div class="status-item">UTF-8</div>
+        <div class="status-sep"></div>
+        <div class="status-item">2.3 MB</div>
+        <div class="status-spacer"></div>
+        <div class="status-item">
+          <div class="following-dot"></div>
+          <span class="following-text">Following</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Lookup Panel -->
+    <div class="error-panel">
+      <div class="error-panel-header">
+        <span class="error-panel-title">Error Lookup</span>
+        <button class="error-panel-close">&times;</button>
+      </div>
+      <div class="error-panel-body">
+        <input class="error-search" type="text" placeholder="Enter error code..." value="0xE00002BC">
+
+        <div class="domain-tabs">
+          <button class="domain-tab active">Auto</button>
+          <button class="domain-tab">errno</button>
+          <button class="domain-tab">OSStatus</button>
+          <button class="domain-tab">IOReturn</button>
+          <button class="domain-tab">Mach</button>
+          <button class="domain-tab">HTTP</button>
+        </div>
+
+        <div class="error-result">
+          <div class="error-result-header">
+            <span class="error-domain-badge">IOReturn</span>
+          </div>
+          <div class="error-symbol">kIOReturnNotReady</div>
+          <div class="error-values">Decimal: -536870212 &nbsp;|&nbsp; Hex: 0xE00002BC</div>
+          <div class="error-desc">The device is not ready to perform the requested operation. The target hardware is present but has not yet been initialized or has been reset.</div>
+        </div>
+
+        <div class="error-recent-header">Recent</div>
+        <div class="error-recent-item">
+          <span>60</span>
+          <span class="error-recent-label">ETIMEDOUT</span>
+        </div>
+        <div class="error-recent-item">
+          <span>0xE00000B5</span>
+          <span class="error-recent-label">kIOReturnTimeout</span>
+        </div>
+        <div class="error-recent-item">
+          <span>-43</span>
+          <span class="error-recent-label">fnfErr</span>
+        </div>
+        <div class="error-recent-item">
+          <span>ENOENT</span>
+          <span class="error-recent-label">errno 2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="view-label">Error lookup panel — clicked 0xE00002BC in log</div>
+
+<script>
+function setTheme(theme) {
+  const windows = document.querySelectorAll('.window');
+  windows.forEach(w => {
+    w.classList.remove('theme-light', 'theme-neon');
+    if (theme === 'light') w.classList.add('theme-light');
+    if (theme === 'neon') w.classList.add('theme-neon');
+  });
+
+  const buttons = document.querySelectorAll('.theme-switcher button');
+  buttons.forEach(b => {
+    b.classList.remove('active');
+    if (b.textContent.toLowerCase() === theme) b.classList.add('active');
+  });
+}
+</script>
+
+</body>
+</html>
