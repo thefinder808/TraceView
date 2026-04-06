@@ -6,7 +6,6 @@ final class LogDocumentViewModel: ObservableObject {
 
     @Published var filter = LogFilter()
     @Published var filteredEntries: [LogEntry] = []
-    @Published var isAtBottom: Bool = true
 
     private var parser: any LogParser = PlainTextParser()
     private var fileWatcher: FileWatcher?
