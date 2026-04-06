@@ -1,0 +1,30 @@
+2026-04-06T10:23:01.442Z [INFO] kernel: IOGPU: power state change complete, GPU idle
+2026-04-06T10:23:01.558Z [DEBUG] mDNSResponder: Query suppressed for _companion-link._tcp.local
+2026-04-06T10:23:02.107Z [WARNING] WindowServer: Connection timeout for display link client 0x7fa3
+2026-04-06T10:23:02.201Z [INFO] launchd: Service com.apple.metadata.mds exited with code 0
+2026-04-06T10:23:02.334Z [ERROR] bluetoothd: Failed to connect to device: 0xE00002BC — connection timeout
+2026-04-06T10:23:02.441Z [NOTICE] kernel: AppleACPICPU: processor 4 entered low-power state
+2026-04-06T10:23:02.552Z [INFO] syslogd: ASL sender statistics: messages forwarded = 2841
+2026-04-06T10:23:02.663Z [ERROR] bluetoothd: Retry attempt 2/3 failed: timeout after 5000ms, errno=60
+2026-04-06T10:23:03.102Z [DEBUG] configd: Network interface en0: link quality 95%
+2026-04-06T10:23:03.211Z [WARNING] SecurityAgent: Keychain access timeout: client exceeded 10s deadline
+2026-04-06T10:23:03.308Z [INFO] thermalmond: CPU thermal pressure: nominal (42°C)
+2026-04-06T10:23:03.440Z [CRITICAL] kernel: IOKit assertion failure: kIOReturnTimeout (0xE00000B5) in AppleBCMWLAN::handleFirmwareCrash
+2026-04-06T10:23:03.551Z [INFO] UserEventAgent: Display sleep prevented by assertion: PreventUserIdleDisplaySleep
+2026-04-06T10:23:03.662Z [DEBUG] mDNSResponder: Cache flush for _airplay._tcp.local. — 0 records
+2026-04-06T10:23:04.101Z [ERROR] bluetoothd: Device connection abandoned after timeout: OSStatus -536870212
+2026-04-06T10:23:04.220Z [INFO] launchd: Service com.apple.bluetoothd scheduled restart in 5 seconds
+2026-04-06T10:23:04.334Z [NOTICE] powerd: Sleep/Wake reason: EC.LidOpen (User)
+2026-04-06T10:23:04.442Z [INFO] diskarbitrationd: Disk appeared: disk3s1, mount point /Volumes/Backup
+2026-04-06T10:23:04.558Z [WARNING] fseventsd: Event queue overflow for /private/var/log — timeout draining backlog
+2026-04-06T10:23:04.671Z [INFO] kernel: AppleBCMWLAN: firmware recovery initiated, channel scan paused
+2026-04-06T10:23:05.100Z [INFO] configd: DNS configuration changed for en0
+2026-04-06T10:23:05.223Z [ERROR] sandboxd: Deny(1) file-read-data /private/var/db/DetectX/scans.db
+2026-04-06T10:23:05.334Z [INFO] mediaremoted: Now playing state changed: idle
+2026-04-06T10:23:05.445Z [WARNING] com.apple.xpc: Connection interrupted for service com.apple.CalendarAgent
+2026-04-06T10:23:05.556Z [DEBUG] locationd: Motion activity: stationary (confidence high)
+2026-04-06T10:23:05.667Z [INFO] symptomsd: Network quality score: 85/100 (WiFi)
+2026-04-06T10:23:05.778Z [ERROR] coreaudiod: Failed to set preferred sample rate: error -10863
+2026-04-06T10:23:05.889Z [INFO] loginwindow: Screen lock state: unlocked
+2026-04-06T10:23:06.001Z [CRITICAL] kernel: Panic: userspace watchdog timeout: bluetoothd exceeded 30s deadline
+2026-04-06T10:23:06.112Z [INFO] ReportCrash: Saved crash report for bluetoothd to /Library/Logs/DiagnosticReports/
