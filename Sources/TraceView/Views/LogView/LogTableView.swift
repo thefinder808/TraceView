@@ -1,9 +1,12 @@
 import SwiftUI
+import Combine
 
 struct LogTableView: View {
     @ObservedObject var viewModel: LogDocumentViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var settingsManager: SettingsManager
+    @State private var scrollProxy: ScrollViewProxy?
+    @State private var needsScroll = false
 
     var body: some View {
         let theme = themeManager.current
@@ -52,11 +55,17 @@ struct LogTableView: View {
                     }
                 }
                 .background(theme.tableBackground)
+                .onAppear { scrollProxy = proxy }
+                .onReceive(scrollTimer) { _ in
+                    // Throttled scroll: check every 200ms instead of every row addition
+                    if needsScroll && viewModel.isAtBottom {
+                        proxy.scrollTo("bottom-anchor", anchor: .bottom)
+                        needsScroll = false
+                    }
+                }
                 .onChange(of: viewModel.filteredEntries.count) { _, _ in
                     if viewModel.isAtBottom {
-                        withAnimation(.easeOut(duration: 0.1)) {
-                            proxy.scrollTo("bottom-anchor", anchor: .bottom)
-                        }
+                        needsScroll = true
                     }
                 }
             }
@@ -68,12 +77,18 @@ struct LogTableView: View {
         }
     }
 
+    // 200ms throttle timer for scroll updates
+    private var scrollTimer: Publishers.Autoconnect<Timer.TimerPublisher> {
+        Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
+    }
+
     private func jumpToBottomOverlay(theme: any AppTheme) -> some View {
         HStack {
             Spacer()
             Button {
                 viewModel.isAtBottom = true
                 viewModel.document.isFollowing = true
+                scrollProxy?.scrollTo("bottom-anchor", anchor: .bottom)
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.down.to.line")

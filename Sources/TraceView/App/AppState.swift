@@ -10,6 +10,7 @@ final class AppState: ObservableObject {
     @Published var showExport: Bool = false
     @Published var focusSearch: Bool = false
 
+    let logBrowser = LogBrowserService()
     private var documentSubscriptions: [UUID: AnyCancellable] = [:]
 
     var selectedDocument: LogDocument? {

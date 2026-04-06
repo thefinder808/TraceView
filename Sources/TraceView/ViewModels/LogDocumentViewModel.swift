@@ -145,9 +145,11 @@ final class LogDocumentViewModel: ObservableObject {
         appendLines(nonEmptyLines)
     }
 
-    /// Append new lines from file watcher or other sources
+    /// Append new lines from file watcher or other sources.
+    /// Parsing happens inline (fast), filtering is async if active.
     func appendLines(_ lines: [String]) {
         var newEntries: [LogEntry] = []
+        newEntries.reserveCapacity(lines.count)
         let startLine = document.entries.count + 1
 
         for (offset, line) in lines.enumerated() {
@@ -162,11 +164,17 @@ final class LogDocumentViewModel: ObservableObject {
 
         document.entries.append(contentsOf: newEntries)
 
-        // Incremental filter: only test new entries
+        // Incremental filter: dispatch to background if filter is active
         if filter.isActive {
-            var f = filter
-            let matching = newEntries.filter { f.matches($0) }
-            filteredEntries.append(contentsOf: matching)
+            let currentFilter = filter
+            Task { @MainActor [weak self] in
+                let matching = await Task.detached(priority: .userInitiated) {
+                    var f = currentFilter
+                    return newEntries.filter { f.matches($0) }
+                }.value
+                guard !matching.isEmpty else { return }
+                self?.filteredEntries.append(contentsOf: matching)
+            }
         } else {
             filteredEntries.append(contentsOf: newEntries)
         }
