@@ -6,6 +6,7 @@ struct LogDocumentView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var settingsManager: SettingsManager
+    @State private var selectedEntry: LogEntry?
 
     init(document: LogDocument) {
         self.document = document
@@ -21,8 +22,55 @@ struct LogDocumentView: View {
 
             Divider().background(theme.border)
 
-            // Log table
-            LogTableView(viewModel: viewModel)
+            // Log table + detail pane
+            VStack(spacing: 0) {
+                ZStack(alignment: .bottomTrailing) {
+                    NSLogTableView(
+                        entries: viewModel.filteredEntries,
+                        theme: themeManager.current,
+                        fontSize: settingsManager.fontSize,
+                        showLineNumbers: settingsManager.showLineNumbers,
+                        showTimestamp: settingsManager.showTimestamp,
+                        showComponent: settingsManager.showComponent,
+                        isFollowing: document.isFollowing,
+                        selectedEntry: $selectedEntry,
+                        onScrollUp: {
+                            document.isFollowing = false
+                        }
+                    )
+
+                    // Jump to bottom button
+                    if !document.isFollowing {
+                        Button {
+                            document.isFollowing = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.down.to.line")
+                                    .font(.system(size: 10, weight: .medium))
+                                Text("Jump to Bottom")
+                                    .font(.system(size: 11, weight: .medium))
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(theme.accentColor)
+                            .clipShape(Capsule())
+                            .shadow(color: .black.opacity(0.3), radius: 4, y: 2)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 16)
+                        .padding(.bottom, 8)
+                    }
+                }
+
+                // Detail pane (shown when a row is selected)
+                if let entry = selectedEntry {
+                    Divider().background(theme.border)
+
+                    DetailPaneView(entry: entry)
+                        .frame(minHeight: 80, idealHeight: 120, maxHeight: 250)
+                }
+            }
 
             Divider().background(theme.border)
 
