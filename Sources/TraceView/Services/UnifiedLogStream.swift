@@ -4,6 +4,7 @@ import Foundation
 final class UnifiedLogStream {
     private var process: Process?
     private var outputPipe: Pipe?
+    private let bufferQueue = DispatchQueue(label: "com.traceview.logstream.buffer")
 
     var onNewLines: (([String]) -> Void)?
 
@@ -30,22 +31,21 @@ final class UnifiedLogStream {
 
         var lineBuffer = ""
 
-        pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
+        pipe.fileHandleForReading.readabilityHandler = { [weak self, bufferQueue] handle in
             let data = handle.availableData
             guard !data.isEmpty, let text = String(data: data, encoding: .utf8) else { return }
 
-            // Buffer and split on newlines — log stream outputs one JSON object per line
-            lineBuffer += text
-            var lines = lineBuffer.components(separatedBy: .newlines)
+            bufferQueue.sync {
+                lineBuffer += text
+                var lines = lineBuffer.components(separatedBy: .newlines)
+                lineBuffer = lines.removeLast()
 
-            // Keep the last partial line in the buffer
-            lineBuffer = lines.removeLast()
+                let nonEmpty = lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+                guard !nonEmpty.isEmpty else { return }
 
-            let nonEmpty = lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-            guard !nonEmpty.isEmpty else { return }
-
-            DispatchQueue.main.async {
-                self?.onNewLines?(nonEmpty)
+                DispatchQueue.main.async {
+                    self?.onNewLines?(nonEmpty)
+                }
             }
         }
 
@@ -54,7 +54,8 @@ final class UnifiedLogStream {
         do {
             try proc.run()
         } catch {
-            // Failed to start log stream — likely a permissions issue
+            outputPipe?.fileHandleForReading.readabilityHandler = nil
+            outputPipe = nil
             process = nil
         }
     }

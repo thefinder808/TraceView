@@ -16,5 +16,6 @@ struct LogLevelBadge: View {
             .padding(.vertical, 1)
             .background(theme.badgeBackground(for: level))
             .clipShape(RoundedRectangle(cornerRadius: 3))
+            .accessibilityLabel(level.displayName)
     }
 }

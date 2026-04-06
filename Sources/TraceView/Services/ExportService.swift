@@ -36,7 +36,15 @@ enum ExportService {
             content = exportJSON(entries: entries)
         }
 
-        try? content.write(to: url, atomically: true, encoding: .utf8)
+        do {
+            try content.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Export Failed"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .warning
+            alert.runModal()
+        }
     }
 
     private static func exportCSV(entries: [LogEntry]) -> String {

@@ -56,21 +56,32 @@ struct SCCMLogParser: LogParser {
         )
     }
 
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
     private func parseDateTime(date: String, time: String) -> Date? {
         // Date: "MM-DD-YYYY", Time: "HH:mm:ss.fff+offset" or "HH:mm:ss.fff"
-        let cleanTime = time.components(separatedBy: "+").first?
-            .components(separatedBy: "-").first ?? time
+        // Strip timezone offset: match digits before any +/- timezone suffix
+        // e.g., "10:23:01.442+000" -> "10:23:01.442"
+        let cleanTime: String
+        if let range = time.range(of: #"^[\d:.]+"#, options: .regularExpression) {
+            cleanTime = String(time[range])
+        } else {
+            cleanTime = time
+        }
 
         let combined = "\(date) \(cleanTime)"
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
+        let f = Self.dateFormatter
 
         for format in [
             "MM-dd-yyyy HH:mm:ss.SSS",
             "MM-dd-yyyy HH:mm:ss"
         ] {
-            formatter.dateFormat = format
-            if let date = formatter.date(from: combined) { return date }
+            f.dateFormat = format
+            if let date = f.date(from: combined) { return date }
         }
         return nil
     }

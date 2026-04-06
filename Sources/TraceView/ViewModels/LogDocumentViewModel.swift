@@ -164,7 +164,8 @@ final class LogDocumentViewModel: ObservableObject {
 
         // Incremental filter: only test new entries
         if filter.isActive {
-            let matching = newEntries.filter { filter.matches($0) }
+            var f = filter
+            let matching = newEntries.filter { f.matches($0) }
             filteredEntries.append(contentsOf: matching)
         } else {
             filteredEntries.append(contentsOf: newEntries)
@@ -194,8 +195,9 @@ final class LogDocumentViewModel: ObservableObject {
         }
 
         filterTask = Task { @MainActor [weak self] in
+            var f = currentFilter
             let result = await Task.detached(priority: .userInitiated) {
-                entries.filter { currentFilter.matches($0) }
+                entries.filter { f.matches($0) }
             }.value
             guard !Task.isCancelled else { return }
             self?.filteredEntries = result

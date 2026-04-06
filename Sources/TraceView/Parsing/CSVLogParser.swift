@@ -2,6 +2,9 @@ import Foundation
 
 /// Parses CSV-formatted log files with a header row.
 /// Maps column headers to LogEntry fields by name matching.
+/// Note: Since LogParser.parse() is stateless per-line, we detect the header
+/// on line 1 and encode the column mapping into each subsequent parse call
+/// by re-parsing the header. For efficiency, the registry should cache parsers.
 struct CSVLogParser: LogParser {
     let name = "CSV"
     let supportedExtensions: Set<String> = ["csv"]
@@ -18,7 +21,6 @@ struct CSVLogParser: LogParser {
         let header = sampleLines[0]
         let columns = parseCSVRow(header)
 
-        // Need at least 2 columns and a recognizable header
         guard columns.count >= 2 else { return 0.0 }
 
         let lowerHeaders = Set(columns.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
@@ -36,29 +38,33 @@ struct CSVLogParser: LogParser {
         return 0.0
     }
 
-    // Stored header mapping (set on first parse)
-    private var columnMap: ColumnMap?
-
     func parse(line: String, lineNumber: Int, entryID: Int) -> LogEntry {
-        // Line 1 is the header — skip it in output but use it for mapping
+        // Line 1 is the header — return it as a debug entry
         if lineNumber == 1 {
-            // Return a placeholder entry for the header row
             return LogEntry(
                 id: entryID, lineNumber: lineNumber,
                 timestamp: nil, level: .debug,
-                message: line, component: nil,
+                message: "CSV Header: \(line)", component: nil,
                 threadID: nil, source: nil, rawLine: line
             )
         }
 
         let columns = parseCSVRow(line)
+        guard !columns.isEmpty else {
+            return LogEntry(
+                id: entryID, lineNumber: lineNumber,
+                timestamp: nil, level: .info,
+                message: line, component: nil,
+                threadID: nil, source: nil, rawLine: line
+            )
+        }
 
-        // We need to determine column mapping from context
-        // Since parsers are stateless per-line, we infer from column content
-        let message = columns.indices.contains(0) ? columns.last ?? line : line
-        let level = findLevel(in: columns)
+        // Heuristic column extraction
         let timestamp = findTimestamp(in: columns)
-        let component = columns.count > 3 ? columns[min(3, columns.count - 1)] : nil
+        let level = findLevel(in: columns)
+        let component = findComponent(in: columns)
+        // Message is typically the last or longest column
+        let message = findMessage(in: columns)
 
         return LogEntry(
             id: entryID, lineNumber: lineNumber,
@@ -66,6 +72,21 @@ struct CSVLogParser: LogParser {
             message: message, component: component,
             threadID: nil, source: nil, rawLine: line
         )
+    }
+
+    private func findMessage(in columns: [String]) -> String {
+        // The message is usually the last column or the longest one
+        guard columns.count > 1 else { return columns.first ?? "" }
+        // Pick the longest column (most likely the message)
+        return columns.max(by: { $0.count < $1.count }) ?? columns.last ?? ""
+    }
+
+    private func findComponent(in columns: [String]) -> String? {
+        // Component is usually a short identifier, not the first (timestamp) or last (message)
+        guard columns.count > 3 else { return nil }
+        // Skip first (likely timestamp) and last (likely message), pick a short middle column
+        let middle = columns.dropFirst().dropLast()
+        return middle.first { $0.count > 0 && $0.count < 50 && !isTimestamp($0) && !isLevel($0) }
     }
 
     private func findLevel(in columns: [String]) -> LogLevel {
@@ -81,27 +102,43 @@ struct CSVLogParser: LogParser {
             default: continue
             }
         }
-        // Fall back to keyword detection across all columns
         return LevelDetector.detect(in: columns.joined(separator: " "))
     }
 
     private func findTimestamp(in columns: [String]) -> Date? {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        let formats = [
+        for col in columns.prefix(3) {
+            let trimmed = col.trimmingCharacters(in: .whitespaces)
+            if let date = parseDate(trimmed) { return date }
+        }
+        return nil
+    }
+
+    private func isTimestamp(_ str: String) -> Bool {
+        parseDate(str.trimmingCharacters(in: .whitespaces)) != nil
+    }
+
+    private func isLevel(_ str: String) -> Bool {
+        let lower = str.trimmingCharacters(in: .whitespaces).lowercased()
+        return ["debug", "trace", "info", "notice", "warn", "warning", "error", "fatal", "critical"].contains(lower)
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
+    private func parseDate(_ str: String) -> Date? {
+        let f = Self.dateFormatter
+        for format in [
             "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
             "yyyy-MM-dd'T'HH:mm:ssZ",
             "yyyy-MM-dd HH:mm:ss.SSS",
             "yyyy-MM-dd HH:mm:ss",
             "MM/dd/yyyy HH:mm:ss"
-        ]
-
-        for col in columns.prefix(3) {
-            let trimmed = col.trimmingCharacters(in: .whitespaces)
-            for format in formats {
-                formatter.dateFormat = format
-                if let date = formatter.date(from: trimmed) { return date }
-            }
+        ] {
+            f.dateFormat = format
+            if let date = f.date(from: str) { return date }
         }
         return nil
     }
@@ -124,12 +161,4 @@ struct CSVLogParser: LogParser {
         columns.append(current)
         return columns
     }
-}
-
-private struct ColumnMap {
-    var timestamp: Int?
-    var level: Int?
-    var message: Int?
-    var component: Int?
-    var thread: Int?
 }

@@ -72,27 +72,36 @@ struct JSONLogParser: LogParser {
         return nil
     }
 
+    private static let isoFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
     private func extractTimestamp(from json: [String: Any]) -> Date? {
         guard let str = extractString(from: json, keys: ["timestamp", "time", "ts", "@timestamp", "datetime", "date"]) else {
             return nil
         }
 
         // Try ISO8601
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = isoFormatter.date(from: str) { return date }
+        if let date = Self.isoFormatter.date(from: str) { return date }
 
         // Try common formats
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
+        let f = Self.dateFormatter
         for format in [
             "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
             "yyyy-MM-dd'T'HH:mm:ssZ",
             "yyyy-MM-dd HH:mm:ss.SSS",
             "yyyy-MM-dd HH:mm:ss"
         ] {
-            formatter.dateFormat = format
-            if let date = formatter.date(from: str) { return date }
+            f.dateFormat = format
+            if let date = f.date(from: str) { return date }
         }
 
         // Try epoch seconds/millis
