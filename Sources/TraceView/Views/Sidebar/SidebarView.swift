@@ -3,7 +3,7 @@ import SwiftUI
 struct SidebarView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
-    @State private var logsExpanded = true
+    @State private var logsExpanded = false
     @State private var crashesExpanded = false
     @State private var diagnosticsExpanded = false
     @State private var spinsExpanded = false
