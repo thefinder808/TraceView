@@ -147,6 +147,9 @@ struct NSLogTableView: NSViewRepresentable {
         }
 
         // Height-only change: refresh affected rows so the drawer opens/closes.
+        // noteHeightOfRows resizes rows in place but does NOT re-invoke
+        // rowViewForRow, so the detail view must be attached/detached on the
+        // already-visible row view directly.
         if heightChanged && newCount == oldCount {
             let affected = IndexSet(entries.indices.filter {
                 entries[$0].id == desiredExpanded || entries[$0].id == coordinator.previousExpandedID
@@ -155,6 +158,9 @@ struct NSLogTableView: NSViewRepresentable {
                 NSAnimationContext.runAnimationGroup { ctx in
                     ctx.duration = 0.18
                     tableView.noteHeightOfRows(withIndexesChanged: affected)
+                }
+                for idx in affected {
+                    coordinator.syncDetailView(forRow: idx)
                 }
             }
         }
@@ -309,21 +315,38 @@ struct NSLogTableView: NSViewRepresentable {
             rowView.theme = theme
             rowView.baseRowHeight = NSLogTableView.baseRowHeight
 
-            // Attach detail drawer if this row is expanded
-            if inlineExpansionEnabled, entry.id == currentExpandedID, let themeManager {
-                let detail = InlineRowDetailView(
-                    entry: entry,
-                    onCopy: { [weak self] in self?.onCopy(entry) },
-                    onFilterToComponent: { [weak self] in self?.onFilterToComponent(entry) },
-                    onLookupErrorCode: { [weak self] code in self?.onLookupErrorCode(code) }
-                )
-                .environmentObject(themeManager)
-
-                let hosting = NSHostingView(rootView: detail)
-                hosting.translatesAutoresizingMaskIntoConstraints = true
-                rowView.attachDetailView(hosting)
+            if inlineExpansionEnabled, entry.id == currentExpandedID {
+                attachDetailView(to: rowView, entry: entry)
             }
             return rowView
+        }
+
+        // Called from updateNSView after an expansion toggle to sync the
+        // detail view of an already-visible row (rowViewForRow is not
+        // re-invoked by noteHeightOfRows).
+        func syncDetailView(forRow row: Int) {
+            guard row >= 0, row < entries.count, let tableView else { return }
+            guard let rowView = tableView.rowView(atRow: row, makeIfNecessary: false) as? LogTableRowView else { return }
+            let entry = entries[row]
+            if inlineExpansionEnabled, entry.id == currentExpandedID {
+                attachDetailView(to: rowView, entry: entry)
+            } else {
+                rowView.removeDetailView()
+            }
+        }
+
+        private func attachDetailView(to rowView: LogTableRowView, entry: LogEntry) {
+            guard let themeManager else { return }
+            let detail = InlineRowDetailView(
+                entry: entry,
+                onCopy: { [weak self] in self?.onCopy(entry) },
+                onFilterToComponent: { [weak self] in self?.onFilterToComponent(entry) },
+                onLookupErrorCode: { [weak self] code in self?.onLookupErrorCode(code) }
+            )
+            .environmentObject(themeManager)
+
+            let hosting = NSHostingView(rootView: detail)
+            rowView.attachDetailView(hosting)
         }
 
         func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
@@ -377,38 +400,53 @@ class LogTableRowView: NSTableRowView {
     var theme: (any AppTheme)?
     var baseRowHeight: CGFloat = 24
     private(set) var detailView: NSView?
+    private var detailConstraints: [NSLayoutConstraint] = []
 
+    // Pin the detail view below the cell band via AutoLayout. Frame-based
+    // positioning doesn't play nicely with NSHostingView — its SwiftUI
+    // content is sized via layout constraints, and without a constraint on
+    // the host's size the content renders at zero.
     func attachDetailView(_ view: NSView) {
         detailView?.removeFromSuperview()
+        NSLayoutConstraint.deactivate(detailConstraints)
+        detailConstraints = []
+
         detailView = view
+        view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
+
+        detailConstraints = [
+            view.topAnchor.constraint(equalTo: topAnchor, constant: baseRowHeight),
+            view.leadingAnchor.constraint(equalTo: leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: trailingAnchor),
+            view.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ]
+        NSLayoutConstraint.activate(detailConstraints)
         needsLayout = true
     }
 
-    override func prepareForReuse() {
-        super.prepareForReuse()
+    func removeDetailView() {
+        NSLayoutConstraint.deactivate(detailConstraints)
+        detailConstraints = []
         detailView?.removeFromSuperview()
         detailView = nil
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        removeDetailView()
+    }
+
     override func layout() {
         super.layout()
-        // Pin cells to the top `baseRowHeight` band and place the detail
-        // drawer in the remaining space below. Without this, a tall expanded
-        // row would stretch the cells themselves.
+        // Pin cells to the top `baseRowHeight` band. Without this, a tall
+        // expanded row would stretch the cells themselves. Detail view
+        // positioning is handled via AutoLayout (attachDetailView).
         for sub in subviews where sub is NSTableCellView {
             var f = sub.frame
             f.origin.y = 0
             f.size.height = baseRowHeight
             sub.frame = f
-        }
-        if let detailView {
-            detailView.frame = NSRect(
-                x: 0,
-                y: baseRowHeight,
-                width: bounds.width,
-                height: max(0, bounds.height - baseRowHeight)
-            )
         }
     }
 

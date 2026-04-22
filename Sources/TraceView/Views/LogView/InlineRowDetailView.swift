@@ -29,17 +29,17 @@ struct InlineRowDetailView: View {
                     .truncationMode(.middle)
             }
 
-            // Message body
-            ScrollView(.horizontal, showsIndicators: false) {
+            // Message body — scrolls vertically for long messages
+            ScrollView(.vertical, showsIndicators: true) {
                 Text(entry.message)
                     .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(theme.secondaryText)
+                    .foregroundStyle(theme.primaryText)
                     .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(theme.tableBackground)
             .overlay(
                 RoundedRectangle(cornerRadius: 5)
