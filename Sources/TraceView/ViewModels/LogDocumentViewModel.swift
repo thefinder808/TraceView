@@ -7,6 +7,14 @@ final class LogDocumentViewModel: ObservableObject {
     @Published var filter = LogFilter()
     @Published var filteredEntries: [LogEntry] = []
 
+    // Auto-hide hints for the table — flips true the first time any entry
+    // lands with a parsed timestamp / component, stays true thereafter.
+    // The log table combines these with the user's showTimestamp /
+    // showComponent settings so an unparseable file doesn't render two
+    // dead columns full of em-dashes.
+    @Published private(set) var hasTimestamps = false
+    @Published private(set) var hasComponents = false
+
     private var parser: any LogParser = PlainTextParser()
     private var fileWatcher: FileWatcher?
     private var logStream: UnifiedLogStream?
@@ -80,10 +88,22 @@ final class LogDocumentViewModel: ObservableObject {
         }
 
         document.entries = entries
+        updateColumnFlags(scanning: entries)
         applyFilter()
 
         // Start watching for changes
         startWatching(url: url)
+    }
+
+    private func updateColumnFlags(scanning entries: [LogEntry]) {
+        // contains(where:) short-circuits on first match — constant cost
+        // once either flag has flipped true.
+        if !hasTimestamps, entries.contains(where: { $0.timestamp != nil }) {
+            hasTimestamps = true
+        }
+        if !hasComponents, entries.contains(where: { $0.component != nil }) {
+            hasComponents = true
+        }
     }
 
     // MARK: - File Watching
@@ -162,6 +182,7 @@ final class LogDocumentViewModel: ObservableObject {
         }
 
         document.entries.append(contentsOf: newEntries)
+        updateColumnFlags(scanning: newEntries)
 
         // Incremental filter: dispatch to background if filter is active
         if filter.isActive {

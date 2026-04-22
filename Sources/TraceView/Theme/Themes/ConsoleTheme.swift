@@ -52,12 +52,14 @@ struct ConsoleTheme: AppTheme {
     var errorCodeLink: Color { Color(hex: 0x0066CC) }
     var liveIndicator: Color { Color(hex: 0xC46B00) }
 
-    // Badges — mono-ish, matching .tv-badge-* rules in styles.css
+    // Badges — tinted background + dark colored text for error/critical/
+    // warning so the label reads as an annotation rather than stamping a
+    // saturated block into an already-tinted error row.
     func badgeBackground(for level: LogLevel) -> Color {
         switch level {
-        case .critical: return Color(hex: 0x8C1410)
-        case .error:    return Color(hex: 0xC4241A, opacity: 0.88)
-        case .warning:  return Color(hex: 0x9A6B00, opacity: 0.85)
+        case .critical: return Color(hex: 0x8C1410, opacity: 0.16)
+        case .error:    return Color(hex: 0xC4241A, opacity: 0.14)
+        case .warning:  return Color(hex: 0x9A6B00, opacity: 0.14)
         case .notice:   return Color(hex: 0x0066CC, opacity: 0.14)
         case .info:     return Color(hex: 0xEDEDED)
         case .debug:    return Color(hex: 0xEDEDED)
@@ -67,11 +69,13 @@ struct ConsoleTheme: AppTheme {
 
     func badgeText(for level: LogLevel) -> Color {
         switch level {
-        case .critical, .error, .warning: return .white
-        case .notice:  return Color(hex: 0x0066CC)
-        case .info:    return Color(hex: 0x5A5A5A)
-        case .debug:   return Color(hex: 0x9B9B9B)
-        case .unknown: return Color(hex: 0x9B9B9B)
+        case .critical: return Color(hex: 0x8C1410)
+        case .error:    return Color(hex: 0x9B1D14)
+        case .warning:  return Color(hex: 0x7A5400)
+        case .notice:   return Color(hex: 0x0066CC)
+        case .info:     return Color(hex: 0x5A5A5A)
+        case .debug:    return Color(hex: 0x9B9B9B)
+        case .unknown:  return Color(hex: 0x9B9B9B)
         }
     }
 }
