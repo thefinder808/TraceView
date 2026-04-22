@@ -89,7 +89,7 @@ struct LogDocumentView: View {
                 if settingsManager.detailDisplayMode == .bottomPane, let entry = selectedEntry {
                     Divider().background(theme.border)
 
-                    DetailPaneView(entry: entry)
+                    DetailPaneView(entry: entry, onClose: { selectedEntry = nil })
                         .frame(minHeight: 80, idealHeight: 120, maxHeight: 250)
                 }
             }

@@ -49,7 +49,13 @@ struct StatusBarView: View {
 
     private var streamState: StreamState {
         if !document.isFollowing { return .paused }
-        if document.isLive && document.idleTicks >= 5 { return .stalled }
+        // Stalled only applies to unified-log streams where silence is
+        // unexpected. Static file watchers sit quiet whenever the file
+        // isn't being appended to — that's normal, not a problem.
+        if case .unifiedLog = document.source,
+           document.idleTicks >= 5 {
+            return .stalled
+        }
         return .following
     }
 
