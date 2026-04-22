@@ -100,9 +100,11 @@ struct SidebarView: View {
 
                     Spacer()
 
-                    Button {
-                        appState.showSettings.toggle()
-                    } label: {
+                    // SettingsLink opens the declared `Settings { SettingsView() }`
+                    // scene as a native macOS preferences window — same behavior
+                    // as ⌘,. Plain Button + custom state doesn't hook into the
+                    // Settings scene on macOS.
+                    SettingsLink {
                         Image(systemName: "gearshape")
                             .font(.system(size: 13))
                             .foregroundStyle(theme.secondaryText)
