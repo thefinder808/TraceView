@@ -25,6 +25,16 @@ struct PlainTextParser: LogParser {
         pattern: #"^(\w{3}\s+\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\.\d+)\s+\[([^\]]+)\]/\d+\s+(.*)$"#
     )
 
+    // Dated-syslog (e.g. /var/log/install.log):
+    //   "2026-03-08 13:46:47-07 localhost Installer Progress[57]: message"
+    // Captures: timestamp (with optional fractional seconds and TZ), host
+    // (discarded), process (may contain spaces, up to optional [pid]), message.
+    // [^\[]+? is non-greedy and tolerates multi-word process names like
+    // "Installer Progress" that \S+? would truncate.
+    private static let datedSyslogPattern: NSRegularExpression? = try? NSRegularExpression(
+        pattern: #"^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[+-]\d{2}(?::?\d{2})?)?)\s+(\S+)\s+([^\[]+?)(?:\[\d+\])?:\s*(.*)"#
+    )
+
     private static let isoPattern: NSRegularExpression? = try? NSRegularExpression(
         pattern: #"^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\s+(.*)"#
     )
@@ -54,6 +64,25 @@ struct PlainTextParser: LogParser {
         f.locale = Locale(identifier: "en_US_POSIX")
         return f
     }()
+
+    // Accepts -07, -0700, -07:00 via the X/XXX/XXXXX spec — tries each in turn.
+    private static let datedSyslogFormatters: [DateFormatter] = {
+        ["yyyy-MM-dd HH:mm:ssX", "yyyy-MM-dd HH:mm:ssXXX", "yyyy-MM-dd HH:mm:ssXXXXX",
+         "yyyy-MM-dd HH:mm:ss.SSSX", "yyyy-MM-dd HH:mm:ss.SSSXXX",
+         "yyyy-MM-dd HH:mm:ss"].map { fmt in
+            let f = DateFormatter()
+            f.dateFormat = fmt
+            f.locale = Locale(identifier: "en_US_POSIX")
+            return f
+        }
+    }()
+
+    private static func parseDatedSyslog(_ s: String) -> Date? {
+        for f in datedSyslogFormatters {
+            if let d = f.date(from: s) { return d }
+        }
+        return nil
+    }
 
     func parse(line: String, lineNumber: Int, entryID: Int) -> LogEntry {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -86,6 +115,26 @@ struct PlainTextParser: LogParser {
             let component = nsLine.substring(with: match.range(at: 2))
             let message = nsLine.substring(with: match.range(at: 3))
             let timestamp = Self.appleDaemonFormatter.date(from: timeStr)
+            let level = detectLevel(in: message, raw: trimmed)
+
+            return LogEntry(
+                id: entryID, lineNumber: lineNumber,
+                timestamp: timestamp, level: level,
+                message: message, component: component,
+                threadID: nil, source: nil, rawLine: line
+            )
+        }
+
+        // Try dated-syslog (install.log, many /var/log/*.log formats).
+        // Range 2 is the host (discarded — we have no host column).
+        if let regex = Self.datedSyslogPattern,
+           let match = regex.firstMatch(in: trimmed, range: fullRange),
+           match.numberOfRanges >= 5 {
+            let timeStr = nsLine.substring(with: match.range(at: 1))
+            let component = nsLine.substring(with: match.range(at: 3))
+                .trimmingCharacters(in: .whitespaces)
+            let message = nsLine.substring(with: match.range(at: 4))
+            let timestamp = Self.parseDatedSyslog(timeStr)
             let level = detectLevel(in: message, raw: trimmed)
 
             return LogEntry(

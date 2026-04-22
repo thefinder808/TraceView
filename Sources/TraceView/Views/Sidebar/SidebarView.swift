@@ -83,11 +83,12 @@ struct SidebarView: View {
         }
         .background(theme.sidebarBackground)
         .safeAreaInset(edge: .bottom) {
-            // Settings button
             VStack(spacing: 0) {
                 Divider().background(theme.borderSubtle)
 
-                HStack {
+                HStack(spacing: 8) {
+                    RefreshButton(theme: theme)
+
                     Spacer()
 
                     // SettingsLink opens the declared `Settings { SettingsView() }`
@@ -166,6 +167,59 @@ struct SidebarView: View {
 
             if isExpanded.wrappedValue {
                 content()
+            }
+        }
+    }
+}
+
+// MARK: - Refresh Button
+
+// Triggers a LogBrowserService rescan; spins while active, flashes a brief
+// "Updated" label when the scan completes so the user can tell it did something.
+private struct RefreshButton: View {
+    let theme: any AppTheme
+    @EnvironmentObject var appState: AppState
+    @State private var rotation: Double = 0
+    @State private var showUpdated: Bool = false
+    @State private var updatedTask: Task<Void, Never>? = nil
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Button {
+                appState.logBrowser.scan()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(theme.tertiaryText)
+                    .rotationEffect(.degrees(rotation))
+            }
+            .buttonStyle(.plain)
+            .disabled(appState.logBrowser.isScanning)
+            .help("Refresh log files")
+
+            if showUpdated {
+                Text("Updated")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(theme.followingIndicator)
+                    .transition(.opacity)
+            }
+        }
+        .onChange(of: appState.logBrowser.isScanning) { _, scanning in
+            if scanning {
+                withAnimation(.linear(duration: 0.8).repeatForever(autoreverses: false)) {
+                    rotation = 360
+                }
+            } else {
+                // Reset rotation and show "Updated" for ~1.5s
+                rotation = 0
+                updatedTask?.cancel()
+                withAnimation { showUpdated = true }
+                updatedTask = Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 1_500_000_000)
+                    if !Task.isCancelled {
+                        withAnimation { showUpdated = false }
+                    }
+                }
             }
         }
     }

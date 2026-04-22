@@ -36,6 +36,7 @@ final class LogBrowserService: ObservableObject {
     @Published var crashReports: [BrowsableLogFile] = []
     @Published var diagnosticReports: [BrowsableLogFile] = []
     @Published var spinReports: [BrowsableLogFile] = []
+    @Published private(set) var isScanning: Bool = false
 
     private let scanQueue = DispatchQueue(label: "com.traceview.logbrowser", qos: .utility)
 
@@ -61,6 +62,11 @@ final class LogBrowserService: ObservableObject {
     }
 
     func scan() {
+        // Guard against stacking concurrent scans when the user mashes the
+        // refresh button. The published flag drives the UI spinner.
+        if isScanning { return }
+        isScanning = true
+
         scanQueue.async { [weak self] in
             let logs = Self.scanLogs()
             let diagnostics = Self.scanDiagnosticReports()
@@ -70,6 +76,7 @@ final class LogBrowserService: ObservableObject {
                 self?.crashReports = diagnostics.crash
                 self?.diagnosticReports = diagnostics.diagnostic
                 self?.spinReports = diagnostics.spin
+                self?.isScanning = false
             }
         }
     }

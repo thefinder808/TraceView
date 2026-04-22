@@ -100,11 +100,21 @@ struct InlineRowDetailView: View {
         return try? NSRegularExpression(pattern: pattern)
     }()
 
+    // Returns the first regex match that actually resolves in the lookup
+    // database. Previously this returned any hex-looking token, so thread IDs
+    // (tid[0x394aed]) and memory addresses offered "Lookup" pills that always
+    // led to an empty panel.
     private func firstErrorCode() -> String? {
         guard let regex = Self.errorCodeRegex else { return nil }
         let range = NSRange(entry.message.startIndex..., in: entry.message)
-        guard let match = regex.firstMatch(in: entry.message, range: range),
-              let swiftRange = Range(match.range, in: entry.message) else { return nil }
-        return String(entry.message[swiftRange])
+        let matches = regex.matches(in: entry.message, range: range)
+        for match in matches {
+            guard let r = Range(match.range, in: entry.message) else { continue }
+            let code = String(entry.message[r])
+            if !ErrorCodeLookup.shared.lookup(input: code).isEmpty {
+                return code
+            }
+        }
+        return nil
     }
 }

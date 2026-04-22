@@ -61,13 +61,19 @@ struct ErrorLookupPanel: View {
                         ErrorResultCard(result: result, theme: theme)
                     }
 
-                    // Empty state
+                    // Empty state — spell out the database scope so a
+                    // legitimate "no match" reads as an answer, not a bug.
                     if viewModel.results.isEmpty && !viewModel.searchText.isEmpty {
-                        Text("No matches found")
-                            .font(.system(size: 12))
-                            .foregroundStyle(theme.tertiaryText)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
+                        VStack(spacing: 4) {
+                            Text("Not in the built-in database")
+                                .font(.system(size: 12))
+                                .foregroundStyle(theme.secondaryText)
+                            Text("errno · OSStatus · IOReturn · Mach · HTTP")
+                                .font(.system(size: 10))
+                                .foregroundStyle(theme.tertiaryText)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
                     }
 
                     // Recent lookups
