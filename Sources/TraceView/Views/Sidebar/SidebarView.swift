@@ -4,7 +4,9 @@ struct SidebarView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
     @State private var logsExpanded = true
-    @State private var crashesExpanded = true
+    @State private var crashesExpanded = false
+    @State private var diagnosticsExpanded = false
+    @State private var spinsExpanded = false
 
     var body: some View {
         let theme = themeManager.current
@@ -17,16 +19,16 @@ struct SidebarView: View {
 
                     ForEach(appState.documents) { doc in
                         SidebarDocumentRow(document: doc)
-                            .onTapGesture {
-                                appState.selectedDocumentID = doc.id
-                            }
                     }
                 }
 
-                // Log Reports section (browsable)
+                // Reports — mirrors Console.app's sidebar grouping
+                sectionHeader("Reports", theme: theme)
+
                 collapsibleSection(
                     title: "Log Reports",
                     icon: "doc.text",
+                    count: appState.logBrowser.logReports.count,
                     isExpanded: $logsExpanded,
                     theme: theme
                 ) {
@@ -35,14 +37,38 @@ struct SidebarView: View {
                     }
                 }
 
-                // Crash Reports section (browsable)
                 collapsibleSection(
                     title: "Crash Reports",
                     icon: "exclamationmark.triangle",
+                    count: appState.logBrowser.crashReports.count,
                     isExpanded: $crashesExpanded,
                     theme: theme
                 ) {
                     ForEach(appState.logBrowser.crashReports) { file in
+                        SidebarBrowsableRow(file: file)
+                    }
+                }
+
+                collapsibleSection(
+                    title: "Diagnostic Reports",
+                    icon: "stethoscope",
+                    count: appState.logBrowser.diagnosticReports.count,
+                    isExpanded: $diagnosticsExpanded,
+                    theme: theme
+                ) {
+                    ForEach(appState.logBrowser.diagnosticReports) { file in
+                        SidebarBrowsableRow(file: file)
+                    }
+                }
+
+                collapsibleSection(
+                    title: "Spin Reports",
+                    icon: "hourglass",
+                    count: appState.logBrowser.spinReports.count,
+                    isExpanded: $spinsExpanded,
+                    theme: theme
+                ) {
+                    ForEach(appState.logBrowser.spinReports) { file in
                         SidebarBrowsableRow(file: file)
                     }
                 }
@@ -105,6 +131,7 @@ struct SidebarView: View {
     private func collapsibleSection<Content: View>(
         title: String,
         icon: String,
+        count: Int,
         isExpanded: Binding<Bool>,
         theme: any AppTheme,
         @ViewBuilder content: () -> Content
@@ -115,23 +142,32 @@ struct SidebarView: View {
                     isExpanded.wrappedValue.toggle()
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     Image(systemName: isExpanded.wrappedValue ? "chevron.down" : "chevron.right")
                         .font(.system(size: 8, weight: .bold))
                         .foregroundStyle(theme.tertiaryText)
-                        .frame(width: 12)
+                        .frame(width: 10)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 11))
+                        .foregroundStyle(theme.secondaryText)
+                        .frame(width: 14)
 
                     Text(title)
-                        .font(.system(size: 10, weight: .semibold))
-                        .textCase(.uppercase)
-                        .tracking(0.5)
-                        .foregroundStyle(theme.tertiaryText)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(theme.primaryText)
 
                     Spacer()
+
+                    if count > 0 {
+                        Text("\(count)")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(theme.tertiaryText)
+                            .monospacedDigit()
+                    }
                 }
                 .padding(.horizontal, 12)
-                .padding(.top, 16)
-                .padding(.bottom, 6)
+                .padding(.vertical, 6)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -149,6 +185,7 @@ struct SidebarDocumentRow: View {
     @ObservedObject var document: LogDocument
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
+    @State private var isHovered = false
 
     var body: some View {
         let theme = themeManager.current
@@ -173,21 +210,44 @@ struct SidebarDocumentRow: View {
 
             Spacer()
 
-            Text(formatCount(document.displayLineCount))
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(theme.secondaryText)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 1)
-                .background(theme.cardBackground)
-                .clipShape(Capsule())
+            // Close button swaps in for the line-count on hover/selected.
+            if isHovered || isSelected {
+                Button {
+                    appState.closeDocument(document)
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(theme.tertiaryText)
+                        .frame(width: 16, height: 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(theme.sidebarHover)
+                        )
+                }
+                .buttonStyle(.plain)
+                .help("Close")
+            } else {
+                Text(formatCount(document.displayLineCount))
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(theme.secondaryText)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 1)
+                    .background(theme.cardBackground)
+                    .clipShape(Capsule())
+            }
         }
         .padding(.horizontal, 12)
         .frame(height: 34)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(isSelected ? theme.sidebarActive : Color.clear)
+                .fill(isSelected ? theme.sidebarActive : (isHovered ? theme.sidebarHover : .clear))
         )
         .padding(.horizontal, 6)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            appState.selectedDocumentID = document.id
+        }
+        .onHover { isHovered = $0 }
     }
 
     private func formatCount(_ count: Int) -> String {
