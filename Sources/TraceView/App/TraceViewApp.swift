@@ -120,7 +120,7 @@ struct TraceViewApp: App {
     private var colorScheme: ColorScheme? {
         switch themeManager.selectedOption {
         case .dark, .neon: return .dark
-        case .light: return .light
+        case .light, .console: return .light
         case .system: return nil
         }
     }
