@@ -34,8 +34,24 @@ struct SettingsView: View {
                 Toggle("Show Timestamps", isOn: $settingsManager.showTimestamp)
                 Toggle("Show Component", isOn: $settingsManager.showComponent)
             }
+
+            // Detail view
+            Section("Detail View") {
+                Picker("Show detail as", selection: $settingsManager.detailDisplayMode) {
+                    ForEach(DetailDisplayMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                Text(settingsManager.detailDisplayMode == .inline
+                     ? "Click a log row to expand it in place with context and actions."
+                     : "Click a log row to show details in a pane at the bottom of the window.")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 300)
+        .frame(width: 420, height: 380)
     }
 }

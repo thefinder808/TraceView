@@ -7,6 +7,7 @@ struct LogDocumentView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var settingsManager: SettingsManager
     @State private var selectedEntry: LogEntry?
+    @State private var expandedEntryID: Int?
 
     init(document: LogDocument) {
         self.document = document
@@ -40,6 +41,21 @@ struct LogDocumentView: View {
                         showComponent: settingsManager.showComponent,
                         isFollowing: document.isFollowing,
                         selectedEntry: $selectedEntry,
+                        expandedEntryID: $expandedEntryID,
+                        inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
+                        themeManager: themeManager,
+                        onCopy: { entry in
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(entry.message, forType: .string)
+                        },
+                        onFilterToComponent: { entry in
+                            if let comp = entry.component {
+                                viewModel.filter.component = comp
+                            }
+                        },
+                        onLookupErrorCode: { _ in
+                            appState.showErrorLookup = true
+                        },
                         onScrollUp: {
                             document.isFollowing = false
                         }
@@ -69,8 +85,8 @@ struct LogDocumentView: View {
                     }
                 }
 
-                // Detail pane (shown when a row is selected)
-                if let entry = selectedEntry {
+                // Bottom detail pane (only in .bottomPane mode)
+                if settingsManager.detailDisplayMode == .bottomPane, let entry = selectedEntry {
                     Divider().background(theme.border)
 
                     DetailPaneView(entry: entry)
