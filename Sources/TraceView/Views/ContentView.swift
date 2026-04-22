@@ -42,5 +42,17 @@ struct ContentView: View {
             }
         }
         .animation(.spring(duration: 0.2), value: appState.showCommandPalette)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    appState.showErrorLookup.toggle()
+                } label: {
+                    Image(systemName: appState.showErrorLookup
+                          ? "sidebar.right"
+                          : "exclamationmark.magnifyingglass")
+                }
+                .help(appState.showErrorLookup ? "Hide Error Lookup" : "Show Error Lookup (⇧⌘L)")
+            }
+        }
     }
 }

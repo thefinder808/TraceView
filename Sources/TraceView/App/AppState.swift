@@ -10,6 +10,11 @@ final class AppState: ObservableObject {
     @Published var showExport: Bool = false
     @Published var focusSearch: Bool = false
 
+    // Set by callers that want to open the error lookup panel with a
+    // pre-filled query (e.g. the inline-row "Lookup 0x…" pill). Consumed
+    // by ErrorLookupPanel which clears it after populating the search.
+    @Published var pendingErrorLookupCode: String? = nil
+
     let logBrowser = LogBrowserService()
     private var documentSubscriptions: [UUID: AnyCancellable] = [:]
 
@@ -101,6 +106,12 @@ final class AppState: ObservableObject {
 
     func toggleFollowing() {
         selectedDocument?.isFollowing.toggle()
+    }
+
+    /// Open the error lookup panel pre-filled with `code`.
+    func lookupErrorCode(_ code: String) {
+        pendingErrorLookupCode = code
+        showErrorLookup = true
     }
 
     func jumpToBottom() {

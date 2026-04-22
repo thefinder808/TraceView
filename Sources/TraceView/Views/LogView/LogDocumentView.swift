@@ -53,8 +53,8 @@ struct LogDocumentView: View {
                                 viewModel.filter.component = comp
                             }
                         },
-                        onLookupErrorCode: { _ in
-                            appState.showErrorLookup = true
+                        onLookupErrorCode: { code in
+                            appState.lookupErrorCode(code)
                         },
                         onScrollUp: {
                             document.isFollowing = false
