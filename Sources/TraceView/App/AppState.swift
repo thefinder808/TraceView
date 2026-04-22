@@ -4,7 +4,6 @@ import Combine
 final class AppState: ObservableObject {
     @Published var documents: [LogDocument] = []
     @Published var selectedDocumentID: UUID? = nil
-    @Published var showSettings: Bool = false
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
     @Published var showExport: Bool = false
