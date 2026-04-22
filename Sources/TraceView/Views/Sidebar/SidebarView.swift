@@ -88,16 +88,6 @@ struct SidebarView: View {
                 Divider().background(theme.borderSubtle)
 
                 HStack {
-                    Button {
-                        appState.logBrowser.scan()
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 12))
-                            .foregroundStyle(theme.tertiaryText)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Refresh log files")
-
                     Spacer()
 
                     // SettingsLink opens the declared `Settings { SettingsView() }`

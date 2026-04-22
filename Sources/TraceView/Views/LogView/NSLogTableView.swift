@@ -107,6 +107,12 @@ struct NSLogTableView: NSViewRepresentable {
         let coordinator = context.coordinator
         let tableView = coordinator.tableView!
 
+        // Detect theme swap. Cached NSTextField cells keep their old textColor,
+        // so a plain theme reassignment leaves already-visible rows looking
+        // stale until the user scrolls. A full reloadData rebuilds every
+        // rendered cell with the new theme while preserving the scroll offset.
+        let themeChanged = coordinator.theme.name != theme.name
+
         // Update data
         coordinator.entries = entries
         coordinator.theme = theme
@@ -135,7 +141,9 @@ struct NSLogTableView: NSViewRepresentable {
         let oldCount = coordinator.previousEntryCount
         let newCount = entries.count
 
-        if newCount > oldCount && oldCount > 0 {
+        if themeChanged {
+            tableView.reloadData()
+        } else if newCount > oldCount && oldCount > 0 {
             // Incremental append — insert only new rows
             tableView.beginUpdates()
             let indexSet = IndexSet( oldCount..<newCount)

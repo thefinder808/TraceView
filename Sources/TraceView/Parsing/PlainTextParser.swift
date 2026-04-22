@@ -18,6 +18,13 @@ struct PlainTextParser: LogParser {
         pattern: #"^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+(\S+)\s+(\S+?)(?:\[\d+\])?:\s*(.*)"#
     )
 
+    // Apple daemon format, common in /var/log/wifi.log and similar:
+    //   "Wed Apr 22 00:40:27.253 [airport]/616 @[...] (file:line) message"
+    // Captures: timestamp (with day-of-week), component, and the remainder.
+    private static let appleDaemonPattern: NSRegularExpression? = try? NSRegularExpression(
+        pattern: #"^(\w{3}\s+\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\.\d+)\s+\[([^\]]+)\]/\d+\s+(.*)$"#
+    )
+
     private static let isoPattern: NSRegularExpression? = try? NSRegularExpression(
         pattern: #"^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\s+(.*)"#
     )
@@ -40,6 +47,14 @@ struct PlainTextParser: LogParser {
         return f
     }()
 
+    // "EEE MMM d HH:mm:ss.SSS" — no year; DateFormatter fills in current year.
+    private static let appleDaemonFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "EEE MMM d HH:mm:ss.SSS"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
     func parse(line: String, lineNumber: Int, entryID: Int) -> LogEntry {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         let nsLine = trimmed as NSString
@@ -53,6 +68,24 @@ struct PlainTextParser: LogParser {
             let component = nsLine.substring(with: match.range(at: 3))
             let message = nsLine.substring(with: match.range(at: 4))
             let timestamp = Self.syslogFormatter.date(from: timeStr)
+            let level = detectLevel(in: message, raw: trimmed)
+
+            return LogEntry(
+                id: entryID, lineNumber: lineNumber,
+                timestamp: timestamp, level: level,
+                message: message, component: component,
+                threadID: nil, source: nil, rawLine: line
+            )
+        }
+
+        // Try Apple daemon format (wifi.log, airportd, etc.)
+        if let regex = Self.appleDaemonPattern,
+           let match = regex.firstMatch(in: trimmed, range: fullRange),
+           match.numberOfRanges >= 4 {
+            let timeStr = nsLine.substring(with: match.range(at: 1))
+            let component = nsLine.substring(with: match.range(at: 2))
+            let message = nsLine.substring(with: match.range(at: 3))
+            let timestamp = Self.appleDaemonFormatter.date(from: timeStr)
             let level = detectLevel(in: message, raw: trimmed)
 
             return LogEntry(

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DetailPaneView: View {
     let entry: LogEntry
+    let onClose: () -> Void
     @EnvironmentObject var themeManager: ThemeManager
     @State private var showRawLine = false
 
@@ -60,6 +61,20 @@ struct DetailPaneView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Copy to clipboard")
+
+                // Close button — dismisses the pane
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(theme.tertiaryText)
+                        .frame(width: 18, height: 18)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(theme.sidebarHover)
+                        )
+                }
+                .buttonStyle(.plain)
+                .help("Close detail pane")
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
