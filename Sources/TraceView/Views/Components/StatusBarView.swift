@@ -32,26 +32,9 @@ struct StatusBarView: View {
 
             Spacer()
 
-            // Following indicator
+            // Following / Paused / Stalled + rolling rate
             statusItem(theme: theme) {
-                if document.isFollowing {
-                    Circle()
-                        .fill(theme.followingIndicator)
-                        .frame(width: 6, height: 6)
-                        .opacity(pulseOpacity)
-                        .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: pulseOpacity)
-
-                    Text("Following")
-                        .fontWeight(.medium)
-                        .foregroundStyle(theme.followingIndicator)
-                } else {
-                    Circle()
-                        .fill(theme.pausedIndicator)
-                        .frame(width: 6, height: 6)
-
-                    Text("Paused")
-                        .foregroundStyle(theme.pausedIndicator)
-                }
+                streamHealth(theme: theme)
             }
         }
         .font(.system(size: 11))
@@ -61,6 +44,55 @@ struct StatusBarView: View {
     }
 
     @State private var pulseOpacity: Double = 0.6
+
+    private enum StreamState { case following, paused, stalled }
+
+    private var streamState: StreamState {
+        if !document.isFollowing { return .paused }
+        if document.isLive && document.idleTicks >= 5 { return .stalled }
+        return .following
+    }
+
+    @ViewBuilder
+    private func streamHealth(theme: any AppTheme) -> some View {
+        switch streamState {
+        case .following:
+            Circle()
+                .fill(theme.followingIndicator)
+                .frame(width: 6, height: 6)
+                .opacity(pulseOpacity)
+                .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: pulseOpacity)
+                .onAppear { pulseOpacity = 1.0 }
+            Text("Following")
+                .fontWeight(.medium)
+                .foregroundStyle(theme.followingIndicator)
+            if document.isLive && document.linesPerSecond >= 0.5 {
+                Text("· \(rateLabel)/s")
+                    .foregroundStyle(theme.tertiaryText)
+                    .monospacedDigit()
+            }
+        case .paused:
+            Circle()
+                .fill(theme.pausedIndicator)
+                .frame(width: 6, height: 6)
+            Text("Paused")
+                .foregroundStyle(theme.pausedIndicator)
+        case .stalled:
+            Circle()
+                .fill(theme.warningText)
+                .frame(width: 6, height: 6)
+            Text("Stalled")
+                .fontWeight(.medium)
+                .foregroundStyle(theme.warningText)
+        }
+    }
+
+    private var rateLabel: String {
+        let rate = document.linesPerSecond
+        if rate >= 100 { return String(Int(rate.rounded())) }
+        if rate >= 10  { return String(format: "%.0f", rate) }
+        return String(format: "%.1f", rate)
+    }
 
     private var encodingName: String {
         switch document.encoding {

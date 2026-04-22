@@ -3,6 +3,7 @@ import Combine
 
 enum ThemeOption: String, CaseIterable, Identifiable {
     case system = "System"
+    case console = "Console"
     case dark = "Dark"
     case light = "Light"
     case neon = "Neon"
@@ -23,10 +24,10 @@ final class ThemeManager: ObservableObject {
     private var appearanceObserver: NSObjectProtocol?
 
     init() {
-        let saved = UserDefaults.standard.string(forKey: "traceview.theme") ?? "System"
-        let option = ThemeOption(rawValue: saved) ?? .system
+        let saved = UserDefaults.standard.string(forKey: "traceview.theme") ?? "Console"
+        let option = ThemeOption(rawValue: saved) ?? .console
         self.selectedOption = option
-        self.current = DarkTheme()
+        self.current = ConsoleTheme()
         resolveTheme()
         observeSystemAppearance()
     }
@@ -40,6 +41,8 @@ final class ThemeManager: ObservableObject {
 
     private func resolveTheme() {
         switch selectedOption {
+        case .console:
+            current = ConsoleTheme()
         case .dark:
             current = DarkTheme()
         case .light:
@@ -49,7 +52,7 @@ final class ThemeManager: ObservableObject {
         case .system:
             let appearance = NSApp?.effectiveAppearance ?? NSAppearance(named: .darkAqua)!
             let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-            current = isDark ? DarkTheme() : LightTheme()
+            current = isDark ? DarkTheme() : ConsoleTheme()
         }
     }
 

@@ -71,6 +71,14 @@ struct FilterBarView: View {
                 }
             }
 
+            // Separator
+            Rectangle()
+                .fill(theme.border)
+                .frame(width: 1, height: 18)
+
+            // Saved filter presets
+            FilterPresetsView(viewModel: viewModel)
+
             Spacer()
 
             // Match count

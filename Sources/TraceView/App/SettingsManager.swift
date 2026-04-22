@@ -6,6 +6,8 @@ final class SettingsManager: ObservableObject {
     private static let showLineNumbersKey = "traceview.showLineNumbers"
     private static let showTimestampKey = "traceview.showTimestamp"
     private static let showComponentKey = "traceview.showComponent"
+    private static let savedFiltersKey = "traceview.savedFilters"
+    private static let detailDisplayModeKey = "traceview.detailDisplayMode"
 
     @Published var fontSize: Double {
         didSet { UserDefaults.standard.set(fontSize, forKey: Self.fontSizeKey) }
@@ -21,6 +23,18 @@ final class SettingsManager: ObservableObject {
 
     @Published var showComponent: Bool {
         didSet { UserDefaults.standard.set(showComponent, forKey: Self.showComponentKey) }
+    }
+
+    @Published var savedFilters: [LogFilterPreset] {
+        didSet {
+            if let data = try? JSONEncoder().encode(savedFilters) {
+                UserDefaults.standard.set(data, forKey: Self.savedFiltersKey)
+            }
+        }
+    }
+
+    @Published var detailDisplayMode: DetailDisplayMode {
+        didSet { UserDefaults.standard.set(detailDisplayMode.rawValue, forKey: Self.detailDisplayModeKey) }
     }
 
     init() {
@@ -47,5 +61,22 @@ final class SettingsManager: ObservableObject {
         } else {
             self.showComponent = defaults.bool(forKey: Self.showComponentKey)
         }
+
+        if let data = defaults.data(forKey: Self.savedFiltersKey),
+           let decoded = try? JSONDecoder().decode([LogFilterPreset].self, from: data) {
+            self.savedFilters = decoded
+        } else {
+            self.savedFilters = []
+        }
+
+        let rawMode = defaults.string(forKey: Self.detailDisplayModeKey) ?? DetailDisplayMode.inline.rawValue
+        self.detailDisplayMode = DetailDisplayMode(rawValue: rawMode) ?? .inline
     }
+}
+
+enum DetailDisplayMode: String, CaseIterable, Identifiable {
+    case inline = "Inline"
+    case bottomPane = "Bottom Pane"
+
+    var id: String { rawValue }
 }

@@ -11,16 +11,22 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 300)
         } detail: {
             if let doc = appState.selectedDocument {
-                HStack(spacing: 0) {
-                    LogDocumentView(document: doc)
-                        .id(doc.id)
+                VStack(spacing: 0) {
+                    if appState.documents.count > 1 {
+                        TabBarView()
+                    }
 
-                    if appState.showErrorLookup {
-                        Divider()
-                            .background(themeManager.current.border)
+                    HStack(spacing: 0) {
+                        LogDocumentView(document: doc)
+                            .id(doc.id)
 
-                        ErrorLookupPanel()
-                            .frame(minWidth: 260, idealWidth: 280, maxWidth: 380)
+                        if appState.showErrorLookup {
+                            Divider()
+                                .background(themeManager.current.border)
+
+                            ErrorLookupPanel()
+                                .frame(minWidth: 260, idealWidth: 280, maxWidth: 380)
+                        }
                     }
                 }
             } else {

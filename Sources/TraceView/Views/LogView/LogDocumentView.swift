@@ -17,6 +17,12 @@ struct LogDocumentView: View {
         let theme = themeManager.current
 
         VStack(spacing: 0) {
+            // Severity summary chips
+            SeveritySummaryBar(viewModel: viewModel)
+
+            // Event density histogram (hidden if timestamps unavailable)
+            HistogramView(viewModel: viewModel)
+
             // Filter bar
             FilterBarView(viewModel: viewModel)
 
