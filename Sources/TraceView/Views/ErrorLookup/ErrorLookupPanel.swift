@@ -79,6 +79,14 @@ struct ErrorLookupPanel: View {
             }
             .background(theme.sidebarBackground)
         }
+        .onAppear { consumePendingCode() }
+        .onChange(of: appState.pendingErrorLookupCode) { _, _ in consumePendingCode() }
+    }
+
+    private func consumePendingCode() {
+        guard let code = appState.pendingErrorLookupCode, !code.isEmpty else { return }
+        viewModel.lookupCode(code)
+        appState.pendingErrorLookupCode = nil
     }
 
     // MARK: - Domain Tabs

@@ -22,6 +22,8 @@ BUNDLE_VERSION="0.1"
 BUNDLE_SHORT_VERSION="0.1.0"
 OUT_DIR="build"
 APP_BUNDLE="${OUT_DIR}/${APP_NAME}.app"
+ICON_SRC="Resources/AppIcon.icns"
+ICONSET_SRC="Resources/AppIcon.iconset"
 
 make_info_plist() {
   cat > "${APP_BUNDLE}/Contents/Info.plist" <<EOF
@@ -35,6 +37,10 @@ make_info_plist() {
   <string>${APP_NAME}</string>
   <key>CFBundleExecutable</key>
   <string>${APP_NAME}</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
+  <key>CFBundleIconName</key>
+  <string>AppIcon</string>
   <key>CFBundleIdentifier</key>
   <string>${BUNDLE_ID}</string>
   <key>CFBundleInfoDictionaryVersion</key>
@@ -68,6 +74,17 @@ make_info_plist() {
 EOF
 }
 
+build_icon() {
+  # Regenerate AppIcon.icns from the iconset if the iconset is newer.
+  # No-op if the .icns is already up to date. Requires iconutil (Xcode CLI).
+  if [[ -d "$ICONSET_SRC" ]]; then
+    if [[ ! -f "$ICON_SRC" ]] || [[ "$ICONSET_SRC" -nt "$ICON_SRC" ]]; then
+      iconutil -c icns "$ICONSET_SRC" -o "$ICON_SRC"
+      echo "✓ regenerated $ICON_SRC"
+    fi
+  fi
+}
+
 build_bundle() {
   local config="$1"   # "debug" or "release"
   local flag=""
@@ -75,6 +92,7 @@ build_bundle() {
 
   # shellcheck disable=SC2086
   swift build $flag
+  build_icon
 
   local binary_path=".build/${config}/${APP_NAME}"
   [[ -f "$binary_path" ]] || { echo "✗ binary not found at ${binary_path}"; exit 1; }
@@ -83,6 +101,7 @@ build_bundle() {
   mkdir -p "${APP_BUNDLE}/Contents/MacOS"
   mkdir -p "${APP_BUNDLE}/Contents/Resources"
   cp "$binary_path" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+  [[ -f "$ICON_SRC" ]] && cp "$ICON_SRC" "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
   make_info_plist
 
   # Ad-hoc sign. Required for Sandbox/TCC APIs to behave; otherwise they
@@ -114,9 +133,23 @@ case "${1:-run}" in
     ;;
   install)
     build_bundle release
-    rm -rf "/Applications/${APP_NAME}.app"
-    cp -R "$APP_BUNDLE" "/Applications/"
-    echo "✓ installed to /Applications/${APP_NAME}.app"
+    # Kill any running instance so `cp -R` isn't blocked on a busy binary.
+    pkill -x "$APP_NAME" 2>/dev/null || true
+
+    DEST="/Applications/${APP_NAME}.app"
+    if [[ -w "/Applications" ]]; then
+      rm -rf "$DEST"
+      cp -R "$APP_BUNDLE" "$DEST"
+    else
+      echo "→ /Applications requires admin; you'll be prompted for your password"
+      sudo rm -rf "$DEST"
+      sudo cp -R "$APP_BUNDLE" "$DEST"
+    fi
+    # Refresh LaunchServices so the Finder picks up the new icon/version.
+    /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister \
+      -f "$DEST" 2>/dev/null || true
+    echo "✓ installed $DEST"
+    echo "  launch with: open -a $APP_NAME"
     ;;
   clean)
     swift package clean
