@@ -10,7 +10,16 @@ struct NSLogTableView: NSViewRepresentable {
     let showComponent: Bool
     let isFollowing: Bool
     @Binding var selectedEntry: LogEntry?
+    @Binding var expandedEntryID: Int?
+    let inlineExpansionEnabled: Bool
+    let themeManager: ThemeManager
+    var onCopy: (LogEntry) -> Void = { _ in }
+    var onFilterToComponent: (LogEntry) -> Void = { _ in }
+    var onLookupErrorCode: (String) -> Void = { _ in }
     var onScrollUp: () -> Void
+
+    static let baseRowHeight: CGFloat = 24
+    static let drawerHeight: CGFloat = 160
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -33,6 +42,7 @@ struct NSLogTableView: NSViewRepresentable {
         tableView.gridStyleMask = []
         tableView.allowsMultipleSelection = false
         tableView.target = context.coordinator
+        tableView.action = #selector(Coordinator.rowClicked(_:))
         tableView.doubleAction = nil
 
         // Create columns
@@ -104,6 +114,17 @@ struct NSLogTableView: NSViewRepresentable {
         coordinator.onScrollUp = onScrollUp
         coordinator.isFollowing = isFollowing
         coordinator.selectedEntryBinding = $selectedEntry
+        coordinator.expandedEntryIDBinding = $expandedEntryID
+        coordinator.inlineExpansionEnabled = inlineExpansionEnabled
+        coordinator.themeManager = themeManager
+        coordinator.onCopy = onCopy
+        coordinator.onFilterToComponent = onFilterToComponent
+        coordinator.onLookupErrorCode = onLookupErrorCode
+
+        // Track expansion state. If mode flipped to bottomPane, force collapse.
+        let desiredExpanded = inlineExpansionEnabled ? expandedEntryID : nil
+        let heightChanged = coordinator.currentExpandedID != desiredExpanded
+        coordinator.currentExpandedID = desiredExpanded
 
         // Update column visibility
         tableView.tableColumn(withIdentifier: .lineNumber)?.isHidden = !showLineNumbers
@@ -125,6 +146,20 @@ struct NSLogTableView: NSViewRepresentable {
             tableView.reloadData()
         }
 
+        // Height-only change: refresh affected rows so the drawer opens/closes.
+        if heightChanged && newCount == oldCount {
+            let affected = IndexSet(entries.indices.filter {
+                entries[$0].id == desiredExpanded || entries[$0].id == coordinator.previousExpandedID
+            })
+            if !affected.isEmpty {
+                NSAnimationContext.runAnimationGroup { ctx in
+                    ctx.duration = 0.18
+                    tableView.noteHeightOfRows(withIndexesChanged: affected)
+                }
+            }
+        }
+        coordinator.previousExpandedID = desiredExpanded
+
         coordinator.previousEntryCount = newCount
 
         // Auto-follow: handled by the coordinator's timer
@@ -140,6 +175,14 @@ struct NSLogTableView: NSViewRepresentable {
         var isFollowing: Bool = true
         var onScrollUp: () -> Void = {}
         var selectedEntryBinding: Binding<LogEntry?>?
+        var expandedEntryIDBinding: Binding<Int?>?
+        var inlineExpansionEnabled: Bool = true
+        var themeManager: ThemeManager?
+        var onCopy: (LogEntry) -> Void = { _ in }
+        var onFilterToComponent: (LogEntry) -> Void = { _ in }
+        var onLookupErrorCode: (String) -> Void = { _ in }
+        var currentExpandedID: Int?
+        var previousExpandedID: Int?
         var previousEntryCount = 0
         weak var tableView: NSTableView?
         weak var scrollView: NSScrollView?
@@ -152,6 +195,8 @@ struct NSLogTableView: NSViewRepresentable {
             self.theme = parent.theme
             self.fontSize = parent.fontSize
             self.isFollowing = parent.isFollowing
+            self.inlineExpansionEnabled = parent.inlineExpansionEnabled
+            self.themeManager = parent.themeManager
             super.init()
         }
 
@@ -262,11 +307,31 @@ struct NSLogTableView: NSViewRepresentable {
             let rowView = LogTableRowView()
             rowView.entryLevel = entry.level
             rowView.theme = theme
+            rowView.baseRowHeight = NSLogTableView.baseRowHeight
+
+            // Attach detail drawer if this row is expanded
+            if inlineExpansionEnabled, entry.id == currentExpandedID, let themeManager {
+                let detail = InlineRowDetailView(
+                    entry: entry,
+                    onCopy: { [weak self] in self?.onCopy(entry) },
+                    onFilterToComponent: { [weak self] in self?.onFilterToComponent(entry) },
+                    onLookupErrorCode: { [weak self] code in self?.onLookupErrorCode(code) }
+                )
+                .environmentObject(themeManager)
+
+                let hosting = NSHostingView(rootView: detail)
+                hosting.translatesAutoresizingMaskIntoConstraints = true
+                rowView.attachDetailView(hosting)
+            }
             return rowView
         }
 
         func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-            24
+            guard row < entries.count else { return NSLogTableView.baseRowHeight }
+            if inlineExpansionEnabled, entries[row].id == currentExpandedID {
+                return NSLogTableView.baseRowHeight + NSLogTableView.drawerHeight
+            }
+            return NSLogTableView.baseRowHeight
         }
 
         func tableViewSelectionDidChange(_ notification: Notification) {
@@ -276,6 +341,21 @@ struct NSLogTableView: NSViewRepresentable {
                 selectedEntryBinding?.wrappedValue = entries[row]
             } else {
                 selectedEntryBinding?.wrappedValue = nil
+            }
+        }
+
+        // Fires on every click — including re-click of the already-selected
+        // row, which is how a user collapses the drawer. selectionDidChange
+        // alone misses the re-click case because selection hasn't changed.
+        @objc func rowClicked(_ sender: Any?) {
+            guard inlineExpansionEnabled, let tableView else { return }
+            let row = tableView.clickedRow
+            guard row >= 0, row < entries.count else { return }
+            let entry = entries[row]
+            if currentExpandedID == entry.id {
+                expandedEntryIDBinding?.wrappedValue = nil
+            } else {
+                expandedEntryIDBinding?.wrappedValue = entry.id
             }
         }
 
@@ -295,6 +375,42 @@ struct NSLogTableView: NSViewRepresentable {
 class LogTableRowView: NSTableRowView {
     var entryLevel: LogLevel = .info
     var theme: (any AppTheme)?
+    var baseRowHeight: CGFloat = 24
+    private(set) var detailView: NSView?
+
+    func attachDetailView(_ view: NSView) {
+        detailView?.removeFromSuperview()
+        detailView = view
+        addSubview(view)
+        needsLayout = true
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        detailView?.removeFromSuperview()
+        detailView = nil
+    }
+
+    override func layout() {
+        super.layout()
+        // Pin cells to the top `baseRowHeight` band and place the detail
+        // drawer in the remaining space below. Without this, a tall expanded
+        // row would stretch the cells themselves.
+        for sub in subviews where sub is NSTableCellView {
+            var f = sub.frame
+            f.origin.y = 0
+            f.size.height = baseRowHeight
+            sub.frame = f
+        }
+        if let detailView {
+            detailView.frame = NSRect(
+                x: 0,
+                y: baseRowHeight,
+                width: bounds.width,
+                height: max(0, bounds.height - baseRowHeight)
+            )
+        }
+    }
 
     override func draw(_ dirtyRect: NSRect) {
         guard let theme else {
@@ -302,7 +418,7 @@ class LogTableRowView: NSTableRowView {
             return
         }
 
-        // Draw level-based background
+        // Draw level-based background across the whole (possibly expanded) row.
         let bgColor: NSColor
         switch entryLevel {
         case .critical:
@@ -318,10 +434,18 @@ class LogTableRowView: NSTableRowView {
         bgColor.setFill()
         dirtyRect.fill()
 
-        // Draw selection on top
+        // Selection highlight applies only to the cell-row band, not the drawer.
         if isSelected {
-            NSColor(theme.accentColor).withAlphaComponent(0.2).setFill()
-            dirtyRect.fill()
+            let selectionRect = NSRect(
+                x: 0,
+                y: 0,
+                width: bounds.width,
+                height: min(baseRowHeight, bounds.height)
+            ).intersection(dirtyRect)
+            if !selectionRect.isEmpty {
+                NSColor(theme.accentColor).withAlphaComponent(0.2).setFill()
+                selectionRect.fill()
+            }
         }
     }
 }
