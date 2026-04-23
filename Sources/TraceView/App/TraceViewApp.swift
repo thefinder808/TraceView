@@ -79,6 +79,10 @@ struct TraceViewApp: App {
             CommandMenu("Filter") {
                 Button("Find...") { appState.focusSearch = true }
                     .keyboardShortcut("f", modifiers: .command)
+
+                Button("Go to Line...") { appState.showGoToLine = true }
+                    .keyboardShortcut("g", modifiers: .command)
+                    .disabled(appState.selectedDocument == nil)
             }
 
             // Tools menu
