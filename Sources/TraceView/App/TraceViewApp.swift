@@ -95,6 +95,12 @@ struct TraceViewApp: App {
 
                 Divider()
 
+                Button("Toggle Bookmark on Selected Line") { appState.toggleBookmarkOnSelection() }
+                    .keyboardShortcut("d", modifiers: .command)
+                    .disabled(appState.selectedDocument == nil)
+
+                Divider()
+
                 Button("Export Filtered Log...") { appState.showExport = true }
                     .keyboardShortcut("s", modifiers: [.command, .shift])
             }

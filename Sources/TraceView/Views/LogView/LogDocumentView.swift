@@ -43,6 +43,7 @@ struct LogDocumentView: View {
                         selectedEntry: $selectedEntry,
                         expandedEntryID: $expandedEntryID,
                         pendingGoToLine: $appState.pendingGoToLine,
+                        bookmarkedLines: document.bookmarks,
                         inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
                         themeManager: themeManager,
                         onCopy: { entry in
@@ -56,6 +57,9 @@ struct LogDocumentView: View {
                         },
                         onLookupErrorCode: { code in
                             appState.lookupErrorCode(code)
+                        },
+                        onToggleBookmark: { entry in
+                            appState.toggleBookmark(lineNumber: entry.lineNumber)
                         },
                         onScrollUp: {
                             document.isFollowing = false
@@ -102,6 +106,10 @@ struct LogDocumentView: View {
         }
         .onAppear {
             viewModel.load()
+        }
+        .onChange(of: appState.pendingBookmarkToggleTick) { _, _ in
+            guard let entry = selectedEntry else { return }
+            appState.toggleBookmark(lineNumber: entry.lineNumber)
         }
         .sheet(isPresented: $appState.showExport) {
             ExportSheet(

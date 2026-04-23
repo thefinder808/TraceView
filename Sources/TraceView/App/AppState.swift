@@ -118,6 +118,23 @@ final class AppState: ObservableObject {
         showErrorLookup = true
     }
 
+    /// Toggle a bookmark on the given line of the selected document.
+    func toggleBookmark(lineNumber: Int) {
+        guard let doc = selectedDocument else { return }
+        if doc.bookmarks.contains(lineNumber) {
+            doc.bookmarks.remove(lineNumber)
+        } else {
+            doc.bookmarks.insert(lineNumber)
+        }
+    }
+
+    /// Fires the main-menu ⌘D shortcut. LogDocumentView observes this tick
+    /// and toggles a bookmark on its currently-selected row.
+    @Published var pendingBookmarkToggleTick: Int = 0
+    func toggleBookmarkOnSelection() {
+        pendingBookmarkToggleTick += 1
+    }
+
     func jumpToBottom() {
         selectedDocument?.isFollowing = true
     }

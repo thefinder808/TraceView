@@ -22,6 +22,11 @@ struct SidebarView: View {
                     }
                 }
 
+                // Bookmarks for the selected document (if any).
+                if let doc = appState.selectedDocument, !doc.bookmarks.isEmpty {
+                    SidebarBookmarksSection(document: doc)
+                }
+
                 // Reports — mirrors Console.app's sidebar grouping
                 sectionHeader("Reports", theme: theme)
 
@@ -167,6 +172,90 @@ struct SidebarView: View {
 
             if isExpanded.wrappedValue {
                 content()
+            }
+        }
+    }
+}
+
+// MARK: - Bookmarks Section
+
+// Lists the selected document's bookmarked line numbers. Clicking an entry
+// routes through AppState.pendingGoToLine → NSLogTableView scroll.
+// Right-click → Remove Bookmark.
+private struct SidebarBookmarksSection: View {
+    @ObservedObject var document: LogDocument
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var themeManager: ThemeManager
+
+    var body: some View {
+        let theme = themeManager.current
+        let sorted = document.bookmarks.sorted()
+
+        VStack(spacing: 0) {
+            HStack(spacing: 6) {
+                Image(systemName: "bookmark.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(theme.accentColor)
+
+                Text("Bookmarks")
+                    .font(.system(size: 10, weight: .semibold))
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                    .foregroundStyle(theme.tertiaryText)
+
+                Spacer()
+
+                Text("\(sorted.count)")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(theme.tertiaryText)
+                    .monospacedDigit()
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 16)
+            .padding(.bottom, 6)
+
+            ForEach(sorted, id: \.self) { line in
+                BookmarkRow(document: document, line: line, theme: theme)
+            }
+        }
+    }
+}
+
+private struct BookmarkRow: View {
+    @ObservedObject var document: LogDocument
+    let line: Int
+    let theme: any AppTheme
+    @EnvironmentObject var appState: AppState
+    @State private var isHovered = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "bookmark.fill")
+                .font(.system(size: 9))
+                .foregroundStyle(theme.accentColor)
+
+            Text("Line \(line)")
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundStyle(theme.secondaryText)
+                .monospacedDigit()
+
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 26)
+        .background(
+            RoundedRectangle(cornerRadius: 5)
+                .fill(isHovered ? theme.sidebarHover : .clear)
+        )
+        .padding(.horizontal, 6)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            appState.pendingGoToLine = line
+        }
+        .onHover { isHovered = $0 }
+        .contextMenu {
+            Button("Remove Bookmark", role: .destructive) {
+                document.bookmarks.remove(line)
             }
         }
     }
