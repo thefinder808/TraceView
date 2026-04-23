@@ -32,8 +32,13 @@ struct TraceViewApp: App {
         .commands {
             // File menu
             CommandGroup(replacing: .newItem) {
-                Button("Open Log File...") { appState.openFile() }
+                Button("Open Log File...") { appState.openFile(into: .primary) }
                     .keyboardShortcut("o", modifiers: .command)
+
+                Button("Open Log File in Right Pane...") {
+                    appState.openFile(into: .secondary)
+                }
+                .keyboardShortcut("o", modifiers: [.command, .shift])
 
                 Button("Stream System Log") {
                     appState.startUnifiedLogStream()
@@ -42,13 +47,17 @@ struct TraceViewApp: App {
 
                 Divider()
 
+                // ⌘W closes the primary pane's active tab. The split pane's
+                // active tab has its own × in the secondary tab bar and a
+                // trailing "close split" button. (A focused-pane concept
+                // could route ⌘W to whichever pane has focus; deferred.)
                 Button("Close Tab") {
-                    if let doc = appState.selectedDocument {
-                        appState.closeDocument(doc)
+                    if let id = appState.selectedDocumentID {
+                        appState.closeTab(documentID: id, in: .primary)
                     }
                 }
                 .keyboardShortcut("w", modifiers: .command)
-                .disabled(appState.documents.isEmpty)
+                .disabled(appState.primaryTabOrder.isEmpty)
             }
 
             // Navigate menu
@@ -66,8 +75,8 @@ struct TraceViewApp: App {
 
                 Divider()
 
-                // Tab switching
-                ForEach(Array(appState.documents.prefix(9).enumerated()), id: \.element.id) { index, doc in
+                // Tab switching — ⌘1…⌘9 navigate primary-pane tabs.
+                ForEach(Array(appState.primaryDocuments.prefix(9).enumerated()), id: \.element.id) { index, doc in
                     Button("Tab \(index + 1): \(doc.displayName)") {
                         appState.selectDocument(at: index)
                     }

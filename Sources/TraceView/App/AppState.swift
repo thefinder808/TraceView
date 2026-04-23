@@ -1,11 +1,27 @@
 import SwiftUI
 import Combine
 
+/// Which split pane something targets. Tabs are per-pane even though the
+/// underlying `LogDocument`s are window-scoped shared resources.
+enum Pane { case primary, secondary }
+
 final class AppState: ObservableObject {
+    /// All open documents keyed by UUID — the single source of truth.
+    /// Tab bars index into this via `primaryTabOrder` / `secondaryTabOrder`.
+    /// A doc can legitimately appear in both orders (same file visible in
+    /// both panes) without duplicating I/O.
     @Published var documents: [LogDocument] = []
+
+    /// Ordered doc IDs shown as tabs in the primary (left) pane.
+    @Published var primaryTabOrder: [UUID] = []
+
+    /// Ordered doc IDs shown as tabs in the secondary (right) pane.
+    /// Empty = split view is closed.
+    @Published var secondaryTabOrder: [UUID] = []
+
     @Published var selectedDocumentID: UUID? = nil
-    // Non-nil = split view active with this doc in the right pane.
     @Published var secondarySelectedDocumentID: UUID? = nil
+
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
     @Published var showExport: Bool = false
@@ -41,12 +57,48 @@ final class AppState: ObservableObject {
         restoreTabsIfEnabled()
     }
 
+    // MARK: - Derived pane collections
+
+    var primaryDocuments: [LogDocument] {
+        primaryTabOrder.compactMap { id in documents.first { $0.id == id } }
+    }
+
+    var secondaryDocuments: [LogDocument] {
+        secondaryTabOrder.compactMap { id in documents.first { $0.id == id } }
+    }
+
+    var selectedDocument: LogDocument? {
+        guard let id = selectedDocumentID else { return primaryDocuments.first }
+        return documents.first { $0.id == id }
+    }
+
+    var secondaryDocument: LogDocument? {
+        guard let id = secondarySelectedDocumentID else { return nil }
+        return documents.first { $0.id == id }
+    }
+
+    var isSplitView: Bool { !secondaryTabOrder.isEmpty }
+
+    func tabOrder(in pane: Pane) -> [UUID] {
+        pane == .primary ? primaryTabOrder : secondaryTabOrder
+    }
+
+    func documents(in pane: Pane) -> [LogDocument] {
+        pane == .primary ? primaryDocuments : secondaryDocuments
+    }
+
+    func selectedID(in pane: Pane) -> UUID? {
+        pane == .primary ? selectedDocumentID : secondarySelectedDocumentID
+    }
+
     // MARK: - Tab persistence (opt-in via SettingsManager.restoreTabsOnLaunch)
 
     private func setupTabPersistence() {
-        // Save on any change to the open set or the active selection.
-        // Live streams are skipped (no stable identity to key on).
-        Publishers.CombineLatest($documents, $selectedDocumentID)
+        // Save on any change to the open set, either pane order, or the
+        // primary selection. Split state is intentionally not persisted —
+        // restored sessions always start with the split closed and every
+        // doc in the primary pane.
+        Publishers.CombineLatest4($documents, $primaryTabOrder, $secondaryTabOrder, $selectedDocumentID)
             .debounce(for: .milliseconds(200), scheduler: RunLoop.main)
             .sink { [weak self] _ in self?.saveOpenTabsIfEnabled() }
             .store(in: &tabPersistenceCancellables)
@@ -55,9 +107,17 @@ final class AppState: ObservableObject {
     private func saveOpenTabsIfEnabled() {
         guard UserDefaults.standard.bool(forKey: SettingsManager.restoreTabsOnLaunchKey) else { return }
 
-        let paths = documents.compactMap { doc -> String? in
-            if case .file(let url) = doc.source { return url.path }
-            return nil
+        // Union of both panes' tab orders, deduped, preserving primary order
+        // first. Secondary-only tabs get appended after.
+        var seen = Set<UUID>()
+        var orderedIDs: [UUID] = []
+        for id in primaryTabOrder + secondaryTabOrder where seen.insert(id).inserted {
+            orderedIDs.append(id)
+        }
+        let paths = orderedIDs.compactMap { id -> String? in
+            guard let doc = documents.first(where: { $0.id == id }),
+                  case .file(let url) = doc.source else { return nil }
+            return url.path
         }
         UserDefaults.standard.set(paths, forKey: Self.savedOpenTabsKey)
 
@@ -89,26 +149,16 @@ final class AppState: ObservableObject {
         }
     }
 
-    var selectedDocument: LogDocument? {
-        guard let id = selectedDocumentID else { return documents.first }
-        return documents.first { $0.id == id }
-    }
-
-    var secondaryDocument: LogDocument? {
-        guard let id = secondarySelectedDocumentID else { return nil }
-        return documents.first { $0.id == id }
-    }
-
-    var isSplitView: Bool { secondaryDocument != nil }
-
     // MARK: - Split view
 
-    /// Toggle split mode. Opens with the primary doc duplicated into the
-    /// secondary pane; re-runs close it.
+    /// Toggle split mode. Opens with the primary's current active doc
+    /// duplicated into the secondary pane. Closing merges the secondary
+    /// tabs back into primary (preserving any that weren't already there).
     func toggleSplitView() {
         if isSplitView {
-            secondarySelectedDocumentID = nil
+            mergeSecondaryIntoPrimary()
         } else if let primary = selectedDocument {
+            secondaryTabOrder = [primary.id]
             secondarySelectedDocumentID = primary.id
         }
     }
@@ -116,18 +166,60 @@ final class AppState: ObservableObject {
     /// Send a specific document to the secondary pane (enters split mode
     /// if needed). Called from the tab bar context menu.
     func openInSplit(_ document: LogDocument) {
-        secondarySelectedDocumentID = document.id
+        addTab(documentID: document.id, to: .secondary)
+    }
+
+    /// Add an existing doc to a pane's tab order (if not already there)
+    /// and activate it. No-op if the doc isn't in `documents` — caller is
+    /// responsible for having added it via `addDocument`.
+    func addTab(documentID: UUID, to pane: Pane) {
+        guard documents.contains(where: { $0.id == documentID }) else { return }
+        switch pane {
+        case .primary:
+            if !primaryTabOrder.contains(documentID) {
+                primaryTabOrder.append(documentID)
+            }
+            selectedDocumentID = documentID
+        case .secondary:
+            if !secondaryTabOrder.contains(documentID) {
+                secondaryTabOrder.append(documentID)
+            }
+            secondarySelectedDocumentID = documentID
+        }
     }
 
     func closeSplitView() {
+        mergeSecondaryIntoPrimary()
+    }
+
+    private func mergeSecondaryIntoPrimary() {
+        // Merge any secondary-only tabs back into primary so the doc set
+        // is preserved when split closes. Primary order is kept first.
+        for id in secondaryTabOrder where !primaryTabOrder.contains(id) {
+            primaryTabOrder.append(id)
+        }
+        secondaryTabOrder = []
         secondarySelectedDocumentID = nil
     }
 
-    // MARK: - Document Management
+    // MARK: - Document management
 
+    /// Open a new document into the primary pane (default route).
     func addDocument(_ document: LogDocument) {
+        addDocument(document, to: .primary)
+    }
+
+    /// Open a new document into a specific pane.
+    func addDocument(_ document: LogDocument, to pane: Pane) {
         documents.append(document)
-        selectedDocumentID = document.id
+        switch pane {
+        case .primary:
+            primaryTabOrder.append(document.id)
+            selectedDocumentID = document.id
+        case .secondary:
+            secondaryTabOrder.append(document.id)
+            secondarySelectedDocumentID = document.id
+        }
 
         // Forward child changes to trigger UI updates
         let sub = document.objectWillChange.sink { [weak self] _ in
@@ -136,60 +228,113 @@ final class AppState: ObservableObject {
         documentSubscriptions[document.id] = sub
     }
 
-    func closeDocument(_ document: LogDocument) {
-        documentSubscriptions.removeValue(forKey: document.id)
-        documents.removeAll { $0.id == document.id }
-
-        if selectedDocumentID == document.id {
-            selectedDocumentID = documents.first?.id
+    /// Close a tab in the given pane. If the document isn't referenced by
+    /// the other pane either, the document is fully closed (removed from
+    /// `documents` and its subscription torn down).
+    func closeTab(documentID: UUID, in pane: Pane) {
+        switch pane {
+        case .primary:
+            primaryTabOrder.removeAll { $0 == documentID }
+            if selectedDocumentID == documentID {
+                selectedDocumentID = primaryTabOrder.first
+            }
+        case .secondary:
+            secondaryTabOrder.removeAll { $0 == documentID }
+            if secondarySelectedDocumentID == documentID {
+                secondarySelectedDocumentID = secondaryTabOrder.first
+            }
         }
-        if secondarySelectedDocumentID == document.id {
-            secondarySelectedDocumentID = nil
+
+        // If nothing references this doc anymore, tear it down fully.
+        if !primaryTabOrder.contains(documentID) && !secondaryTabOrder.contains(documentID) {
+            documentSubscriptions.removeValue(forKey: documentID)
+            documents.removeAll { $0.id == documentID }
         }
     }
 
-    func closeDocument(at index: Int) {
-        guard documents.indices.contains(index) else { return }
-        closeDocument(documents[index])
+    /// Close a document wherever it appears (both panes if in both). Used
+    /// by the sidebar "Open Files" row's × button — the sidebar is window-
+    /// level, so closing from there releases the doc entirely.
+    func closeDocumentEverywhere(_ document: LogDocument) {
+        if primaryTabOrder.contains(document.id) {
+            closeTab(documentID: document.id, in: .primary)
+        }
+        if secondaryTabOrder.contains(document.id) {
+            closeTab(documentID: document.id, in: .secondary)
+        }
     }
 
-    // MARK: - File Opening
+    /// Move a tab from one pane to the other. Opens split if needed.
+    func moveTabToOtherPane(documentID: UUID, from source: Pane) {
+        let target: Pane = source == .primary ? .secondary : .primary
+        closeTab(documentID: documentID, in: source)
+        // closeTab might have fully closed the doc if the other pane
+        // already had it — but since we're moving to the other pane, the
+        // target's order doesn't have it yet (moves should only happen
+        // from tabs that aren't already in both panes). Verify the doc
+        // still exists; if it somehow got torn down, bail.
+        guard documents.contains(where: { $0.id == documentID }) else { return }
+        switch target {
+        case .primary:
+            primaryTabOrder.append(documentID)
+            selectedDocumentID = documentID
+        case .secondary:
+            secondaryTabOrder.append(documentID)
+            secondarySelectedDocumentID = documentID
+        }
+    }
 
-    func openFile() {
+    // MARK: - File opening
+
+    func openFile() { openFile(into: .primary) }
+
+    /// Shows the standard open panel and routes results to the given pane.
+    func openFile(into pane: Pane) {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [.log, .plainText, .text, .data]
-        panel.message = "Select log files to open"
+        panel.message = pane == .primary
+            ? "Select log files to open"
+            : "Select log files to open in the right pane"
 
         guard panel.runModal() == .OK else { return }
 
         for url in panel.urls {
-            openFile(at: url)
+            openFile(at: url, into: pane)
         }
     }
 
-    func openFile(at url: URL) {
-        // Don't re-open files already open
-        if case .file(let existingURL) = documents.first(where: {
+    func openFile(at url: URL) { openFile(at: url, into: .primary) }
+
+    /// Open (or focus) `url` in the given pane. If the doc is already open
+    /// but not in the target pane's tab order, add it to that pane without
+    /// re-loading.
+    func openFile(at url: URL, into pane: Pane) {
+        if let existing = documents.first(where: {
             if case .file(let u) = $0.source { return u == url }
             return false
-        })?.source {
-            selectedDocumentID = documents.first {
-                if case .file(let u) = $0.source { return u == existingURL }
-                return false
-            }?.id
+        }) {
+            // Already open — make sure the target pane has it in its tab order
+            let order = pane == .primary ? primaryTabOrder : secondaryTabOrder
+            if !order.contains(existing.id) {
+                switch pane {
+                case .primary: primaryTabOrder.append(existing.id)
+                case .secondary: secondaryTabOrder.append(existing.id)
+                }
+            }
+            switch pane {
+            case .primary: selectedDocumentID = existing.id
+            case .secondary: secondarySelectedDocumentID = existing.id
+            }
             return
         }
 
-        let doc = LogDocument(
-            source: .file(url),
-            displayName: url.lastPathComponent
-        )
-        addDocument(doc)
+        let doc = LogDocument(source: .file(url), displayName: url.lastPathComponent)
+        addDocument(doc, to: pane)
     }
 
-    // MARK: - Unified Log Streaming
+    // MARK: - Unified log streaming
 
     func startUnifiedLogStream(predicate: String? = nil, label: String = "System Log") {
         let doc = LogDocument(
@@ -202,9 +347,10 @@ final class AppState: ObservableObject {
 
     // MARK: - Navigation
 
+    /// ⌘1…⌘9 — selects the Nth primary tab.
     func selectDocument(at index: Int) {
-        guard documents.indices.contains(index) else { return }
-        selectedDocumentID = documents[index].id
+        guard primaryTabOrder.indices.contains(index) else { return }
+        selectedDocumentID = primaryTabOrder[index]
     }
 
     func toggleFollowing() {

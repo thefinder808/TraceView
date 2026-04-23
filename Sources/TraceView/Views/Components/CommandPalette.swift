@@ -91,8 +91,8 @@ struct CommandPalette: View {
             },
         ]
 
-        // Add tab switching
-        for (i, doc) in appState.documents.prefix(9).enumerated() {
+        // Add tab switching — ⌘1…⌘9 navigate the primary pane's tabs.
+        for (i, doc) in appState.primaryDocuments.prefix(9).enumerated() {
             cmds.append(PaletteCommand(
                 label: doc.displayName,
                 category: "Tabs",
