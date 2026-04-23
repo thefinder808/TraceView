@@ -15,6 +15,12 @@ final class LogDocument: ObservableObject, Identifiable {
     @Published var fileSize: UInt64 = 0
     @Published var encoding: String.Encoding = .utf8
 
+    // Line numbers the user has bookmarked for this document. Persisted per
+    // file URL; live streams don't persist (no stable identity to key on).
+    @Published var bookmarks: Set<Int> = [] {
+        didSet { saveBookmarks() }
+    }
+
     // Throttled line count for sidebar display (updated ~1/sec)
     @Published var displayLineCount: Int = 0
 
@@ -35,6 +41,7 @@ final class LogDocument: ObservableObject, Identifiable {
     init(source: LogSource, displayName: String) {
         self.source = source
         self.displayName = displayName
+        self.bookmarks = Self.loadBookmarks(for: source)
 
         // Update displayLineCount and stream rate once per second
         lineCountTimer = Timer.publish(every: 1.0, on: .main, in: .common)
@@ -58,4 +65,33 @@ final class LogDocument: ObservableObject, Identifiable {
     }
 
     var lineCount: Int { entries.count }
+
+    // MARK: - Bookmark persistence
+
+    // Only file sources persist. Unified-log streams and stdin don't have a
+    // stable identity to key UserDefaults on, so their bookmarks live only
+    // for the lifetime of the document.
+    private static func defaultsKey(for source: LogSource) -> String? {
+        switch source {
+        case .file(let url): return "traceview.bookmarks.\(url.path)"
+        case .unifiedLog, .stdin: return nil
+        }
+    }
+
+    private static func loadBookmarks(for source: LogSource) -> Set<Int> {
+        guard let key = defaultsKey(for: source),
+              let array = UserDefaults.standard.array(forKey: key) as? [Int] else {
+            return []
+        }
+        return Set(array)
+    }
+
+    private func saveBookmarks() {
+        guard let key = Self.defaultsKey(for: source) else { return }
+        if bookmarks.isEmpty {
+            UserDefaults.standard.removeObject(forKey: key)
+        } else {
+            UserDefaults.standard.set(Array(bookmarks).sorted(), forKey: key)
+        }
+    }
 }

@@ -12,11 +12,13 @@ struct NSLogTableView: NSViewRepresentable {
     @Binding var selectedEntry: LogEntry?
     @Binding var expandedEntryID: Int?
     @Binding var pendingGoToLine: Int?
+    let bookmarkedLines: Set<Int>
     let inlineExpansionEnabled: Bool
     let themeManager: ThemeManager
     var onCopy: (LogEntry) -> Void = { _ in }
     var onFilterToComponent: (LogEntry) -> Void = { _ in }
     var onLookupErrorCode: (String) -> Void = { _ in }
+    var onToggleBookmark: (LogEntry) -> Void = { _ in }
     var onScrollUp: () -> Void
 
     static let baseRowHeight: CGFloat = 24
@@ -45,6 +47,18 @@ struct NSLogTableView: NSViewRepresentable {
         tableView.target = context.coordinator
         tableView.action = #selector(Coordinator.rowClicked(_:))
         tableView.doubleAction = nil
+
+        // Right-click → "Toggle Bookmark" on the clicked row.
+        let menu = NSMenu()
+        let bookmarkItem = NSMenuItem(
+            title: "Toggle Bookmark",
+            action: #selector(Coordinator.toggleBookmarkMenuAction(_:)),
+            keyEquivalent: "d"
+        )
+        bookmarkItem.keyEquivalentModifierMask = .command
+        bookmarkItem.target = context.coordinator
+        menu.addItem(bookmarkItem)
+        tableView.menu = menu
 
         // Create columns
         let lineCol = NSTableColumn(identifier: .lineNumber)
@@ -127,6 +141,9 @@ struct NSLogTableView: NSViewRepresentable {
         coordinator.onCopy = onCopy
         coordinator.onFilterToComponent = onFilterToComponent
         coordinator.onLookupErrorCode = onLookupErrorCode
+        coordinator.onToggleBookmark = onToggleBookmark
+        let bookmarksChanged = coordinator.bookmarkedLines != bookmarkedLines
+        coordinator.bookmarkedLines = bookmarkedLines
 
         // Track expansion state. If mode flipped to bottomPane, force collapse.
         let desiredExpanded = inlineExpansionEnabled ? expandedEntryID : nil
@@ -141,6 +158,18 @@ struct NSLogTableView: NSViewRepresentable {
         // Update rows
         let oldCount = coordinator.previousEntryCount
         let newCount = entries.count
+
+        // Bookmarks change in place via row view redraws — no full reload.
+        if bookmarksChanged {
+            tableView.enumerateAvailableRowViews { view, row in
+                guard row < entries.count, let rv = view as? LogTableRowView else { return }
+                let want = bookmarkedLines.contains(entries[row].lineNumber)
+                if rv.isBookmarked != want {
+                    rv.isBookmarked = want
+                    rv.needsDisplay = true
+                }
+            }
+        }
 
         if themeChanged {
             tableView.reloadData()
@@ -210,6 +239,8 @@ struct NSLogTableView: NSViewRepresentable {
         var onCopy: (LogEntry) -> Void = { _ in }
         var onFilterToComponent: (LogEntry) -> Void = { _ in }
         var onLookupErrorCode: (String) -> Void = { _ in }
+        var onToggleBookmark: (LogEntry) -> Void = { _ in }
+        var bookmarkedLines: Set<Int> = []
         var currentExpandedID: Int?
         var previousExpandedID: Int?
         var previousEntryCount = 0
@@ -337,6 +368,7 @@ struct NSLogTableView: NSViewRepresentable {
             rowView.entryLevel = entry.level
             rowView.theme = theme
             rowView.baseRowHeight = NSLogTableView.baseRowHeight
+            rowView.isBookmarked = bookmarkedLines.contains(entry.lineNumber)
 
             if inlineExpansionEnabled, entry.id == currentExpandedID {
                 attachDetailView(to: rowView, entry: entry)
@@ -393,6 +425,15 @@ struct NSLogTableView: NSViewRepresentable {
         // Fires on every click — including re-click of the already-selected
         // row, which is how a user collapses the drawer. selectionDidChange
         // alone misses the re-click case because selection hasn't changed.
+        // Fires from the right-click menu. NSTableView exposes the clicked
+        // row via .clickedRow (-1 if the click was on blank table area).
+        @objc func toggleBookmarkMenuAction(_ sender: Any?) {
+            guard let tableView else { return }
+            let row = tableView.clickedRow >= 0 ? tableView.clickedRow : tableView.selectedRow
+            guard row >= 0, row < entries.count else { return }
+            onToggleBookmark(entries[row])
+        }
+
         @objc func rowClicked(_ sender: Any?) {
             guard inlineExpansionEnabled, let tableView else { return }
             let row = tableView.clickedRow
@@ -422,6 +463,7 @@ class LogTableRowView: NSTableRowView {
     var entryLevel: LogLevel = .info
     var theme: (any AppTheme)?
     var baseRowHeight: CGFloat = 24
+    var isBookmarked: Bool = false
     private(set) var detailView: NSView?
     private var detailConstraints: [NSLayoutConstraint] = []
 
@@ -506,6 +548,21 @@ class LogTableRowView: NSTableRowView {
             if !selectionRect.isEmpty {
                 NSColor(theme.accentColor).withAlphaComponent(0.2).setFill()
                 selectionRect.fill()
+            }
+        }
+
+        // Bookmark marker — a 3px accent-colored stripe along the left edge
+        // of the row. Visible over the level tint without being loud.
+        if isBookmarked {
+            let stripe = NSRect(
+                x: 0,
+                y: 0,
+                width: 3,
+                height: min(baseRowHeight, bounds.height)
+            ).intersection(dirtyRect)
+            if !stripe.isEmpty {
+                NSColor(theme.accentColor).setFill()
+                stripe.fill()
             }
         }
     }
