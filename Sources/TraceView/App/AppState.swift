@@ -9,8 +9,14 @@ final class AppState: ObservableObject {
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
     @Published var showExport: Bool = false
-    @Published var focusSearch: Bool = false
     @Published var showGoToLine: Bool = false
+
+    /// Fires ⌘F / Find menu. FilterBarView observes this and focuses its
+    /// search field. Tick instead of bool so repeated ⌘F presses re-focus
+    /// even when the field is already in the window (e.g. after a click-
+    /// away).
+    @Published var focusSearchTick: Int = 0
+    func focusSearchField() { focusSearchTick += 1 }
 
     // Set by callers that want to open the error lookup panel with a
     // pre-filled query (e.g. the inline-row "Lookup 0x…" pill). Consumed

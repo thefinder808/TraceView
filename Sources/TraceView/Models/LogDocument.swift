@@ -144,11 +144,12 @@ final class LogDocument: ObservableObject, Identifiable {
     private func loadFile() async {
         guard case .file(let url) = source else { return }
 
-        parser = ParserRegistry.shared.detectParser(for: url)
-
         let compressed = GzipDecompressor.isGzipped(url: url)
         isCompressed = compressed
 
+        // Load the file contents once, then use the same data for parser
+        // detection and full parsing. Previously parser detection
+        // re-decompressed gzipped files, doubling load time on big .gz logs.
         // Gzipped: spawn gunzip off-main to avoid blocking on a few-second
         // decompress. Uncompressed: mmap is cheap enough to do on-main.
         let data: Data?
@@ -164,6 +165,14 @@ final class LogDocument: ObservableObject, Identifiable {
 
         fileSize = UInt64(data.count)
         lastReadOffset = UInt64(data.count)
+
+        // Detect parser from the first 50 non-empty lines of the already-
+        // loaded text. No second disk read or decompress.
+        let sampleLines = text.components(separatedBy: .newlines)
+            .prefix(50)
+            .filter { !$0.isEmpty }
+            .map { String($0) }
+        parser = ParserRegistry.shared.detectParser(sampleLines: sampleLines)
 
         isLoading = true
 

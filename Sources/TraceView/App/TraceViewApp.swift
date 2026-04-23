@@ -77,7 +77,7 @@ struct TraceViewApp: App {
 
             // Filter menu
             CommandMenu("Filter") {
-                Button("Find...") { appState.focusSearch = true }
+                Button("Find...") { appState.focusSearchField() }
                     .keyboardShortcut("f", modifiers: .command)
 
                 // ⌘G / ⌘⇧G step matches in find mode. The VM no-ops if

@@ -111,6 +111,9 @@ struct FilterBarView: View {
         .padding(.horizontal, 12)
         .frame(height: 36)
         .background(theme.filterBarBackground)
+        .onChange(of: appState.focusSearchTick) { _, _ in
+            isSearchFocused = true
+        }
     }
 
     // "N of M" + ‹ › nav buttons shown in find mode with a non-empty query.
