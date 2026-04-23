@@ -348,7 +348,7 @@ struct SidebarDocumentRow: View {
             // Close button swaps in for the line-count on hover/selected.
             if isHovered || isSelected {
                 Button {
-                    appState.closeDocument(document)
+                    appState.closeDocumentEverywhere(document)
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 9, weight: .bold))

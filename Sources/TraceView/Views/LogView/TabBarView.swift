@@ -1,25 +1,31 @@
 import SwiftUI
 
-// Document tab bar. Sits above the detail content. Each open LogDocument
-// becomes a tab. Click selects, middle-click/close-button closes, live
-// documents get a pulsing dot.
+// Document tab bar for a single pane. Each pane (primary/secondary) owns
+// its own ordered list of tabs via AppState.primaryTabOrder /
+// secondaryTabOrder. Same doc can appear in both panes' tab bars — it's
+// the same underlying LogDocument (shared I/O + parsing), but each pane
+// keeps its own filter / selection / scroll state.
 struct TabBarView: View {
+    let pane: Pane
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         let theme = themeManager.current
+        let docs = appState.documents(in: pane)
+        let selectedID = appState.selectedID(in: pane)
 
         HStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 2) {
-                    ForEach(appState.documents) { doc in
+                    ForEach(docs) { doc in
                         TabView(
                             document: doc,
-                            isActive: doc.id == appState.selectedDocumentID,
+                            pane: pane,
+                            isActive: doc.id == selectedID,
                             theme: theme,
-                            onSelect: { appState.selectedDocumentID = doc.id },
-                            onClose: { appState.closeDocument(doc) }
+                            onSelect: { select(doc.id) },
+                            onClose: { appState.closeTab(documentID: doc.id, in: pane) }
                         )
                     }
                 }
@@ -28,6 +34,24 @@ struct TabBarView: View {
             }
 
             Spacer(minLength: 0)
+
+            // Secondary pane shows a trailing ✕ to close the split entirely.
+            if pane == .secondary {
+                Button {
+                    appState.closeSplitView()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(theme.tertiaryText)
+                        .frame(width: 18, height: 18)
+                        .background(
+                            RoundedRectangle(cornerRadius: 3).fill(theme.sidebarHover)
+                        )
+                }
+                .buttonStyle(.plain)
+                .padding(.trailing, 8)
+                .help("Close split view (merges tabs back into the left pane)")
+            }
         }
         .frame(height: 32)
         .background(theme.filterBarBackground)
@@ -37,10 +61,18 @@ struct TabBarView: View {
                 .frame(height: 1)
         }
     }
+
+    private func select(_ id: UUID) {
+        switch pane {
+        case .primary: appState.selectedDocumentID = id
+        case .secondary: appState.secondarySelectedDocumentID = id
+        }
+    }
 }
 
 private struct TabView: View {
     @ObservedObject var document: LogDocument
+    let pane: Pane
     let isActive: Bool
     let theme: any AppTheme
     let onSelect: () -> Void
@@ -96,24 +128,42 @@ private struct TabView: View {
         .onTapGesture(perform: onSelect)
         .onHover { isHovered = $0 }
         .contextMenu {
-            TabContextMenu(document: document)
+            TabContextMenu(document: document, pane: pane)
         }
     }
 }
 
-// Split-view entry / exit from a tab's right-click menu.
 private struct TabContextMenu: View {
     let document: LogDocument
+    let pane: Pane
     @EnvironmentObject var appState: AppState
 
     var body: some View {
-        if appState.secondarySelectedDocumentID == document.id {
-            Button("Remove from Split View") {
-                appState.closeSplitView()
+        // Move/send to the other pane. Moving from primary opens the split
+        // if it isn't already open.
+        let otherPane: Pane = pane == .primary ? .secondary : .primary
+        let otherLabel = otherPane == .primary ? "Left Pane" : "Right Pane"
+        let alreadyInOther = appState.tabOrder(in: otherPane).contains(document.id)
+
+        if alreadyInOther {
+            // Doc is already in both panes — only meaningful action is
+            // closing this tab.
+            Button("Close Tab") {
+                appState.closeTab(documentID: document.id, in: pane)
             }
         } else {
-            Button("Open in Split View") {
-                appState.openInSplit(document)
+            Button("Move to \(otherLabel)") {
+                appState.moveTabToOtherPane(documentID: document.id, from: pane)
+            }
+            Button("Open in \(otherLabel)") {
+                // Duplicate: add to the other pane without removing from
+                // this one. Useful for comparing the same doc side-by-side
+                // with different filters.
+                appState.addTab(documentID: document.id, to: otherPane)
+            }
+            Divider()
+            Button("Close Tab") {
+                appState.closeTab(documentID: document.id, in: pane)
             }
         }
     }
