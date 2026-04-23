@@ -4,26 +4,39 @@
 # Without a proper .app bundle, SwiftUI/AppKit misbehave in subtle ways
 # (menu bar, UserDefaults domain, file-access TCC prompts, window
 # restoration, services menu, etc). This wrapper compiles with SPM and
-# assembles a minimal .app around the binary, ad-hoc code-signed.
+# assembles a minimal .app around the binary, code-signed ad-hoc (for
+# dev) or with a Developer ID cert (for public distribution).
 #
 # Subcommands:
 #   build     — debug binary only (swift build)
 #   app       — debug .app bundle in build/TraceView.app
 #   run       — build .app, exec the binary directly (stdout visible)
 #   open      — build .app, launch via `open` (proper LaunchServices launch)
-#   release   — release .app bundle
+#   release   — release .app bundle (ad-hoc signed, for local use)
 #   install   — release .app copied to /Applications
+#   notarize  — Developer ID signed .app + DMG, notarized + stapled, ready
+#               for a public GitHub Release. Requires the keychain profile
+#               set up via `xcrun notarytool store-credentials`.
 #   clean     — remove build artifacts
 set -euo pipefail
 
 APP_NAME="TraceView"
 BUNDLE_ID="com.traceview.app"
-BUNDLE_VERSION="0.1"
-BUNDLE_SHORT_VERSION="0.1.0"
+BUNDLE_VERSION="1.0.0"
+BUNDLE_SHORT_VERSION="1.0.0"
 OUT_DIR="build"
 APP_BUNDLE="${OUT_DIR}/${APP_NAME}.app"
 ICON_SRC="Resources/AppIcon.icns"
 ICONSET_SRC="Resources/AppIcon.iconset"
+
+# Developer ID cert used for distribution (public releases). Run
+# `security find-identity -v -p codesigning` to see what's installed.
+DEVELOPER_ID="Developer ID Application: Nathaniel Graham (Q6LRJQSA42)"
+# Keychain profile storing Apple ID + app-specific password + team ID for
+# notarytool. Set up once with:
+#   xcrun notarytool store-credentials traceview-notary \
+#     --apple-id <email> --team-id Q6LRJQSA42 --password <app-specific>
+NOTARY_PROFILE="traceview-notary"
 
 make_info_plist() {
   cat > "${APP_BUNDLE}/Contents/Info.plist" <<EOF
@@ -68,7 +81,7 @@ make_info_plist() {
   <key>NSSupportsSuddenTermination</key>
   <true/>
   <key>NSHumanReadableCopyright</key>
-  <string>TraceView</string>
+  <string>© 2026 Nathaniel Graham. MIT License.</string>
 </dict>
 </plist>
 EOF
@@ -86,7 +99,8 @@ build_icon() {
 }
 
 build_bundle() {
-  local config="$1"   # "debug" or "release"
+  local config="$1"       # "debug" or "release"
+  local sign_id="${2:--}" # signing identity; "-" = ad-hoc
   local flag=""
   [[ "$config" == "release" ]] && flag="-c release"
 
@@ -104,11 +118,95 @@ build_bundle() {
   [[ -f "$ICON_SRC" ]] && cp "$ICON_SRC" "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
   make_info_plist
 
-  # Ad-hoc sign. Required for Sandbox/TCC APIs to behave; otherwise they
-  # sometimes silently fail or prompt with the wrong app name.
-  codesign --force --sign - --deep "$APP_BUNDLE" >/dev/null 2>&1 || true
+  # Ad-hoc keeps dev loop fast; Developer ID + hardened runtime + timestamp
+  # is required for notarization and Gatekeeper approval on download.
+  local sign_opts=()
+  if [[ "$sign_id" != "-" ]]; then
+    sign_opts=(--options runtime --timestamp)
+  fi
+  codesign --force --deep --sign "$sign_id" "${sign_opts[@]}" "$APP_BUNDLE" >/dev/null 2>&1 || {
+    # If Developer ID signing fails, surface the real error (ad-hoc is
+    # expected to succeed silently in most states).
+    codesign --force --deep --sign "$sign_id" "${sign_opts[@]}" "$APP_BUNDLE"
+  }
 
   echo "✓ ${APP_BUNDLE}"
+}
+
+build_and_notarize() {
+  # Full public-release pipeline: Developer ID sign the .app, verify,
+  # wrap it in a DMG with a drag-to-Applications target, sign the DMG,
+  # submit to Apple notary, staple the ticket to both, and emit the
+  # final DMG at dist/<APP>-<version>.dmg.
+  local version="$BUNDLE_SHORT_VERSION"
+  local dist_dir="dist"
+  local dmg_staging="${OUT_DIR}/dmg-stage"
+  local dmg_path="${dist_dir}/${APP_NAME}-${version}.dmg"
+
+  # 1. Check Developer ID cert is installed
+  if ! security find-identity -v -p codesigning | grep -q "${DEVELOPER_ID}"; then
+    echo "✗ Developer ID cert not found in keychain:"
+    echo "    ${DEVELOPER_ID}"
+    echo "  Install it from Apple Developer → Certificates, or via Xcode."
+    exit 1
+  fi
+
+  # 2. Build + sign with Developer ID (hardened runtime)
+  echo "→ Building release .app and signing with Developer ID…"
+  build_bundle release "$DEVELOPER_ID"
+
+  # 3. Verify the signature is notarization-ready
+  echo "→ Verifying signature…"
+  codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
+  codesign --display --verbose=2 "$APP_BUNDLE" 2>&1 | grep -E "Authority|TeamIdentifier|flags" || true
+
+  # 4. Build the DMG via hdiutil. Layout: staging folder holds the .app
+  #    plus a symlink to /Applications so the user drags to install.
+  echo "→ Building DMG…"
+  rm -rf "$dmg_staging"
+  mkdir -p "$dmg_staging" "$dist_dir"
+  cp -R "$APP_BUNDLE" "$dmg_staging/"
+  ln -s /Applications "$dmg_staging/Applications"
+  rm -f "$dmg_path"
+  hdiutil create \
+    -volname "$APP_NAME" \
+    -srcfolder "$dmg_staging" \
+    -ov \
+    -format UDZO \
+    "$dmg_path" >/dev/null
+
+  # 5. Sign the DMG itself so Gatekeeper treats the container as first-
+  #    class (no "downloaded from the internet" scan on end-user machines).
+  echo "→ Signing DMG…"
+  codesign --force --sign "$DEVELOPER_ID" --timestamp "$dmg_path"
+
+  # 6. Submit to Apple's notary service and wait for the verdict. This
+  #    usually takes 2-15 minutes; `--wait` blocks until done and fails
+  #    the script with a non-zero exit on rejection.
+  echo "→ Submitting to Apple notary service (this can take several minutes)…"
+  xcrun notarytool submit "$dmg_path" \
+    --keychain-profile "$NOTARY_PROFILE" \
+    --wait
+
+  # 7. Staple the notarization ticket to both the app and the DMG so
+  #    Gatekeeper can verify offline.
+  echo "→ Stapling notarization ticket…"
+  xcrun stapler staple "$APP_BUNDLE"
+  xcrun stapler staple "$dmg_path"
+
+  # 8. Final sanity check: Gatekeeper should now accept the app/DMG as
+  #    a notarized, signed, from-the-internet-safe artifact.
+  echo "→ Verifying Gatekeeper acceptance…"
+  spctl --assess --type execute --verbose=2 "$APP_BUNDLE"
+  spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg_path"
+
+  # Clean up staging
+  rm -rf "$dmg_staging"
+
+  echo ""
+  echo "✓ Release artifact: ${dmg_path}"
+  echo "  Upload to GitHub Releases with:"
+  echo "    gh release create v${version} ${dmg_path} --notes-file <notes.md>"
 }
 
 case "${1:-run}" in
@@ -151,12 +249,15 @@ case "${1:-run}" in
     echo "✓ installed $DEST"
     echo "  launch with: open -a $APP_NAME"
     ;;
+  notarize)
+    build_and_notarize
+    ;;
   clean)
     swift package clean
-    rm -rf "$OUT_DIR"
+    rm -rf "$OUT_DIR" dist
     ;;
   *)
-    echo "usage: $0 {build|app|run|open|release|install|clean}"
+    echo "usage: $0 {build|app|run|open|release|install|notarize|clean}"
     exit 1
     ;;
 esac
