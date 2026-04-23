@@ -12,8 +12,18 @@ final class ParserRegistry {
     ]
 
     /// Auto-detect the best parser for a file by reading sample lines.
+    /// Transparently handles `.gz` — we decompress the whole file here too
+    /// rather than trying to partial-stream, because the compressed size is
+    /// already small enough that it's cheaper than spawning gunzip twice.
     func detectParser(for url: URL) -> any LogParser {
-        guard let data = try? Data(contentsOf: url, options: .mappedIfSafe),
+        let rawData: Data?
+        if GzipDecompressor.isGzipped(url: url) {
+            rawData = GzipDecompressor.decompress(url: url)
+        } else {
+            rawData = try? Data(contentsOf: url, options: .mappedIfSafe)
+        }
+
+        guard let data = rawData,
               let text = String(data: data.prefix(8192), encoding: .utf8) else {
             return PlainTextParser()
         }

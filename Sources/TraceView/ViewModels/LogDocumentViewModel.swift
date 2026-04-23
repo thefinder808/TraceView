@@ -82,8 +82,21 @@ final class LogDocumentViewModel: ObservableObject {
 
         parser = ParserRegistry.shared.detectParser(for: url)
 
-        guard let data = try? Data(contentsOf: url, options: .mappedIfSafe),
-              let text = String(data: data, encoding: .utf8) else { return }
+        let compressed = GzipDecompressor.isGzipped(url: url)
+        document.isCompressed = compressed
+
+        // Gzipped: spawn gunzip off-main to avoid blocking on a few-second
+        // decompress. Uncompressed: mmap is cheap enough to do on-main.
+        let data: Data?
+        if compressed {
+            data = await Task.detached(priority: .userInitiated) {
+                GzipDecompressor.decompress(url: url)
+            }.value
+        } else {
+            data = try? Data(contentsOf: url, options: .mappedIfSafe)
+        }
+
+        guard let data, let text = String(data: data, encoding: .utf8) else { return }
 
         document.fileSize = UInt64(data.count)
         document.lastReadOffset = UInt64(data.count)
@@ -117,7 +130,11 @@ final class LogDocumentViewModel: ObservableObject {
         applyFilter()
         isLoading = false
 
-        startWatching(url: url)
+        // Gzipped files are archive snapshots — they don't get appended to,
+        // so no file watcher.
+        if !compressed {
+            startWatching(url: url)
+        }
     }
 
     private func updateColumnFlags(scanning entries: [LogEntry]) {
