@@ -8,6 +8,7 @@ final class SettingsManager: ObservableObject {
     private static let showComponentKey = "traceview.showComponent"
     private static let savedFiltersKey = "traceview.savedFilters"
     private static let detailDisplayModeKey = "traceview.detailDisplayMode"
+    static let restoreTabsOnLaunchKey = "traceview.restoreTabsOnLaunch"
 
     @Published var fontSize: Double {
         didSet { UserDefaults.standard.set(fontSize, forKey: Self.fontSizeKey) }
@@ -35,6 +36,18 @@ final class SettingsManager: ObservableObject {
 
     @Published var detailDisplayMode: DetailDisplayMode {
         didSet { UserDefaults.standard.set(detailDisplayMode.rawValue, forKey: Self.detailDisplayModeKey) }
+    }
+
+    @Published var restoreTabsOnLaunch: Bool {
+        didSet {
+            UserDefaults.standard.set(restoreTabsOnLaunch, forKey: Self.restoreTabsOnLaunchKey)
+            if !restoreTabsOnLaunch {
+                // Flipping off clears any existing saved state so the next
+                // launch is clean — nothing silently persists after opt-out.
+                UserDefaults.standard.removeObject(forKey: AppState.savedOpenTabsKey)
+                UserDefaults.standard.removeObject(forKey: AppState.savedSelectedTabKey)
+            }
+        }
     }
 
     init() {
@@ -71,6 +84,9 @@ final class SettingsManager: ObservableObject {
 
         let rawMode = defaults.string(forKey: Self.detailDisplayModeKey) ?? DetailDisplayMode.inline.rawValue
         self.detailDisplayMode = DetailDisplayMode(rawValue: rawMode) ?? .inline
+
+        // Default off — tab restoration is opt-in.
+        self.restoreTabsOnLaunch = defaults.bool(forKey: Self.restoreTabsOnLaunchKey)
     }
 }
 
