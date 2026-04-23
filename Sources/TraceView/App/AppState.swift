@@ -8,11 +8,16 @@ final class AppState: ObservableObject {
     @Published var showCommandPalette: Bool = false
     @Published var showExport: Bool = false
     @Published var focusSearch: Bool = false
+    @Published var showGoToLine: Bool = false
 
     // Set by callers that want to open the error lookup panel with a
     // pre-filled query (e.g. the inline-row "Lookup 0x…" pill). Consumed
     // by ErrorLookupPanel which clears it after populating the search.
     @Published var pendingErrorLookupCode: String? = nil
+
+    // Set by the Go-To-Line sheet; NSLogTableView observes this and scrolls
+    // to the matching row, then clears it.
+    @Published var pendingGoToLine: Int? = nil
 
     let logBrowser = LogBrowserService()
     private var documentSubscriptions: [UUID: AnyCancellable] = [:]

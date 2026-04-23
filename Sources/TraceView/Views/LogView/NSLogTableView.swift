@@ -11,6 +11,7 @@ struct NSLogTableView: NSViewRepresentable {
     let isFollowing: Bool
     @Binding var selectedEntry: LogEntry?
     @Binding var expandedEntryID: Int?
+    @Binding var pendingGoToLine: Int?
     let inlineExpansionEnabled: Bool
     let themeManager: ThemeManager
     var onCopy: (LogEntry) -> Void = { _ in }
@@ -152,6 +153,20 @@ struct NSLogTableView: NSViewRepresentable {
         } else if newCount != oldCount {
             // Full data change (filter applied, file reloaded, etc.)
             tableView.reloadData()
+        }
+
+        // Go-to-line: scroll to the row whose lineNumber matches, then clear
+        // the pending binding on the next tick so subsequent updateNSView
+        // passes don't keep re-scrolling to the same spot. onScrollUp
+        // signals the parent to pause following so the landing spot sticks.
+        if let target = pendingGoToLine {
+            if let row = entries.firstIndex(where: { $0.lineNumber == target }) {
+                tableView.scrollRowToVisible(row)
+                tableView.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+                onScrollUp()
+            }
+            let binding = $pendingGoToLine
+            DispatchQueue.main.async { binding.wrappedValue = nil }
         }
 
         // Height-only change: refresh affected rows so the drawer opens/closes.

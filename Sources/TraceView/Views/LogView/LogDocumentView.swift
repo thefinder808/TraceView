@@ -42,6 +42,7 @@ struct LogDocumentView: View {
                         isFollowing: document.isFollowing,
                         selectedEntry: $selectedEntry,
                         expandedEntryID: $expandedEntryID,
+                        pendingGoToLine: $appState.pendingGoToLine,
                         inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
                         themeManager: themeManager,
                         onCopy: { entry in

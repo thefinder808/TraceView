@@ -29,6 +29,13 @@ struct ContentView: View {
                         }
                     }
                 }
+                // Drop anywhere on the detail column opens the file as a new
+                // tab — same handler as WelcomeView. The outer TraceViewApp
+                // drop doesn't reach here reliably because NavigationSplitView
+                // subviews swallow it first.
+                .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                    handleFileDrop(providers: providers)
+                }
             } else {
                 WelcomeView()
             }
@@ -54,5 +61,21 @@ struct ContentView: View {
                 .help(appState.showErrorLookup ? "Hide Error Lookup" : "Show Error Lookup (⇧⌘L)")
             }
         }
+        .sheet(isPresented: $appState.showGoToLine) {
+            GoToLineSheet()
+        }
+    }
+
+    private func handleFileDrop(providers: [NSItemProvider]) -> Bool {
+        for provider in providers {
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                if let url {
+                    DispatchQueue.main.async {
+                        appState.openFile(at: url)
+                    }
+                }
+            }
+        }
+        return true
     }
 }
