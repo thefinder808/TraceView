@@ -9,8 +9,8 @@ struct SeveritySummaryBar: View {
 
     var body: some View {
         let theme = themeManager.current
-        let per = levelCounts()
-        let total = viewModel.document.entries.count
+        let per = viewModel.levelCounts
+        let total = per.values.reduce(0, +)
 
         HStack(spacing: 6) {
             chip(.all, count: total, theme: theme)
@@ -110,14 +110,6 @@ struct SeveritySummaryBar: View {
                 viewModel.filter.enabledLevels = [lvl]
             }
         }
-    }
-
-    private func levelCounts() -> [LogLevel: Int] {
-        var per: [LogLevel: Int] = [:]
-        for entry in viewModel.document.entries {
-            per[entry.level, default: 0] += 1
-        }
-        return per
     }
 
     private func formatCount(_ n: Int) -> String {

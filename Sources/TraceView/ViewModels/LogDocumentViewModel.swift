@@ -15,12 +15,26 @@ final class LogDocumentViewModel: ObservableObject {
     @Published private(set) var hasTimestamps = false
     @Published private(set) var hasComponents = false
 
+    // Cached derived views so SeveritySummaryBar and HistogramView don't
+    // iterate all entries on every SwiftUI body evaluation (which fires on
+    // every filter keystroke). levelCounts is maintained incrementally on
+    // append; histogram is recomputed on load + throttled on append.
+    @Published private(set) var levelCounts: [LogLevel: Int] = [:]
+    @Published private(set) var histogram: LogHistogram?
+
+    // True while the initial file parse is running on a background task.
+    @Published private(set) var isLoading: Bool = false
+
     private var parser: any LogParser = PlainTextParser()
     private var fileWatcher: FileWatcher?
     private var logStream: UnifiedLogStream?
     private var partialLineBuffer: String = ""
     private var filterTask: Task<Void, Never>?
+    private var histogramTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
+
+    // Bucket count for the minimap — matches the design handoff.
+    private static let histogramBucketCount = 60
 
     init(document: LogDocument) {
         self.document = document
@@ -37,7 +51,7 @@ final class LogDocumentViewModel: ObservableObject {
     func load() {
         switch document.source {
         case .file:
-            loadFile()
+            Task { @MainActor in await loadFile() }
         case .unifiedLog(let predicate):
             startLogStream(predicate: predicate)
         case .stdin:
@@ -62,36 +76,47 @@ final class LogDocumentViewModel: ObservableObject {
         document.isLive = false
     }
 
-    private func loadFile() {
+    @MainActor
+    private func loadFile() async {
         guard case .file(let url) = document.source else { return }
 
-        // Detect parser
         parser = ParserRegistry.shared.detectParser(for: url)
 
-        // Read file
         guard let data = try? Data(contentsOf: url, options: .mappedIfSafe),
               let text = String(data: data, encoding: .utf8) else { return }
 
         document.fileSize = UInt64(data.count)
         document.lastReadOffset = UInt64(data.count)
 
-        // Parse all lines
-        let lines = text.components(separatedBy: .newlines)
-        var entries: [LogEntry] = []
-        entries.reserveCapacity(lines.count)
+        isLoading = true
 
-        for (index, line) in lines.enumerated() {
-            guard !line.isEmpty else { continue }
-            let entry = parser.parse(line: line, lineNumber: index + 1, entryID: document.nextEntryID)
-            document.nextEntryID += 1
-            entries.append(entry)
-        }
+        // Parse the whole file on a background task. A 100K-line file takes
+        // ~1.5s of synchronous parsing; doing it on the main thread froze the
+        // UI from the user's first click through to first render.
+        let capturedParser = parser
+        let startID = document.nextEntryID
+        let parsed: (entries: [LogEntry], nextID: Int) = await Task.detached(priority: .userInitiated) {
+            let lines = text.components(separatedBy: .newlines)
+            var entries: [LogEntry] = []
+            entries.reserveCapacity(lines.count)
+            var nextID = startID
+            for (index, line) in lines.enumerated() {
+                guard !line.isEmpty else { continue }
+                let entry = capturedParser.parse(line: line, lineNumber: index + 1, entryID: nextID)
+                nextID += 1
+                entries.append(entry)
+            }
+            return (entries, nextID)
+        }.value
 
-        document.entries = entries
-        updateColumnFlags(scanning: entries)
+        document.entries = parsed.entries
+        document.nextEntryID = parsed.nextID
+        updateColumnFlags(scanning: parsed.entries)
+        rebuildLevelCounts(from: parsed.entries)
+        recomputeHistogram(immediate: true)
         applyFilter()
+        isLoading = false
 
-        // Start watching for changes
         startWatching(url: url)
     }
 
@@ -183,6 +208,8 @@ final class LogDocumentViewModel: ObservableObject {
 
         document.entries.append(contentsOf: newEntries)
         updateColumnFlags(scanning: newEntries)
+        incrementLevelCounts(with: newEntries)
+        recomputeHistogram(immediate: false)
 
         // Incremental filter: dispatch to background if filter is active
         if filter.isActive {
@@ -198,6 +225,88 @@ final class LogDocumentViewModel: ObservableObject {
         } else {
             filteredEntries.append(contentsOf: newEntries)
         }
+    }
+
+    // MARK: - Cached derived views
+
+    private func rebuildLevelCounts(from entries: [LogEntry]) {
+        var counts: [LogLevel: Int] = [:]
+        for entry in entries {
+            counts[entry.level, default: 0] += 1
+        }
+        levelCounts = counts
+    }
+
+    private func incrementLevelCounts(with entries: [LogEntry]) {
+        var counts = levelCounts
+        for entry in entries {
+            counts[entry.level, default: 0] += 1
+        }
+        levelCounts = counts
+    }
+
+    // Recomputes the 60-bucket minimap histogram. `immediate` runs it now
+    // (used on initial load). Otherwise it schedules a debounced refresh so
+    // high-rate log streams don't thrash re-bucketing on every append.
+    private func recomputeHistogram(immediate: Bool) {
+        histogramTask?.cancel()
+        if immediate {
+            histogram = Self.computeHistogram(from: document.entries, buckets: Self.histogramBucketCount)
+            return
+        }
+        histogramTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard let self, !Task.isCancelled else { return }
+            self.histogram = Self.computeHistogram(from: self.document.entries, buckets: Self.histogramBucketCount)
+        }
+    }
+
+    private static let histogramLabelFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
+    private static func computeHistogram(from entries: [LogEntry], buckets: Int) -> LogHistogram? {
+        guard entries.count >= 10 else { return nil }
+
+        let timestamped = entries.compactMap { $0.timestamp }
+        guard Double(timestamped.count) / Double(entries.count) >= 0.1,
+              let first = timestamped.first,
+              let last = timestamped.last,
+              last > first else { return nil }
+
+        let total = last.timeIntervalSince(first)
+        guard total > 0 else { return nil }
+
+        let bucketSize = total / Double(buckets)
+        var bars = Array(repeating: LogHistogram.Bar(err: 0, warn: 0, info: 0), count: buckets)
+
+        for entry in entries {
+            guard let ts = entry.timestamp else { continue }
+            let offset = ts.timeIntervalSince(first)
+            let idx = min(buckets - 1, max(0, Int(offset / bucketSize)))
+            let existing = bars[idx]
+            switch entry.level {
+            case .error, .critical:
+                bars[idx] = LogHistogram.Bar(err: existing.err + 1, warn: existing.warn, info: existing.info)
+            case .warning:
+                bars[idx] = LogHistogram.Bar(err: existing.err, warn: existing.warn + 1, info: existing.info)
+            default:
+                bars[idx] = LogHistogram.Bar(err: existing.err, warn: existing.warn, info: existing.info + 1)
+            }
+        }
+
+        let maxTotal = bars.map(\.total).max() ?? 1
+
+        histogramLabelFormatter.dateFormat = total > 86400 ? "MMM d HH:mm" : "HH:mm:ss"
+
+        return LogHistogram(
+            bars: bars,
+            maxTotal: maxTotal,
+            startLabel: histogramLabelFormatter.string(from: first),
+            endLabel: histogramLabelFormatter.string(from: last)
+        )
     }
 
     // MARK: - Filtering
