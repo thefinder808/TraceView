@@ -59,8 +59,100 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(theme.secondaryText)
             }
+
+            // Highlight rules
+            Section("Highlight Rules") {
+                ForEach($settingsManager.highlightRules) { $rule in
+                    HighlightRuleRow(rule: $rule) {
+                        settingsManager.highlightRules.removeAll { $0.id == rule.id }
+                    }
+                }
+
+                Button {
+                    settingsManager.highlightRules.append(
+                        HighlightRule(name: "New rule", pattern: "", colorHex: 0xFFB84D)
+                    )
+                } label: {
+                    Label("Add rule", systemImage: "plus.circle")
+                }
+
+                if settingsManager.highlightRules.isEmpty {
+                    Text("Rows whose message matches a rule's pattern are tinted with its color. Pattern is a regex.")
+                        .font(.caption)
+                        .foregroundStyle(theme.secondaryText)
+                }
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 420, height: 460)
+        .frame(width: 480, height: 560)
+    }
+}
+
+// Single row in the Highlight Rules list: enable toggle, name field,
+// regex pattern, color picker, delete button. Invalid regex patterns
+// show a red outline so the user gets fast feedback.
+private struct HighlightRuleRow: View {
+    @Binding var rule: HighlightRule
+    let onDelete: () -> Void
+
+    private var isValidRegex: Bool {
+        rule.pattern.isEmpty || (try? NSRegularExpression(pattern: rule.pattern)) != nil
+    }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 8) {
+                Toggle("", isOn: $rule.isEnabled)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+
+                TextField("Name", text: $rule.name)
+                    .textFieldStyle(.roundedBorder)
+
+                ColorPicker("", selection: Binding(
+                    get: { rule.color },
+                    set: { newColor in
+                        if let hex = newColor.asHexRGB { rule.colorHex = hex }
+                    }
+                ))
+                .labelsHidden()
+                .frame(width: 40)
+
+                Button(role: .destructive, action: onDelete) {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+            }
+
+            HStack(spacing: 8) {
+                TextField("Regex pattern", text: $rule.pattern)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 11, design: .monospaced))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(isValidRegex ? .clear : .red, lineWidth: 1)
+                    )
+
+                if !isValidRegex {
+                    Text("invalid regex")
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+// Small helper to round-trip SwiftUI Color through an RGB hex.
+private extension Color {
+    var asHexRGB: UInt32? {
+        let ns = NSColor(self).usingColorSpace(.sRGB)
+        guard let rgb = ns else { return nil }
+        let r = UInt32(max(0, min(255, Int(rgb.redComponent * 255))))
+        let g = UInt32(max(0, min(255, Int(rgb.greenComponent * 255))))
+        let b = UInt32(max(0, min(255, Int(rgb.blueComponent * 255))))
+        return (r << 16) | (g << 8) | b
     }
 }

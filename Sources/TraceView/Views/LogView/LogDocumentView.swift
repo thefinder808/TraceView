@@ -44,6 +44,7 @@ struct LogDocumentView: View {
                         expandedEntryID: $expandedEntryID,
                         pendingGoToLine: $appState.pendingGoToLine,
                         bookmarkedLines: document.bookmarks,
+                        highlightRules: settingsManager.highlightRules,
                         inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
                         themeManager: themeManager,
                         onCopy: { entry in
