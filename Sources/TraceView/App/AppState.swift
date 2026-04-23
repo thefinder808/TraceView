@@ -265,23 +265,25 @@ final class AppState: ObservableObject {
     }
 
     /// Move a tab from one pane to the other. Opens split if needed.
+    /// Order matters: add to the target FIRST so the doc has a live pane
+    /// reference throughout, then close in the source. If we closed first,
+    /// `closeTab`'s teardown check would see zero references and destroy
+    /// the document before we could re-attach it.
     func moveTabToOtherPane(documentID: UUID, from source: Pane) {
         let target: Pane = source == .primary ? .secondary : .primary
-        closeTab(documentID: documentID, in: source)
-        // closeTab might have fully closed the doc if the other pane
-        // already had it — but since we're moving to the other pane, the
-        // target's order doesn't have it yet (moves should only happen
-        // from tabs that aren't already in both panes). Verify the doc
-        // still exists; if it somehow got torn down, bail.
-        guard documents.contains(where: { $0.id == documentID }) else { return }
         switch target {
         case .primary:
-            primaryTabOrder.append(documentID)
+            if !primaryTabOrder.contains(documentID) {
+                primaryTabOrder.append(documentID)
+            }
             selectedDocumentID = documentID
         case .secondary:
-            secondaryTabOrder.append(documentID)
+            if !secondaryTabOrder.contains(documentID) {
+                secondaryTabOrder.append(documentID)
+            }
             secondarySelectedDocumentID = documentID
         }
+        closeTab(documentID: documentID, in: source)
     }
 
     // MARK: - File opening
