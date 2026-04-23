@@ -42,8 +42,16 @@ struct NSLogTableView: NSViewRepresentable {
         tableView.intercellSpacing = NSSize(width: 0, height: 0)
         tableView.usesAlternatingRowBackgroundColors = false
         tableView.backgroundColor = .clear
-        tableView.headerView = nil // We use our own SwiftUI header
+        // Native header gives us the resize cursor on column dividers and
+        // drag-to-reorder for free. The system styles it against the window
+        // appearance so it tracks light/dark automatically.
+        tableView.headerView = NSTableHeaderView()
         tableView.gridStyleMask = []
+        tableView.allowsColumnReordering = true
+        tableView.allowsColumnResizing = true
+        // Only the message column resizes when the window does; user-set
+        // widths on the other columns stick.
+        tableView.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
         tableView.allowsMultipleSelection = false
         tableView.target = context.coordinator
         tableView.action = #selector(Coordinator.rowClicked(_:))
@@ -61,33 +69,35 @@ struct NSLogTableView: NSViewRepresentable {
         menu.addItem(bookmarkItem)
         tableView.menu = menu
 
-        // Create columns
+        // Create columns. Max widths relaxed from earlier (timestamp was
+        // capped at 160, component at 200) so users actually have room to
+        // drag. lineNumber stays fixed — it's a gutter.
         let lineCol = NSTableColumn(identifier: .lineNumber)
         lineCol.title = "#"
         lineCol.width = 48
         lineCol.minWidth = 48
-        lineCol.maxWidth = 48
+        lineCol.maxWidth = 80
         tableView.addTableColumn(lineCol)
 
         let timeCol = NSTableColumn(identifier: .timestamp)
         timeCol.title = "Timestamp"
         timeCol.width = 110
         timeCol.minWidth = 80
-        timeCol.maxWidth = 160
+        timeCol.maxWidth = 280
         tableView.addTableColumn(timeCol)
 
         let levelCol = NSTableColumn(identifier: .level)
         levelCol.title = "Level"
         levelCol.width = 52
         levelCol.minWidth = 40
-        levelCol.maxWidth = 60
+        levelCol.maxWidth = 80
         tableView.addTableColumn(levelCol)
 
         let compCol = NSTableColumn(identifier: .component)
         compCol.title = "Component"
         compCol.width = 110
         compCol.minWidth = 60
-        compCol.maxWidth = 200
+        compCol.maxWidth = 320
         tableView.addTableColumn(compCol)
 
         let msgCol = NSTableColumn(identifier: .message)
@@ -95,7 +105,11 @@ struct NSLogTableView: NSViewRepresentable {
         msgCol.minWidth = 200
         tableView.addTableColumn(msgCol)
 
-        // Make message column fill remaining space
+        // Restore user-set widths and column order from a previous session
+        // before any layout happens.
+        ColumnLayoutStore.apply(to: tableView)
+
+        // Make message column fill remaining space.
         tableView.sizeLastColumnToFit()
 
         tableView.dataSource = context.coordinator
@@ -111,6 +125,20 @@ struct NSLogTableView: NSViewRepresentable {
             selector: #selector(Coordinator.scrollViewDidScroll(_:)),
             name: NSScrollView.didLiveScrollNotification,
             object: scrollView
+        )
+
+        // Persist column width / order changes.
+        NotificationCenter.default.addObserver(
+            context.coordinator,
+            selector: #selector(Coordinator.columnDidResize(_:)),
+            name: NSTableView.columnDidResizeNotification,
+            object: tableView
+        )
+        NotificationCenter.default.addObserver(
+            context.coordinator,
+            selector: #selector(Coordinator.columnDidMove(_:)),
+            name: NSTableView.columnDidMoveNotification,
+            object: tableView
         )
 
         // Follow timer
@@ -288,6 +316,17 @@ struct NSLogTableView: NSViewRepresentable {
             guard isFollowing, let tableView, entries.count > 0 else { return }
             let lastRow = entries.count - 1
             tableView.scrollRowToVisible(lastRow)
+        }
+
+        @objc func columnDidResize(_ notification: Notification) {
+            guard let col = notification.userInfo?["NSTableColumn"] as? NSTableColumn else { return }
+            ColumnLayoutStore.saveWidth(Double(col.width), for: col.identifier.rawValue)
+        }
+
+        @objc func columnDidMove(_ notification: Notification) {
+            guard let tableView else { return }
+            let order = tableView.tableColumns.map { $0.identifier.rawValue }
+            ColumnLayoutStore.saveOrder(order)
         }
 
         @objc func scrollViewDidScroll(_ notification: Notification) {
