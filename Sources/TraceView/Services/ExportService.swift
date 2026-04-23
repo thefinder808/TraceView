@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import UniformTypeIdentifiers
 
 enum ExportFormat: String, CaseIterable, Identifiable {
     case plainText = "Plain Text"
@@ -15,12 +16,22 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         case .json: return "json"
         }
     }
+
+    // Drives NSSavePanel's allowedContentTypes so Finder/Quick Look see
+    // the written file as its real type rather than generic plain text.
+    var contentType: UTType {
+        switch self {
+        case .plainText: return .plainText
+        case .csv: return .commaSeparatedText
+        case .json: return .json
+        }
+    }
 }
 
 enum ExportService {
     static func export(entries: [LogEntry], documentName: String, format: ExportFormat) {
         let panel = NSSavePanel()
-        panel.allowedContentTypes = [.plainText]
+        panel.allowedContentTypes = [format.contentType]
         panel.nameFieldStringValue = "\(documentName)-export.\(format.fileExtension)"
         panel.message = "Export \(entries.count) log entries"
 
