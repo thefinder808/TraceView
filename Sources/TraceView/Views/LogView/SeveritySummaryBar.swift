@@ -4,12 +4,13 @@ import SwiftUI
 // Notice / Info / Debug) with live counts from the current document.
 // Clicking a chip toggles that level in the filter (All resets).
 struct SeveritySummaryBar: View {
+    @ObservedObject var document: LogDocument
     @ObservedObject var viewModel: LogDocumentViewModel
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         let theme = themeManager.current
-        let per = viewModel.levelCounts
+        let per = document.levelCounts
         let total = per.values.reduce(0, +)
 
         HStack(spacing: 6) {
