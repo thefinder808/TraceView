@@ -4,6 +4,8 @@ import Combine
 final class AppState: ObservableObject {
     @Published var documents: [LogDocument] = []
     @Published var selectedDocumentID: UUID? = nil
+    // Non-nil = split view active with this doc in the right pane.
+    @Published var secondarySelectedDocumentID: UUID? = nil
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
     @Published var showExport: Bool = false
@@ -86,6 +88,35 @@ final class AppState: ObservableObject {
         return documents.first { $0.id == id }
     }
 
+    var secondaryDocument: LogDocument? {
+        guard let id = secondarySelectedDocumentID else { return nil }
+        return documents.first { $0.id == id }
+    }
+
+    var isSplitView: Bool { secondaryDocument != nil }
+
+    // MARK: - Split view
+
+    /// Toggle split mode. Opens with the primary doc duplicated into the
+    /// secondary pane; re-runs close it.
+    func toggleSplitView() {
+        if isSplitView {
+            secondarySelectedDocumentID = nil
+        } else if let primary = selectedDocument {
+            secondarySelectedDocumentID = primary.id
+        }
+    }
+
+    /// Send a specific document to the secondary pane (enters split mode
+    /// if needed). Called from the tab bar context menu.
+    func openInSplit(_ document: LogDocument) {
+        secondarySelectedDocumentID = document.id
+    }
+
+    func closeSplitView() {
+        secondarySelectedDocumentID = nil
+    }
+
     // MARK: - Document Management
 
     func addDocument(_ document: LogDocument) {
@@ -105,6 +136,9 @@ final class AppState: ObservableObject {
 
         if selectedDocumentID == document.id {
             selectedDocumentID = documents.first?.id
+        }
+        if secondarySelectedDocumentID == document.id {
+            secondarySelectedDocumentID = nil
         }
     }
 

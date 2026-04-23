@@ -95,6 +95,14 @@ struct TraceViewApp: App {
 
                 Divider()
 
+                Button(appState.isSplitView ? "Close Split View" : "Open Split View") {
+                    appState.toggleSplitView()
+                }
+                .keyboardShortcut("\\", modifiers: .command)
+                .disabled(appState.selectedDocument == nil)
+
+                Divider()
+
                 Button("Toggle Bookmark on Selected Line") { appState.toggleBookmarkOnSelection() }
                     .keyboardShortcut("d", modifiers: .command)
                     .disabled(appState.selectedDocument == nil)
