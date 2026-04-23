@@ -1,11 +1,12 @@
 import SwiftUI
 
-// Event-density histogram strip. Buckets are computed in
-// LogDocumentViewModel (see `recomputeHistogram`) so this view just reads
-// the cached result — no O(N) pass on every SwiftUI body evaluation.
-// Hidden when fewer than 10% of entries have parsed timestamps.
+// Event-density histogram strip. Buckets are computed on the document
+// (see `recomputeHistogram`) so this view just reads the cached result —
+// no O(N) pass on every SwiftUI body evaluation, and no duplicate work
+// when the same doc is shown in both split panes. Hidden when fewer than
+// 10% of entries have parsed timestamps.
 struct HistogramView: View {
-    @ObservedObject var viewModel: LogDocumentViewModel
+    @ObservedObject var document: LogDocument
     @EnvironmentObject var themeManager: ThemeManager
 
     private let stripHeight: CGFloat = 28
@@ -13,7 +14,7 @@ struct HistogramView: View {
     var body: some View {
         let theme = themeManager.current
 
-        if let bins = viewModel.histogram {
+        if let bins = document.histogram {
             VStack(spacing: 2) {
                 HStack(alignment: .bottom, spacing: 1) {
                     ForEach(bins.bars.indices, id: \.self) { i in

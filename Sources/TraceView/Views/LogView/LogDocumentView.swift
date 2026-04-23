@@ -19,10 +19,10 @@ struct LogDocumentView: View {
 
         VStack(spacing: 0) {
             // Severity summary chips
-            SeveritySummaryBar(viewModel: viewModel)
+            SeveritySummaryBar(document: document, viewModel: viewModel)
 
             // Event density histogram (hidden if timestamps unavailable)
-            HistogramView(viewModel: viewModel)
+            HistogramView(document: document)
 
             // Filter bar
             FilterBarView(viewModel: viewModel)
@@ -37,8 +37,8 @@ struct LogDocumentView: View {
                         theme: themeManager.current,
                         fontSize: settingsManager.fontSize,
                         showLineNumbers: settingsManager.showLineNumbers,
-                        showTimestamp: settingsManager.showTimestamp && viewModel.hasTimestamps,
-                        showComponent: settingsManager.showComponent && viewModel.hasComponents,
+                        showTimestamp: settingsManager.showTimestamp && document.hasTimestamps,
+                        showComponent: settingsManager.showComponent && document.hasComponents,
                         isFollowing: document.isFollowing,
                         selectedEntry: $selectedEntry,
                         expandedEntryID: $expandedEntryID,

@@ -243,10 +243,7 @@ final class AppState: ObservableObject {
     }
 
     func reloadCurrentFile() {
-        // Handled by LogDocumentViewModel — triggers via notification
         guard let doc = selectedDocument, case .file = doc.source else { return }
-        doc.entries.removeAll()
-        doc.lastReadOffset = 0
-        doc.objectWillChange.send()
+        doc.reload()
     }
 }
