@@ -95,5 +95,26 @@ private struct TabView: View {
         .contentShape(Rectangle())
         .onTapGesture(perform: onSelect)
         .onHover { isHovered = $0 }
+        .contextMenu {
+            TabContextMenu(document: document)
+        }
+    }
+}
+
+// Split-view entry / exit from a tab's right-click menu.
+private struct TabContextMenu: View {
+    let document: LogDocument
+    @EnvironmentObject var appState: AppState
+
+    var body: some View {
+        if appState.secondarySelectedDocumentID == document.id {
+            Button("Remove from Split View") {
+                appState.closeSplitView()
+            }
+        } else {
+            Button("Open in Split View") {
+                appState.openInSplit(document)
+            }
+        }
     }
 }
