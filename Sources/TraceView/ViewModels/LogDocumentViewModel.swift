@@ -228,7 +228,9 @@ final class LogDocumentViewModel: ObservableObject {
         incrementLevelCounts(with: newEntries)
         recomputeHistogram(immediate: false)
 
-        // Incremental filter: dispatch to background if filter is active
+        // Incremental filter: dispatch to background if filter is active.
+        // If the filter changes while we're in-flight, drop the result —
+        // applyFilter's own task will rebuild the list from the full set.
         if filter.isActive {
             let currentFilter = filter
             Task { @MainActor [weak self] in
@@ -236,8 +238,10 @@ final class LogDocumentViewModel: ObservableObject {
                     var f = currentFilter
                     return newEntries.filter { f.matches($0) }
                 }.value
-                guard !matching.isEmpty else { return }
-                self?.filteredEntries.append(contentsOf: matching)
+                guard !matching.isEmpty,
+                      let self,
+                      self.filter == currentFilter else { return }
+                self.filteredEntries.append(contentsOf: matching)
             }
         } else {
             filteredEntries.append(contentsOf: newEntries)
@@ -278,9 +282,19 @@ final class LogDocumentViewModel: ObservableObject {
         }
     }
 
-    private static let histogramLabelFormatter: DateFormatter = {
+    // Two static formatters — previous code mutated a single shared
+    // formatter's dateFormat on every recompute. Avoids a (cheap but
+    // pointless) property write in the hot path.
+    private static let histogramLabelFormatterShort: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "HH:mm:ss"
+        return f
+    }()
+    private static let histogramLabelFormatterLong: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "MMM d HH:mm"
         return f
     }()
 
@@ -316,13 +330,13 @@ final class LogDocumentViewModel: ObservableObject {
 
         let maxTotal = bars.map(\.total).max() ?? 1
 
-        histogramLabelFormatter.dateFormat = total > 86400 ? "MMM d HH:mm" : "HH:mm:ss"
+        let formatter = total > 86400 ? histogramLabelFormatterLong : histogramLabelFormatterShort
 
         return LogHistogram(
             bars: bars,
             maxTotal: maxTotal,
-            startLabel: histogramLabelFormatter.string(from: first),
-            endLabel: histogramLabelFormatter.string(from: last)
+            startLabel: formatter.string(from: first),
+            endLabel: formatter.string(from: last)
         )
     }
 
@@ -367,8 +381,4 @@ final class LogDocumentViewModel: ObservableObject {
         return Formatters.formatCount(document.entries.count)
     }
 
-    var uniqueComponents: [String] {
-        let components = Set(document.entries.compactMap(\.component))
-        return components.sorted()
-    }
 }

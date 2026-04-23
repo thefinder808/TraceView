@@ -66,19 +66,26 @@ struct UnifiedLogParser: LogParser {
         )
     }
 
+    // Cached per-format parsers. The previous per-call DateFormatter
+    // allocation was the dominant cost in bulk-parsing unified log files —
+    // 100K allocations for a 100K-line export.
+    private static let timestampFormatters: [DateFormatter] = {
+        ["yyyy-MM-dd HH:mm:ss.SSSSSSZ",
+         "yyyy-MM-dd HH:mm:ss.SSSZ",
+         "yyyy-MM-dd HH:mm:ssZ",
+         "yyyy-MM-dd HH:mm:ss.SSSSSS",
+         "yyyy-MM-dd HH:mm:ss"].map { fmt in
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US_POSIX")
+            f.dateFormat = fmt
+            return f
+        }
+    }()
+
     private func parseTimestamp(_ str: String?) -> Date? {
         guard let str else { return nil }
         // Unified log timestamp format: "2026-04-06 10:23:01.442000-0700"
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        for format in [
-            "yyyy-MM-dd HH:mm:ss.SSSSSSZ",
-            "yyyy-MM-dd HH:mm:ss.SSSZ",
-            "yyyy-MM-dd HH:mm:ssZ",
-            "yyyy-MM-dd HH:mm:ss.SSSSSS",
-            "yyyy-MM-dd HH:mm:ss"
-        ] {
-            formatter.dateFormat = format
+        for formatter in Self.timestampFormatters {
             if let date = formatter.date(from: str) { return date }
         }
         return nil

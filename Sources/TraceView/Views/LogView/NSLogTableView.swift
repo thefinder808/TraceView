@@ -149,7 +149,7 @@ struct NSLogTableView: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         let coordinator = context.coordinator
-        let tableView = coordinator.tableView!
+        guard let tableView = coordinator.tableView else { return }
 
         // Detect theme swap. Cached NSTextField cells keep their old textColor,
         // so a plain theme reassignment leaves already-visible rows looking
@@ -304,6 +304,11 @@ struct NSLogTableView: NSViewRepresentable {
 
         deinit {
             followTimer?.invalidate()
+            // Coordinator registers as an observer for scroll / column
+            // notifications in makeNSView. NotificationCenter holds an
+            // unowned ref, so leaving these in place after dealloc crashes
+            // on the next matching notification.
+            NotificationCenter.default.removeObserver(self)
         }
 
         func startFollowTimer() {
