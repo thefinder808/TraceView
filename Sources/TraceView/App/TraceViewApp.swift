@@ -80,8 +80,21 @@ struct TraceViewApp: App {
                 Button("Find...") { appState.focusSearch = true }
                     .keyboardShortcut("f", modifiers: .command)
 
-                Button("Go to Line...") { appState.showGoToLine = true }
+                // ⌘G / ⌘⇧G step matches in find mode. The VM no-ops if
+                // there are no matches or the doc isn't in find mode, so
+                // the menu items are just gated on having a doc open.
+                Button("Find Next") { appState.stepFindMatch(by: 1) }
                     .keyboardShortcut("g", modifiers: .command)
+                    .disabled(appState.selectedDocument == nil)
+
+                Button("Find Previous") { appState.stepFindMatch(by: -1) }
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
+                    .disabled(appState.selectedDocument == nil)
+
+                Divider()
+
+                Button("Go to Line...") { appState.showGoToLine = true }
+                    .keyboardShortcut("l", modifiers: .command)
                     .disabled(appState.selectedDocument == nil)
             }
 

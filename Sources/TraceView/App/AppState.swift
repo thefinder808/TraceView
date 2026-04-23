@@ -228,6 +228,16 @@ final class AppState: ObservableObject {
         pendingBookmarkToggleTick += 1
     }
 
+    /// Fires ⌘G / ⌘⇧G. LogDocumentView observes the tick and asks its VM
+    /// to step matches by `pendingFindStepDirection` (+1 / -1), then
+    /// routes the landing line through pendingGoToLine.
+    @Published var pendingFindStepTick: Int = 0
+    var pendingFindStepDirection: Int = 1
+    func stepFindMatch(by delta: Int) {
+        pendingFindStepDirection = delta
+        pendingFindStepTick += 1
+    }
+
     func jumpToBottom() {
         selectedDocument?.isFollowing = true
     }

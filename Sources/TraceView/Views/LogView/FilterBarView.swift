@@ -3,12 +3,30 @@ import SwiftUI
 struct FilterBarView: View {
     @ObservedObject var viewModel: LogDocumentViewModel
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var appState: AppState
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         let theme = themeManager.current
 
         HStack(spacing: 8) {
+            // Find / Filter mode toggle. Swaps what the search text means
+            // for the log table: filter hides non-matches, find leaves them
+            // visible and enables ⌘G / ⌘⇧G step navigation.
+            Button {
+                viewModel.findMode = (viewModel.findMode == .filter) ? .find : .filter
+            } label: {
+                Image(systemName: viewModel.findMode == .filter
+                      ? "line.3.horizontal.decrease.circle"
+                      : "text.magnifyingglass")
+                    .font(.system(size: 13))
+                    .foregroundStyle(theme.secondaryText)
+            }
+            .buttonStyle(.plain)
+            .help(viewModel.findMode == .filter
+                  ? "Mode: Filter (hides non-matches). Click for Find mode."
+                  : "Mode: Find (step through matches). Click for Filter mode.")
+
             // Search field
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
@@ -81,15 +99,64 @@ struct FilterBarView: View {
 
             Spacer()
 
-            // Match count
-            Text(viewModel.matchCountText)
-                .font(.system(size: 11))
-                .foregroundStyle(theme.secondaryText)
-                .monospacedDigit()
+            if viewModel.findMode == .find && !viewModel.filter.searchText.isEmpty {
+                findNavControls(theme: theme)
+            } else {
+                Text(viewModel.matchCountText)
+                    .font(.system(size: 11))
+                    .foregroundStyle(theme.secondaryText)
+                    .monospacedDigit()
+            }
         }
         .padding(.horizontal, 12)
         .frame(height: 36)
         .background(theme.filterBarBackground)
+    }
+
+    // "N of M" + ‹ › nav buttons shown in find mode with a non-empty query.
+    // Clicking a nav button routes through AppState.pendingGoToLine like
+    // ⌘G would; the VM method is the same.
+    private func findNavControls(theme: any AppTheme) -> some View {
+        HStack(spacing: 6) {
+            Text(matchCounterText)
+                .font(.system(size: 11))
+                .foregroundStyle(viewModel.matches.isEmpty ? theme.tertiaryText : theme.secondaryText)
+                .monospacedDigit()
+
+            Button {
+                if let line = viewModel.advanceMatch(by: -1) { routeTo(line) }
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(theme.secondaryText)
+                    .frame(width: 18, height: 18)
+            }
+            .buttonStyle(.plain)
+            .disabled(viewModel.matches.isEmpty)
+
+            Button {
+                if let line = viewModel.advanceMatch(by: 1) { routeTo(line) }
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(theme.secondaryText)
+                    .frame(width: 18, height: 18)
+            }
+            .buttonStyle(.plain)
+            .disabled(viewModel.matches.isEmpty)
+        }
+    }
+
+    private var matchCounterText: String {
+        if viewModel.matches.isEmpty { return "No matches" }
+        let index = (viewModel.currentMatchIndex ?? 0) + 1
+        return "\(index) of \(viewModel.matches.count)"
+    }
+
+    private func routeTo(_ line: Int) {
+        // Menu/button both pipe through pendingGoToLine so scroll +
+        // selection land the same way as the ⌘L sheet.
+        appState.pendingGoToLine = line
     }
 
     private func filterToggle(label: String, isActive: Bool, theme: any AppTheme, action: @escaping () -> Void) -> some View {

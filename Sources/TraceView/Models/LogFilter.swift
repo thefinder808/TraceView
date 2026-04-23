@@ -19,29 +19,31 @@ struct LogFilter: Equatable {
     }
 
     mutating func matches(_ entry: LogEntry) -> Bool {
-        // Level filter
+        guard matchesLevelAndComponent(entry) else { return false }
+        return matchesSearchText(entry)
+    }
+
+    // Level + component only. Used by find mode, where searchText marks
+    // match positions rather than hiding rows.
+    func matchesLevelAndComponent(_ entry: LogEntry) -> Bool {
         guard enabledLevels.contains(entry.level) else { return false }
         guard entry.level >= minimumLevel else { return false }
-
-        // Component filter
-        if let component, entry.component != component {
-            return false
-        }
-
-        // Text search
-        if !searchText.isEmpty {
-            if isRegex {
-                let regex = compiledRegex()
-                guard let regex else { return false }
-                let range = NSRange(entry.message.startIndex..., in: entry.message)
-                return regex.firstMatch(in: entry.message, range: range) != nil
-            } else {
-                let options: String.CompareOptions = caseSensitive ? [] : .caseInsensitive
-                return entry.message.range(of: searchText, options: options) != nil
-            }
-        }
-
+        if let component, entry.component != component { return false }
         return true
+    }
+
+    // Search-text only. An empty searchText matches everything.
+    mutating func matchesSearchText(_ entry: LogEntry) -> Bool {
+        guard !searchText.isEmpty else { return true }
+
+        if isRegex {
+            guard let regex = compiledRegex() else { return false }
+            let range = NSRange(entry.message.startIndex..., in: entry.message)
+            return regex.firstMatch(in: entry.message, range: range) != nil
+        } else {
+            let options: String.CompareOptions = caseSensitive ? [] : .caseInsensitive
+            return entry.message.range(of: searchText, options: options) != nil
+        }
     }
 
     private mutating func compiledRegex() -> NSRegularExpression? {
