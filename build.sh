@@ -120,15 +120,11 @@ build_bundle() {
 
   # Ad-hoc keeps dev loop fast; Developer ID + hardened runtime + timestamp
   # is required for notarization and Gatekeeper approval on download.
-  local sign_opts=()
-  if [[ "$sign_id" != "-" ]]; then
-    sign_opts=(--options runtime --timestamp)
+  if [[ "$sign_id" == "-" ]]; then
+    codesign --force --deep --sign "$sign_id" "$APP_BUNDLE" >/dev/null 2>&1 || true
+  else
+    codesign --force --deep --sign "$sign_id" --options runtime --timestamp "$APP_BUNDLE"
   fi
-  codesign --force --deep --sign "$sign_id" "${sign_opts[@]}" "$APP_BUNDLE" >/dev/null 2>&1 || {
-    # If Developer ID signing fails, surface the real error (ad-hoc is
-    # expected to succeed silently in most states).
-    codesign --force --deep --sign "$sign_id" "${sign_opts[@]}" "$APP_BUNDLE"
-  }
 
   echo "✓ ${APP_BUNDLE}"
 }
