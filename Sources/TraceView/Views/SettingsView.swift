@@ -50,8 +50,17 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(theme.secondaryText)
             }
+
+            // Session
+            Section("Session") {
+                Toggle("Restore open tabs on launch", isOn: $settingsManager.restoreTabsOnLaunch)
+
+                Text("Reopens the log files you had open the last time TraceView quit. Live system-log streams aren't restored.")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 420, height: 380)
+        .frame(width: 420, height: 460)
     }
 }

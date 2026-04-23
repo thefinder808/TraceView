@@ -21,6 +21,65 @@ final class AppState: ObservableObject {
 
     let logBrowser = LogBrowserService()
     private var documentSubscriptions: [UUID: AnyCancellable] = [:]
+    private var tabPersistenceCancellables = Set<AnyCancellable>()
+
+    // Exposed for SettingsManager to clear when the user toggles
+    // restoreTabsOnLaunch off, so opting out doesn't leak saved state.
+    static let savedOpenTabsKey = "traceview.savedOpenTabs"
+    static let savedSelectedTabKey = "traceview.savedSelectedTab"
+
+    init() {
+        setupTabPersistence()
+        restoreTabsIfEnabled()
+    }
+
+    // MARK: - Tab persistence (opt-in via SettingsManager.restoreTabsOnLaunch)
+
+    private func setupTabPersistence() {
+        // Save on any change to the open set or the active selection.
+        // Live streams are skipped (no stable identity to key on).
+        Publishers.CombineLatest($documents, $selectedDocumentID)
+            .debounce(for: .milliseconds(200), scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.saveOpenTabsIfEnabled() }
+            .store(in: &tabPersistenceCancellables)
+    }
+
+    private func saveOpenTabsIfEnabled() {
+        guard UserDefaults.standard.bool(forKey: SettingsManager.restoreTabsOnLaunchKey) else { return }
+
+        let paths = documents.compactMap { doc -> String? in
+            if case .file(let url) = doc.source { return url.path }
+            return nil
+        }
+        UserDefaults.standard.set(paths, forKey: Self.savedOpenTabsKey)
+
+        if let id = selectedDocumentID,
+           let doc = documents.first(where: { $0.id == id }),
+           case .file(let url) = doc.source {
+            UserDefaults.standard.set(url.path, forKey: Self.savedSelectedTabKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: Self.savedSelectedTabKey)
+        }
+    }
+
+    private func restoreTabsIfEnabled() {
+        guard UserDefaults.standard.bool(forKey: SettingsManager.restoreTabsOnLaunchKey),
+              let paths = UserDefaults.standard.stringArray(forKey: Self.savedOpenTabsKey)
+        else { return }
+
+        let fm = FileManager.default
+        for path in paths where fm.fileExists(atPath: path) {
+            openFile(at: URL(fileURLWithPath: path))
+        }
+
+        if let selectedPath = UserDefaults.standard.string(forKey: Self.savedSelectedTabKey),
+           let doc = documents.first(where: {
+               if case .file(let u) = $0.source { return u.path == selectedPath }
+               return false
+           }) {
+            selectedDocumentID = doc.id
+        }
+    }
 
     var selectedDocument: LogDocument? {
         guard let id = selectedDocumentID else { return documents.first }
