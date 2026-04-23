@@ -14,6 +14,7 @@ final class LogDocument: ObservableObject, Identifiable {
     @Published var isLive: Bool = false
     @Published var fileSize: UInt64 = 0
     @Published var encoding: String.Encoding = .utf8
+    @Published var isCompressed: Bool = false
 
     // Line numbers the user has bookmarked for this document. Persisted per
     // file URL; live streams don't persist (no stable identity to key on).

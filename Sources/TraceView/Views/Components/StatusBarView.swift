@@ -30,6 +30,15 @@ struct StatusBarView: View {
                 Text(Formatters.formatBytes(document.fileSize))
             }
 
+            if document.isCompressed {
+                statusDivider(theme: theme)
+                statusItem(theme: theme) {
+                    Image(systemName: "archivebox")
+                        .font(.system(size: 10))
+                    Text("gzip")
+                }
+            }
+
             Spacer()
 
             // Following / Paused / Stalled + rolling rate

@@ -85,9 +85,20 @@ final class LogBrowserService: ObservableObject {
 
     private static func scanLogs() -> [BrowsableLogFile] {
         collectFiles(from: logDirectories, keep: { url in
-            let ext = url.pathExtension.lowercased()
-            return ext == "log" || ext == "txt"
+            isLogLike(url: url)
         })
+    }
+
+    // Accepts .log / .txt plus gzipped rotated variants like system.log.0.gz
+    // (but not arbitrary .gz archives like data.csv.gz).
+    private static func isLogLike(url: URL) -> Bool {
+        let name = url.lastPathComponent.lowercased()
+        if name.hasSuffix(".log") || name.hasSuffix(".txt") { return true }
+        if name.hasSuffix(".gz") {
+            let stem = String(name.dropLast(3))
+            return stem.contains(".log") || stem.hasSuffix(".txt")
+        }
+        return false
     }
 
     private static func scanDiagnosticReports() -> (crash: [BrowsableLogFile], diagnostic: [BrowsableLogFile], spin: [BrowsableLogFile]) {
