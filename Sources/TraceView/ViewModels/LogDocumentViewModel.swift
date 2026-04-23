@@ -7,6 +7,16 @@ final class LogDocumentViewModel: ObservableObject {
     @Published var filter = LogFilter()
     @Published var filteredEntries: [LogEntry] = []
 
+    // Find mode — filter hides non-matches; find leaves them visible and
+    // produces a navigable match list. Defaults to the global setting.
+    @Published var findMode: FindMode = .filter
+
+    // Row indices into `filteredEntries` where the current searchText
+    // matches. In filter mode this is always empty (search is part of
+    // filtering); in find mode it's rebuilt each time the filter changes.
+    @Published private(set) var matches: [Int] = []
+    @Published var currentMatchIndex: Int? = nil
+
     // Auto-hide hints for the table — flips true the first time any entry
     // lands with a parsed timestamp / component, stays true thereafter.
     // The log table combines these with the user's showTimestamp /
@@ -349,6 +359,15 @@ final class LogDocumentViewModel: ObservableObject {
                 self?.applyFilter()
             }
             .store(in: &cancellables)
+
+        // Mode flips change what searchText means — rerun the pipeline.
+        $findMode
+            .dropFirst()
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.applyFilter()
+            }
+            .store(in: &cancellables)
     }
 
     func applyFilter() {
@@ -356,20 +375,54 @@ final class LogDocumentViewModel: ObservableObject {
 
         let entries = document.entries
         let currentFilter = filter
+        let mode = findMode
 
-        if !currentFilter.isActive {
-            filteredEntries = entries
+        filterTask = Task { @MainActor [weak self] in
+            // Find mode applies level + component only; search is for
+            // match-marking, not hiding. Filter mode applies everything.
+            let visible = await Task.detached(priority: .userInitiated) {
+                var f = currentFilter
+                if mode == .find {
+                    return entries.filter { f.matchesLevelAndComponent($0) }
+                }
+                guard currentFilter.isActive else { return entries }
+                return entries.filter { f.matches($0) }
+            }.value
+            guard !Task.isCancelled else { return }
+            self?.filteredEntries = visible
+            self?.recomputeMatches()
+        }
+    }
+
+    // MARK: - Find-mode match navigation
+
+    private func recomputeMatches() {
+        guard findMode == .find, !filter.searchText.isEmpty else {
+            matches = []
+            currentMatchIndex = nil
             return
         }
 
-        filterTask = Task { @MainActor [weak self] in
-            var f = currentFilter
-            let result = await Task.detached(priority: .userInitiated) {
-                entries.filter { f.matches($0) }
-            }.value
-            guard !Task.isCancelled else { return }
-            self?.filteredEntries = result
+        var f = filter
+        let hits = filteredEntries.indices.filter { idx in
+            f.matchesSearchText(filteredEntries[idx])
         }
+        matches = hits
+
+        // Preserve the current match if it's still valid, otherwise land
+        // on the first match (or nil if none).
+        if let current = currentMatchIndex, current < hits.count {
+            // keep
+        } else {
+            currentMatchIndex = hits.isEmpty ? nil : 0
+        }
+    }
+
+    func advanceMatch(by delta: Int) -> Int? {
+        guard !matches.isEmpty else { return nil }
+        let next = ((currentMatchIndex ?? -delta) + delta + matches.count) % matches.count
+        currentMatchIndex = next
+        return filteredEntries[matches[next]].lineNumber
     }
 
     // MARK: - Computed

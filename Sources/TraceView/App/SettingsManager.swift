@@ -9,6 +9,7 @@ final class SettingsManager: ObservableObject {
     private static let savedFiltersKey = "traceview.savedFilters"
     private static let detailDisplayModeKey = "traceview.detailDisplayMode"
     private static let highlightRulesKey = "traceview.highlightRules"
+    private static let findModeKey = "traceview.findMode"
     static let restoreTabsOnLaunchKey = "traceview.restoreTabsOnLaunch"
 
     @Published var fontSize: Double {
@@ -45,6 +46,10 @@ final class SettingsManager: ObservableObject {
                 UserDefaults.standard.set(data, forKey: Self.highlightRulesKey)
             }
         }
+    }
+
+    @Published var defaultFindMode: FindMode {
+        didSet { UserDefaults.standard.set(defaultFindMode.rawValue, forKey: Self.findModeKey) }
     }
 
     @Published var restoreTabsOnLaunch: Bool {
@@ -103,6 +108,9 @@ final class SettingsManager: ObservableObject {
         } else {
             self.highlightRules = []
         }
+
+        let rawFind = defaults.string(forKey: Self.findModeKey) ?? FindMode.filter.rawValue
+        self.defaultFindMode = FindMode(rawValue: rawFind) ?? .filter
     }
 }
 

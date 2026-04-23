@@ -106,11 +106,16 @@ struct LogDocumentView: View {
             StatusBarView(document: document, viewModel: viewModel)
         }
         .onAppear {
+            viewModel.findMode = settingsManager.defaultFindMode
             viewModel.load()
         }
         .onChange(of: appState.pendingBookmarkToggleTick) { _, _ in
             guard let entry = selectedEntry else { return }
             appState.toggleBookmark(lineNumber: entry.lineNumber)
+        }
+        .onChange(of: appState.pendingFindStepTick) { _, _ in
+            guard let line = viewModel.advanceMatch(by: appState.pendingFindStepDirection) else { return }
+            appState.pendingGoToLine = line
         }
         .sheet(isPresented: $appState.showExport) {
             ExportSheet(
