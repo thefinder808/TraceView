@@ -8,6 +8,7 @@ final class SettingsManager: ObservableObject {
     private static let showComponentKey = "traceview.showComponent"
     private static let savedFiltersKey = "traceview.savedFilters"
     private static let detailDisplayModeKey = "traceview.detailDisplayMode"
+    private static let highlightRulesKey = "traceview.highlightRules"
     static let restoreTabsOnLaunchKey = "traceview.restoreTabsOnLaunch"
 
     @Published var fontSize: Double {
@@ -36,6 +37,14 @@ final class SettingsManager: ObservableObject {
 
     @Published var detailDisplayMode: DetailDisplayMode {
         didSet { UserDefaults.standard.set(detailDisplayMode.rawValue, forKey: Self.detailDisplayModeKey) }
+    }
+
+    @Published var highlightRules: [HighlightRule] {
+        didSet {
+            if let data = try? JSONEncoder().encode(highlightRules) {
+                UserDefaults.standard.set(data, forKey: Self.highlightRulesKey)
+            }
+        }
     }
 
     @Published var restoreTabsOnLaunch: Bool {
@@ -87,6 +96,13 @@ final class SettingsManager: ObservableObject {
 
         // Default off — tab restoration is opt-in.
         self.restoreTabsOnLaunch = defaults.bool(forKey: Self.restoreTabsOnLaunchKey)
+
+        if let data = defaults.data(forKey: Self.highlightRulesKey),
+           let decoded = try? JSONDecoder().decode([HighlightRule].self, from: data) {
+            self.highlightRules = decoded
+        } else {
+            self.highlightRules = []
+        }
     }
 }
 

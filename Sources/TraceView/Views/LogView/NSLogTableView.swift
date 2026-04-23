@@ -13,6 +13,7 @@ struct NSLogTableView: NSViewRepresentable {
     @Binding var expandedEntryID: Int?
     @Binding var pendingGoToLine: Int?
     let bookmarkedLines: Set<Int>
+    let highlightRules: [HighlightRule]
     let inlineExpansionEnabled: Bool
     let themeManager: ThemeManager
     var onCopy: (LogEntry) -> Void = { _ in }
@@ -145,6 +146,14 @@ struct NSLogTableView: NSViewRepresentable {
         let bookmarksChanged = coordinator.bookmarkedLines != bookmarkedLines
         coordinator.bookmarkedLines = bookmarkedLines
 
+        // Highlight rules change less often than the data does, so we only
+        // recompile the regex cache when the rule set actually differs.
+        let rulesChanged = coordinator.highlightRules != highlightRules
+        if rulesChanged {
+            coordinator.highlightRules = highlightRules
+            coordinator.rebuildHighlightRegexes()
+        }
+
         // Track expansion state. If mode flipped to bottomPane, force collapse.
         let desiredExpanded = inlineExpansionEnabled ? expandedEntryID : nil
         let heightChanged = coordinator.currentExpandedID != desiredExpanded
@@ -171,7 +180,7 @@ struct NSLogTableView: NSViewRepresentable {
             }
         }
 
-        if themeChanged {
+        if themeChanged || rulesChanged {
             tableView.reloadData()
         } else if newCount > oldCount && oldCount > 0 {
             // Incremental append — insert only new rows
@@ -241,6 +250,11 @@ struct NSLogTableView: NSViewRepresentable {
         var onLookupErrorCode: (String) -> Void = { _ in }
         var onToggleBookmark: (LogEntry) -> Void = { _ in }
         var bookmarkedLines: Set<Int> = []
+        var highlightRules: [HighlightRule] = []
+        // Compiled regex per enabled rule, in the same display order as
+        // `highlightRules`. Rebuilt via rebuildHighlightRegexes() whenever
+        // the source rules change.
+        private var compiledHighlights: [(rule: HighlightRule, regex: NSRegularExpression)] = []
         var currentExpandedID: Int?
         var previousExpandedID: Int?
         var previousEntryCount = 0
@@ -369,6 +383,7 @@ struct NSLogTableView: NSViewRepresentable {
             rowView.theme = theme
             rowView.baseRowHeight = NSLogTableView.baseRowHeight
             rowView.isBookmarked = bookmarkedLines.contains(entry.lineNumber)
+            rowView.customHighlightColor = highlightColor(for: entry)
 
             if inlineExpansionEnabled, entry.id == currentExpandedID {
                 attachDetailView(to: rowView, entry: entry)
@@ -425,6 +440,32 @@ struct NSLogTableView: NSViewRepresentable {
         // Fires on every click — including re-click of the already-selected
         // row, which is how a user collapses the drawer. selectionDidChange
         // alone misses the re-click case because selection hasn't changed.
+        // Rebuilds the cached regex list. Disabled rules and rules whose
+        // patterns fail to compile are silently skipped; the Settings row
+        // surfaces the invalid-regex state visually.
+        func rebuildHighlightRegexes() {
+            compiledHighlights = highlightRules.compactMap { rule in
+                guard rule.isEnabled,
+                      !rule.pattern.isEmpty,
+                      let regex = try? NSRegularExpression(pattern: rule.pattern) else { return nil }
+                return (rule, regex)
+            }
+        }
+
+        // First matching rule wins. Per-row cost is small — each regex
+        // runs against the message once. Rendered rows only (~40 visible),
+        // so this is cheap even with many rules.
+        func highlightColor(for entry: LogEntry) -> NSColor? {
+            guard !compiledHighlights.isEmpty else { return nil }
+            let range = NSRange(entry.message.startIndex..., in: entry.message)
+            for (rule, regex) in compiledHighlights {
+                if regex.firstMatch(in: entry.message, range: range) != nil {
+                    return NSColor(rule.color)
+                }
+            }
+            return nil
+        }
+
         // Fires from the right-click menu. NSTableView exposes the clicked
         // row via .clickedRow (-1 if the click was on blank table area).
         @objc func toggleBookmarkMenuAction(_ sender: Any?) {
@@ -464,6 +505,7 @@ class LogTableRowView: NSTableRowView {
     var theme: (any AppTheme)?
     var baseRowHeight: CGFloat = 24
     var isBookmarked: Bool = false
+    var customHighlightColor: NSColor?
     private(set) var detailView: NSView?
     private var detailConstraints: [NSLayoutConstraint] = []
 
@@ -536,6 +578,22 @@ class LogTableRowView: NSTableRowView {
 
         bgColor.setFill()
         dirtyRect.fill()
+
+        // Custom highlight rule tint, composed over the level background.
+        // Kept low alpha so severity still reads through — a "ratelimit"
+        // rule still lets an ERROR row look red, with an amber tint on top.
+        if let custom = customHighlightColor {
+            let band = NSRect(
+                x: 0,
+                y: 0,
+                width: bounds.width,
+                height: min(baseRowHeight, bounds.height)
+            ).intersection(dirtyRect)
+            if !band.isEmpty {
+                custom.withAlphaComponent(0.22).setFill()
+                band.fill()
+            }
+        }
 
         // Selection highlight applies only to the cell-row band, not the drawer.
         if isSelected {
