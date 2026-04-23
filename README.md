@@ -1,8 +1,16 @@
 # TraceView
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![macOS 14+](https://img.shields.io/badge/macOS-14%2B-black.svg?logo=apple)](#requirements)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/thefinder808)
+
 A native macOS log viewer for admins, developers, and anyone who reads too many log files. Inspired by Microsoft's CMTrace.
 
 Real-time file following, severity-aware highlighting, built-in error-code lookup, and a Console.app-style browser for system reports — all in a SwiftUI interface that feels at home on macOS 14+.
+
+<p align="center">
+  <img src="docs/screenshot.png" alt="TraceView main window showing a log file with severity highlighting, event histogram, and filter bar" width="900"/>
+</p>
 
 ## Features
 
@@ -79,4 +87,8 @@ Phase 1 of the Console Dense redesign is shipped. Phase 2 (Clean Native / Observ
 
 ## License
 
-No license yet — ask before reusing.
+[MIT](LICENSE) — use it, fork it, ship it. Attribution appreciated but not required.
+
+## Support
+
+TraceView is free and open source. If it saved you an hour of log-staring, you can [buy me a coffee](https://buymeacoffee.com/thefinder808) — zero pressure, always welcome.
