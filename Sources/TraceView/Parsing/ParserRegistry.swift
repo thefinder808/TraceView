@@ -4,11 +4,13 @@ final class ParserRegistry {
     static let shared = ParserRegistry()
 
     private let parsers: [any LogParser] = [
+        IPSParser(),          // .ips crash reports (two-part JSON)
+        DiagParser(),         // .diag diagnostic reports (Date/Time: header)
         SCCMLogParser(),
         UnifiedLogParser(),
         JSONLogParser(),
         CSVLogParser(),
-        PlainTextParser()  // Fallback
+        PlainTextParser()     // Fallback
     ]
 
     /// Pick the highest-confidence parser for the given sample lines.
