@@ -9,11 +9,14 @@ struct UnifiedLogParser: LogParser {
     let supportedExtensions: Set<String> = ["json"]
 
     func canParse(sampleLines: [String]) -> Double {
-        // Check if it looks like unified log JSON output
-        // Could be an array wrapper or individual JSON objects
-        let joined = sampleLines.prefix(5).joined()
+        // Search the full sample window — `log show --style json` pretty-
+        // prints with a fixed key order where `messageType` is near the
+        // top of each entry but `eventMessage` is ~20 lines later. An
+        // early-lines-only check would miss pretty exports entirely (the
+        // file would then fall through to PlainTextParser and render as
+        // fragmented JSON).
+        let joined = sampleLines.joined(separator: " ")
 
-        // Look for key unified log fields
         if joined.contains("messageType") && joined.contains("eventMessage") {
             return 0.9
         }

@@ -33,16 +33,20 @@ struct JSONLogParser: LogParser {
         }
 
         // Whole-file JSON array path: first non-whitespace char in the
-        // sample is `[`, and somewhere in the sample we see `"level":`,
-        // `"message":`, or `"timestamp":` — pretty-printed JSON arrays
-        // from tools like `log show --style json` look like this.
-        let joined = sampleLines.prefix(20).joined(separator: " ")
+        // sample is `[`, and the sample contains log-shaped keys. Use the
+        // full sample window (not just the first N lines) — pretty-
+        // printed exports put keys like `timestamp`, `message`, and
+        // `eventMessage` deep in each entry's key block, well past a
+        // 20-line cutoff.
+        let joined = sampleLines.joined(separator: " ")
         let lead = joined.trimmingCharacters(in: .whitespaces).first
         if lead == "[" {
             let hasLogKeys = joined.contains("\"timestamp\"") ||
                              joined.contains("\"level\"") ||
                              joined.contains("\"message\"") ||
-                             joined.contains("\"severity\"")
+                             joined.contains("\"severity\"") ||
+                             joined.contains("\"eventMessage\"") ||
+                             joined.contains("\"messageType\"")
             if hasLogKeys { return 0.75 }
         }
 

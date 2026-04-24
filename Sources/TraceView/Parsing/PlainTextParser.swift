@@ -95,22 +95,15 @@ struct PlainTextParser: LogParser {
 
     // Captures three groups: level, optional component, message. Component
     // token is constrained to letter-initial alphanumeric/dot/underscore/
-    // dash up to 30 chars to avoid swallowing paths (/path/to/file) or URLs
-    // pre-`://`. The URL-scheme guard in `parseLevelAndComponent` backs
-    // this up for `http`/`https`/`ftp` etc. cases that do match the token
-    // regex but would produce a misleading component.
+    // dash up to 30 chars and requires `\s+` after the `:` separator — the
+    // whitespace requirement inherently excludes URLs (`http://`,
+    // `data:image/...`, `file:///`) since none have whitespace after the
+    // scheme colon. Paths like `/path/to/file` are excluded by the leading
+    // `[A-Za-z]` anchor.
     private static let bracketLevelPattern: NSRegularExpression? = try? NSRegularExpression(
         pattern: #"^\[?(DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|ERR|CRITICAL|FATAL|CRIT)\]?\s*:?\s*(?:([A-Za-z][A-Za-z0-9._-]{0,30}):\s+)?(.*)"#,
         options: .caseInsensitive
     )
-
-    // Tokens that would match the component regex above but are almost
-    // certainly a URL scheme introducing a URL in the message. If the
-    // captured "component" matches one of these AND the remaining message
-    // starts with `//`, we discard the component capture.
-    private static let urlSchemeTokens: Set<String> = [
-        "http", "https", "ftp", "file", "mailto", "data", "ws", "wss", "s3", "gs"
-    ]
 
     private static let isoFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
@@ -457,21 +450,10 @@ struct PlainTextParser: LogParser {
            match.numberOfRanges >= 4 {
             let levelStr = nsText.substring(with: match.range(at: 1))
             let compRange = match.range(at: 2)
-            var component: String? = compRange.location != NSNotFound
+            let component: String? = compRange.location != NSNotFound
                 ? nsText.substring(with: compRange)
                 : nil
             let message = nsText.substring(with: match.range(at: 3))
-
-            // URL-scheme guard: "[INFO] http://example.com failed" should
-            // not produce component="http". If the extracted component is a
-            // known URL scheme and the message begins with "//", reconstitute
-            // the full URL as the message.
-            if let c = component, Self.urlSchemeTokens.contains(c.lowercased()),
-               message.hasPrefix("//") {
-                component = nil
-                return (parseLevel(levelStr), "\(c)://\(message.dropFirst(2))", nil)
-            }
-
             return (parseLevel(levelStr), message, component)
         }
         return (LevelDetector.detect(in: text), text, nil)
