@@ -1,0 +1,1769 @@
+2026-04-23 14:25:00.000 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:25:02.075 localhost powerd[287]: INFO: battery: 53% (discharging, est 336m remaining)
+2026-04-23 14:25:02.978 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:25:04.106 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:25:04.499 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:25:05.863 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:25:06.721 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:25:08.089 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:25:09.007 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:25:09.835 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:25:10.513 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -52 dBm)
+2026-04-23 14:25:11.231 localhost timed[287]: INFO: NTP sync complete, offset=5ms
+2026-04-23 14:25:12.186 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:25:12.528 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:25:14.136 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:25:16.172 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:25:18.557 localhost powerd[287]: INFO: battery: 46% (discharging, est 387m remaining)
+2026-04-23 14:25:20.802 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:25:22.878 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:25:23.717 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -65 dBm)
+2026-04-23 14:25:26.154 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:25:27.710 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:25:29.120 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:25:29.922 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:25:31.932 localhost powerd[287]: INFO: battery: 52% (discharging, est 425m remaining)
+2026-04-23 14:25:32.296 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:25:34.752 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 6250s)
+2026-04-23 14:25:36.597 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:25:37.699 localhost timed[287]: INFO: NTP sync complete, offset=-13ms
+2026-04-23 14:25:39.235 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 28578s)
+2026-04-23 14:25:41.591 localhost powerd[287]: INFO: battery: 94% (discharging, est 322m remaining)
+2026-04-23 14:25:42.592 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -59 dBm)
+2026-04-23 14:25:44.616 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:25:45.173 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:25:46.988 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:25:48.489 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:25:50.784 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:25:52.462 localhost timed[287]: INFO: NTP sync complete, offset=9ms
+2026-04-23 14:25:54.176 localhost timed[287]: INFO: NTP sync complete, offset=-18ms
+2026-04-23 14:25:55.541 localhost powerd[287]: INFO: battery: 64% (discharging, est 408m remaining)
+2026-04-23 14:25:58.038 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 61224s)
+2026-04-23 14:25:59.940 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:26:01.322 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:26:03.258 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:26:05.154 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:26:05.706 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:26:07.148 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:26:07.618 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:26:09.357 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 56668s)
+2026-04-23 14:26:10.676 localhost timed[287]: INFO: NTP sync complete, offset=17ms
+2026-04-23 14:26:12.768 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:26:13.528 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:26:15.291 localhost powerd[287]: INFO: battery: 76% (discharging, est 201m remaining)
+2026-04-23 14:26:16.727 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:26:18.171 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:26:19.290 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -42 dBm)
+2026-04-23 14:26:20.120 localhost powerd[287]: INFO: battery: 85% (discharging, est 505m remaining)
+2026-04-23 14:26:22.255 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:26:23.633 localhost timed[287]: INFO: NTP sync complete, offset=13ms
+2026-04-23 14:26:24.835 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -66 dBm)
+2026-04-23 14:26:26.170 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:26:27.851 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:26:29.107 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:26:31.256 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:26:31.945 localhost timed[287]: INFO: NTP sync complete, offset=18ms
+2026-04-23 14:26:32.216 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:26:33.083 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:26:34.592 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:26:36.255 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:26:37.571 localhost timed[287]: INFO: NTP sync complete, offset=22ms
+2026-04-23 14:26:39.229 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -51 dBm)
+2026-04-23 14:26:41.598 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:26:42.112 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:26:42.699 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:26:45.126 localhost powerd[287]: INFO: battery: 65% (discharging, est 530m remaining)
+2026-04-23 14:26:46.559 localhost powerd[287]: INFO: battery: 89% (discharging, est 532m remaining)
+2026-04-23 14:26:48.243 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 79027s)
+2026-04-23 14:26:49.883 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:26:50.135 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:26:51.487 localhost timed[287]: INFO: NTP sync complete, offset=13ms
+2026-04-23 14:26:53.374 localhost powerd[287]: INFO: battery: 55% (discharging, est 232m remaining)
+2026-04-23 14:26:54.466 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:26:55.571 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:26:58.059 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:27:00.412 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:02.869 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:27:03.535 localhost timed[287]: INFO: NTP sync complete, offset=-14ms
+2026-04-23 14:27:04.212 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:04.483 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:27:06.168 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:27:08.178 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:27:10.520 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:12.121 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:27:13.568 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -68 dBm)
+2026-04-23 14:27:14.253 localhost powerd[287]: INFO: battery: 89% (discharging, est 252m remaining)
+2026-04-23 14:27:15.381 localhost powerd[287]: INFO: battery: 58% (discharging, est 246m remaining)
+2026-04-23 14:27:15.902 localhost timed[287]: INFO: NTP sync complete, offset=-11ms
+2026-04-23 14:27:16.420 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -57 dBm)
+2026-04-23 14:27:18.386 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -45 dBm)
+2026-04-23 14:27:18.720 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:21.023 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:27:21.710 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:27:22.087 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 4346s)
+2026-04-23 14:27:22.682 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:23.723 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:27:24.679 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:27:24.998 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 39356s)
+2026-04-23 14:27:26.622 localhost timed[287]: INFO: NTP sync complete, offset=14ms
+2026-04-23 14:27:27.812 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:27:28.417 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:28.674 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:27:30.028 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:27:32.428 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -65 dBm)
+2026-04-23 14:27:33.032 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:27:35.297 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:37.441 localhost timed[287]: INFO: NTP sync complete, offset=19ms
+2026-04-23 14:27:38.399 localhost timed[287]: INFO: NTP sync complete, offset=-12ms
+2026-04-23 14:27:39.339 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:41.093 localhost timed[287]: INFO: NTP sync complete, offset=14ms
+2026-04-23 14:27:42.225 localhost timed[287]: INFO: NTP sync complete, offset=2ms
+2026-04-23 14:27:42.931 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:27:45.161 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:27:46.541 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:27:47.077 localhost powerd[287]: INFO: battery: 52% (discharging, est 377m remaining)
+2026-04-23 14:27:48.438 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:27:50.456 localhost powerd[287]: INFO: battery: 71% (discharging, est 328m remaining)
+2026-04-23 14:27:52.408 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:27:52.893 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:27:55.041 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:27:56.746 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:27:58.959 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:28:00.782 localhost timed[287]: INFO: NTP sync complete, offset=-13ms
+2026-04-23 14:28:01.470 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:28:03.310 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:28:03.926 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:28:04.817 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 29094s)
+2026-04-23 14:28:06.404 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:28:08.259 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:28:10.198 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:28:11.538 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:28:12.856 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:28:14.695 localhost timed[287]: INFO: NTP sync complete, offset=20ms
+2026-04-23 14:28:16.551 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:28:18.845 localhost powerd[287]: INFO: battery: 94% (discharging, est 412m remaining)
+2026-04-23 14:28:19.487 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:28:21.691 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:28:22.012 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 9927s)
+2026-04-23 14:28:22.491 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:28:23.424 localhost timed[287]: INFO: NTP sync complete, offset=2ms
+2026-04-23 14:28:24.249 localhost powerd[287]: INFO: battery: 84% (discharging, est 229m remaining)
+2026-04-23 14:28:24.762 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:28:27.091 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:28:29.199 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:28:31.438 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:28:33.859 localhost powerd[287]: INFO: battery: 79% (discharging, est 459m remaining)
+2026-04-23 14:28:34.131 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:28:34.460 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:28:35.147 localhost timed[287]: INFO: NTP sync complete, offset=2ms
+2026-04-23 14:28:36.888 localhost timed[287]: INFO: NTP sync complete, offset=-16ms
+2026-04-23 14:28:37.222 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:28:38.663 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:28:39.535 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:28:41.014 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:28:43.210 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:28:45.419 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:28:47.828 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:28:48.668 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:28:49.946 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:28:51.590 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:28:52.955 localhost powerd[287]: INFO: battery: 46% (discharging, est 482m remaining)
+2026-04-23 14:28:53.339 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:28:55.039 localhost powerd[287]: INFO: battery: 92% (discharging, est 478m remaining)
+2026-04-23 14:28:55.349 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:28:56.946 localhost timed[287]: INFO: NTP sync complete, offset=9ms
+2026-04-23 14:28:58.559 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:29:00.446 localhost timed[287]: INFO: NTP sync complete, offset=-3ms
+2026-04-23 14:29:01.660 localhost powerd[287]: INFO: battery: 64% (discharging, est 483m remaining)
+2026-04-23 14:29:02.207 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:29:02.675 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:29:03.343 localhost powerd[287]: INFO: battery: 46% (discharging, est 455m remaining)
+2026-04-23 14:29:04.878 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -63 dBm)
+2026-04-23 14:29:06.808 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:29:08.100 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -57 dBm)
+2026-04-23 14:29:08.391 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:29:10.138 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:29:10.738 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:29:11.347 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:29:12.390 localhost powerd[287]: INFO: battery: 77% (discharging, est 521m remaining)
+2026-04-23 14:29:13.980 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:29:15.406 localhost timed[287]: INFO: NTP sync complete, offset=9ms
+2026-04-23 14:29:16.432 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:29:18.826 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:29:20.112 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -60 dBm)
+2026-04-23 14:29:21.958 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:29:22.534 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:29:23.122 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:29:23.597 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:29:25.546 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:29:26.060 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:29:27.496 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:29:29.469 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:29:30.952 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:29:32.799 localhost powerd[287]: INFO: battery: 77% (discharging, est 412m remaining)
+2026-04-23 14:29:35.241 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:29:35.517 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:29:37.831 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:29:40.075 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:29:42.189 localhost powerd[287]: INFO: battery: 85% (discharging, est 452m remaining)
+2026-04-23 14:29:44.165 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:29:44.610 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:29:46.704 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:29:47.520 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:29:48.949 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:29:50.829 localhost powerd[287]: INFO: battery: 98% (discharging, est 212m remaining)
+2026-04-23 14:29:51.862 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:29:53.155 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:29:54.012 localhost powerd[287]: INFO: battery: 83% (discharging, est 300m remaining)
+2026-04-23 14:29:55.874 localhost powerd[287]: INFO: battery: 54% (discharging, est 278m remaining)
+2026-04-23 14:29:56.187 localhost powerd[287]: INFO: battery: 97% (discharging, est 338m remaining)
+2026-04-23 14:29:58.288 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:30:00.216 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:00.567 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:30:01.884 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:30:03.142 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:04.479 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:05.399 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:05.771 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:30:07.961 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:08.387 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:08.930 localhost powerd[287]: INFO: battery: 64% (discharging, est 212m remaining)
+2026-04-23 14:30:10.797 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:30:11.366 localhost timed[287]: INFO: NTP sync complete, offset=-10ms
+2026-04-23 14:30:12.532 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 68568s)
+2026-04-23 14:30:13.226 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:30:15.459 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:30:16.634 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:30:18.182 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:19.979 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:21.145 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:30:22.237 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:30:23.154 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:30:24.478 localhost timed[287]: INFO: NTP sync complete, offset=-2ms
+2026-04-23 14:30:24.907 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:30:25.569 localhost powerd[287]: INFO: battery: 72% (discharging, est 423m remaining)
+2026-04-23 14:30:26.778 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:30:27.571 localhost timed[287]: INFO: NTP sync complete, offset=5ms
+2026-04-23 14:30:29.033 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -61 dBm)
+2026-04-23 14:30:29.375 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:29.798 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:30.979 localhost powerd[287]: INFO: battery: 69% (discharging, est 338m remaining)
+2026-04-23 14:30:32.665 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:30:33.364 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:30:35.376 localhost timed[287]: INFO: NTP sync complete, offset=7ms
+2026-04-23 14:30:36.622 localhost powerd[287]: INFO: battery: 97% (discharging, est 300m remaining)
+2026-04-23 14:30:38.040 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:30:38.896 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:30:40.395 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:42.259 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:43.581 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:45.794 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:30:47.356 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:47.967 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:30:49.235 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:30:51.158 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:53.601 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:55.657 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:56.070 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:57.022 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:30:57.779 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -48 dBm)
+2026-04-23 14:30:59.230 localhost powerd[287]: INFO: battery: 50% (discharging, est 236m remaining)
+2026-04-23 14:31:00.076 localhost powerd[287]: INFO: battery: 90% (discharging, est 512m remaining)
+2026-04-23 14:31:00.808 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:31:02.688 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:31:04.196 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:31:05.463 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:31:07.004 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:31:08.017 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 51182s)
+2026-04-23 14:31:08.962 localhost timed[287]: INFO: NTP sync complete, offset=6ms
+2026-04-23 14:31:10.081 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -42 dBm)
+2026-04-23 14:31:12.568 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:31:13.704 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:31:15.798 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:31:16.689 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -61 dBm)
+2026-04-23 14:31:18.645 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:31:19.456 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 51224s)
+2026-04-23 14:31:20.352 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:31:21.032 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -58 dBm)
+2026-04-23 14:31:23.014 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:31:25.072 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:31:27.296 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 29626s)
+2026-04-23 14:31:28.276 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:31:29.566 localhost powerd[287]: INFO: battery: 76% (discharging, est 375m remaining)
+2026-04-23 14:31:30.299 localhost timed[287]: INFO: NTP sync complete, offset=-5ms
+2026-04-23 14:31:31.381 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:31:32.740 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:31:33.715 localhost timed[287]: INFO: NTP sync complete, offset=8ms
+2026-04-23 14:31:34.512 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -50 dBm)
+2026-04-23 14:31:35.676 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:31:36.893 localhost timed[287]: INFO: NTP sync complete, offset=11ms
+2026-04-23 14:31:37.444 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -46 dBm)
+2026-04-23 14:31:38.968 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:31:40.796 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:31:42.566 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:31:43.815 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 76007s)
+2026-04-23 14:31:44.255 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 33781s)
+2026-04-23 14:31:46.383 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:31:46.769 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -58 dBm)
+2026-04-23 14:31:48.529 localhost powerd[287]: INFO: battery: 70% (discharging, est 523m remaining)
+2026-04-23 14:31:50.248 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:31:52.739 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -47 dBm)
+2026-04-23 14:31:54.005 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:31:56.223 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:31:58.340 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:31:59.839 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:32:01.812 localhost kernel[0]: NOTICE: en0: link down (Wi-Fi disassociate from BSSID 94:10:3e:11:aa:02)
+2026-04-23 14:32:02.012 localhost kernel[0]: NOTICE: en0: link down (Wi-Fi disassociate from BSSID 94:10:3e:11:aa:02)
+2026-04-23 14:32:02.307 localhost networkd[287]: WARN: primary interface en0 lost carrier
+2026-04-23 14:32:02.531 localhost networkd[287]: WARN: primary interface en0 lost carrier
+2026-04-23 14:32:02.705 localhost networkd[287]: WARN: primary interface en0 lost carrier
+2026-04-23 14:32:03.009 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:03.133 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:03.424 localhost configd[287]: INFO: IP address assigned: 10.0.1.58 on en0
+2026-04-23 14:32:03.748 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:04.124 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:04.389 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=255840)
+2026-04-23 14:32:04.456 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:04.514 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:04.637 localhost configd[287]: INFO: IP address assigned: 10.0.1.131 on en0
+2026-04-23 14:32:04.736 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:05.029 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=473838)
+2026-04-23 14:32:05.356 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:05.648 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=854727)
+2026-04-23 14:32:05.763 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=198123)
+2026-04-23 14:32:05.907 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:06.039 localhost configd[287]: INFO: IP address assigned: 10.0.1.211 on en0
+2026-04-23 14:32:06.339 localhost configd[287]: INFO: IP address assigned: 10.0.1.164 on en0
+2026-04-23 14:32:06.718 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:07.056 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:07.098 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:07.430 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=180567)
+2026-04-23 14:32:07.596 localhost configd[287]: INFO: IP address assigned: 10.0.1.193 on en0
+2026-04-23 14:32:07.684 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:07.737 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:08.125 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=491704)
+2026-04-23 14:32:08.467 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:08.561 localhost configd[287]: INFO: IP address assigned: 10.0.1.59 on en0
+2026-04-23 14:32:08.615 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=971051)
+2026-04-23 14:32:08.992 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:09.353 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:09.697 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:09.905 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:10.280 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:10.551 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:10.882 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=151047)
+2026-04-23 14:32:11.251 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:11.319 localhost configd[287]: INFO: IP address assigned: 10.0.1.160 on en0
+2026-04-23 14:32:11.667 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:11.911 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:12.073 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:12.317 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=993749)
+2026-04-23 14:32:12.463 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=917357)
+2026-04-23 14:32:12.709 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:13.083 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=413048)
+2026-04-23 14:32:13.374 localhost configd[287]: INFO: IP address assigned: 10.0.1.208 on en0
+2026-04-23 14:32:13.572 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:13.920 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=797848)
+2026-04-23 14:32:14.009 localhost configd[287]: INFO: IP address assigned: 10.0.1.151 on en0
+2026-04-23 14:32:14.151 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:14.389 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:14.717 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:14.803 localhost configd[287]: INFO: IP address assigned: 10.0.1.227 on en0
+2026-04-23 14:32:15.031 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:15.293 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:15.380 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=458345)
+2026-04-23 14:32:15.657 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:16.028 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:16.147 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:16.456 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:16.764 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=590963)
+2026-04-23 14:32:17.027 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=940480)
+2026-04-23 14:32:17.311 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:17.416 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:17.609 localhost configd[287]: INFO: IP address assigned: 10.0.1.153 on en0
+2026-04-23 14:32:17.867 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:17.931 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:17.994 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:18.295 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:18.383 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:18.714 localhost configd[287]: INFO: IP address assigned: 10.0.1.110 on en0
+2026-04-23 14:32:18.884 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:19.181 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=876487)
+2026-04-23 14:32:19.559 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:19.692 localhost configd[287]: INFO: IP address assigned: 10.0.1.31 on en0
+2026-04-23 14:32:19.774 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:20.174 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:20.514 localhost configd[287]: INFO: IP address assigned: 10.0.1.213 on en0
+2026-04-23 14:32:20.897 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:21.072 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:21.207 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:21.287 localhost configd[287]: INFO: IP address assigned: 10.0.1.174 on en0
+2026-04-23 14:32:21.459 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:21.553 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:21.602 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=222346)
+2026-04-23 14:32:21.648 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=600296)
+2026-04-23 14:32:21.923 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:22.299 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:22.647 localhost configd[287]: INFO: IP address assigned: 10.0.1.97 on en0
+2026-04-23 14:32:23.003 localhost configd[287]: INFO: IP address assigned: 10.0.1.177 on en0
+2026-04-23 14:32:23.227 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:23.620 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:23.814 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=241677)
+2026-04-23 14:32:23.861 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=955604)
+2026-04-23 14:32:23.909 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:24.045 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:24.192 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:24.306 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:24.569 localhost configd[287]: INFO: IP address assigned: 10.0.1.239 on en0
+2026-04-23 14:32:24.884 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=415535)
+2026-04-23 14:32:25.161 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=542372)
+2026-04-23 14:32:25.212 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=259826)
+2026-04-23 14:32:25.611 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:25.899 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:26.169 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:26.312 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:26.552 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=108256)
+2026-04-23 14:32:26.644 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:26.905 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:27.198 localhost configd[287]: INFO: IP address assigned: 10.0.1.172 on en0
+2026-04-23 14:32:27.521 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:27.579 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:27.867 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:28.220 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:28.509 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:28.580 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:28.836 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:29.159 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=779792)
+2026-04-23 14:32:29.412 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:29.511 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:29.881 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:30.278 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:30.400 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:30.538 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:30.802 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:30.954 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:31.344 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:31.692 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:32.068 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:32.258 localhost configd[287]: INFO: IP address assigned: 10.0.1.119 on en0
+2026-04-23 14:32:32.511 localhost configd[287]: INFO: IP address assigned: 10.0.1.192 on en0
+2026-04-23 14:32:32.885 localhost configd[287]: INFO: IP address assigned: 10.0.1.223 on en0
+2026-04-23 14:32:33.166 localhost configd[287]: INFO: IP address assigned: 10.0.1.236 on en0
+2026-04-23 14:32:33.288 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:33.472 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:33.556 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:33.662 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=263907)
+2026-04-23 14:32:34.012 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:34.264 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:34.556 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:34.703 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:34.752 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:34.925 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:35.046 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=627935)
+2026-04-23 14:32:35.102 localhost configd[287]: INFO: IP address assigned: 10.0.1.106 on en0
+2026-04-23 14:32:35.362 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=337701)
+2026-04-23 14:32:35.463 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:35.752 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:35.966 localhost configd[287]: INFO: IP address assigned: 10.0.1.216 on en0
+2026-04-23 14:32:36.029 localhost configd[287]: INFO: IP address assigned: 10.0.1.162 on en0
+2026-04-23 14:32:36.205 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:36.598 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:36.947 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:37.012 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:37.276 localhost configd[287]: INFO: IP address assigned: 10.0.1.235 on en0
+2026-04-23 14:32:37.372 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:37.724 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:37.816 localhost configd[287]: INFO: IP address assigned: 10.0.1.30 on en0
+2026-04-23 14:32:38.115 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=760525)
+2026-04-23 14:32:38.215 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:38.440 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=406313)
+2026-04-23 14:32:38.706 localhost configd[287]: INFO: IP address assigned: 10.0.1.147 on en0
+2026-04-23 14:32:38.796 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=481405)
+2026-04-23 14:32:39.007 localhost configd[287]: INFO: IP address assigned: 10.0.1.51 on en0
+2026-04-23 14:32:39.150 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:39.402 localhost configd[287]: INFO: IP address assigned: 10.0.1.21 on en0
+2026-04-23 14:32:39.567 localhost configd[287]: INFO: IP address assigned: 10.0.1.141 on en0
+2026-04-23 14:32:39.781 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:39.908 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=490527)
+2026-04-23 14:32:40.160 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:40.540 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:32:40.851 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:41.007 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=549653)
+2026-04-23 14:32:41.258 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:41.532 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:41.836 localhost configd[287]: INFO: IP address assigned: 10.0.1.112 on en0
+2026-04-23 14:32:41.891 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:41.936 localhost configd[287]: INFO: IP address assigned: 10.0.1.152 on en0
+2026-04-23 14:32:42.011 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=430096)
+2026-04-23 14:32:42.256 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:42.380 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:42.621 localhost configd[287]: INFO: IP address assigned: 10.0.1.189 on en0
+2026-04-23 14:32:42.989 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=702466)
+2026-04-23 14:32:43.058 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:43.436 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:32:43.627 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:32:44.015 localhost configd[287]: INFO: IP address assigned: 10.0.1.243 on en0
+2026-04-23 14:32:44.210 localhost configd[287]: INFO: IP address assigned: 10.0.1.100 on en0
+2026-04-23 14:32:44.426 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=393371)
+2026-04-23 14:32:44.736 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:32:44.851 localhost configd[287]: INFO: IP address assigned: 10.0.1.134 on en0
+2026-04-23 14:32:45.220 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:45.538 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:45.894 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:46.291 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:46.663 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:46.804 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:32:46.887 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:47.098 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:47.202 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:32:47.387 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:47.688 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:32:47.902 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:32:48.023 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:48.339 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:32:48.534 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:48.832 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:48.902 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:32:49.074 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:49.295 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:49.668 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:32:49.937 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:49.979 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:32:50.316 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:32:50.696 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:32:50.855 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:51.040 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:51.373 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:51.606 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:32:51.699 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:52.037 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:52.261 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:32:52.518 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:32:52.599 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:52.856 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:32:53.139 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:53.218 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:53.527 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:53.853 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:32:54.028 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:32:54.284 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:32:54.676 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:32:54.966 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:55.219 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:32:55.332 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:32:55.606 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:56.006 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:32:56.106 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:56.379 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:32:56.499 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:32:56.728 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:32:56.828 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:32:57.077 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:57.306 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:32:57.613 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:57.843 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:58.074 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:58.362 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:58.475 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:58.816 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:59.012 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:32:59.162 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:59.452 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:32:59.772 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:32:59.834 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:00.167 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:00.438 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:00.671 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:33:01.021 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:01.131 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:01.401 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:01.517 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:01.723 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:02.082 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:02.331 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:02.573 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:02.636 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:02.902 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:03.272 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:03.396 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:03.728 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:03.926 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:33:04.295 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:33:04.651 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:33:04.982 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:05.279 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:05.380 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:05.692 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:05.741 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:05.886 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:06.222 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:06.535 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:06.780 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:06.831 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:06.963 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:07.273 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:07.444 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:07.534 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:33:07.647 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:07.732 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:07.980 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:08.050 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:08.256 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:08.325 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:08.415 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:08.666 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:08.838 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:08.939 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:09.101 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:09.441 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:09.741 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:09.978 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:10.155 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:10.432 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:33:10.719 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:11.083 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:11.132 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:11.472 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:11.638 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:12.011 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:12.206 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:12.288 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:12.584 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:12.696 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:12.822 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:13.137 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:13.461 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:33:13.738 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:14.095 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:14.220 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:14.506 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:14.674 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:14.908 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:15.271 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:15.572 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:15.694 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:16.022 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:16.107 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:16.209 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:16.533 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:16.794 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:17.092 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:17.294 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:17.509 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:17.780 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:18.159 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:18.373 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:18.719 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:19.113 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:19.154 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:19.196 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:19.580 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:19.904 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:20.304 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:20.619 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:20.991 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:21.306 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:21.689 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:21.792 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:22.024 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:22.247 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:22.643 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:22.746 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:33:23.013 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:23.063 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:23.451 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:23.674 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:24.028 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:24.181 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:24.473 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:24.531 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:24.931 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:25.078 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:25.444 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:25.626 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:25.753 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:33:26.082 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:26.430 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:33:26.771 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:26.844 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:27.175 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:27.482 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:27.662 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:28.049 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:28.443 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:28.797 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:29.123 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:29.164 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:29.532 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:29.904 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:30.109 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:30.357 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:30.745 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:30.970 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:33:31.124 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:31.379 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:33:31.421 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:31.632 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:31.964 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:32.119 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:32.375 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:32.542 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:32.750 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:33.110 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:33.164 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:33:33.507 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:33.718 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:33.884 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:34.046 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:34.113 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:34.419 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:34.496 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:34.853 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:34.941 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:35.277 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:35.348 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:35.581 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:35.976 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:36.081 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:36.347 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:36.699 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:36.772 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:36.840 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:33:37.075 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:37.431 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:37.590 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:37.967 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:38.239 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:38.498 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:38.855 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:39.228 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:39.281 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:33:39.621 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:39.713 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:39.787 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:33:40.120 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:40.420 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:40.675 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:33:40.942 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:41.052 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:41.122 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:41.461 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:41.834 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:42.033 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:33:42.147 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:42.345 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:42.534 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:42.578 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:33:42.965 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:43.126 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:33:43.193 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:43.333 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:43.700 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:43.775 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:44.156 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:33:44.435 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:33:44.771 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:33:45.126 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:45.334 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:45.606 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:45.667 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:33:46.034 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:46.191 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:33:46.353 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:33:46.585 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:46.719 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:46.762 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:46.839 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:47.163 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:47.351 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:47.714 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:33:47.776 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:47.917 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:48.046 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:48.220 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:48.433 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:48.598 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:48.649 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:48.823 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:48.873 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:48.983 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:49.079 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:49.226 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:49.388 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:49.618 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:49.927 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:50.286 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:50.359 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:50.465 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:50.603 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:33:50.834 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:51.093 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:51.258 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:51.613 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:33:51.803 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:52.010 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:52.372 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:52.476 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:52.815 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:52.962 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:53.242 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:53.596 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:53.896 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:54.266 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:33:54.497 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:54.628 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:54.859 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:55.152 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:33:55.397 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:55.735 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:55.881 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:56.024 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:33:56.266 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:56.523 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:33:56.855 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:57.086 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:57.169 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:57.252 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:57.557 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:57.895 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:58.197 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:33:58.455 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:33:58.704 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:58.998 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:33:59.233 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:59.499 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:59.869 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:33:59.951 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:00.247 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:34:00.327 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:34:00.483 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:00.559 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:00.878 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:01.018 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:01.186 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:01.575 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:34:01.712 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:01.822 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:02.140 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:02.184 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:34:02.368 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:34:02.614 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:02.950 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:34:02.996 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:34:03.112 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:34:03.268 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:03.415 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:34:03.755 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:34:04.034 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:04.310 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:04.393 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:04.529 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:04.926 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:05.190 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:05.515 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:05.626 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:34:05.822 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:05.866 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 6)
+2026-04-23 14:34:06.087 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:06.341 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:06.587 localhost timed[287]: WARN: NTP servers unreachable, clock drift may accumulate
+2026-04-23 14:34:06.980 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 3)
+2026-04-23 14:34:07.320 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:07.376 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:07.494 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:07.703 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:34:08.054 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 4)
+2026-04-23 14:34:08.289 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:08.529 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:08.766 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:08.861 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:09.132 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:09.327 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:09.420 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:09.550 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:09.942 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:09.995 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:10.070 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:10.307 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:10.466 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:10.774 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:10.843 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:10.888 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:11.138 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:11.234 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:11.488 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 1)
+2026-04-23 14:34:11.727 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:11.872 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:12.017 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:12.397 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:34:12.731 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:13.071 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:13.461 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 2)
+2026-04-23 14:34:13.504 localhost mDNSResponder[287]: NOTICE: suppressing queries while interface is down
+2026-04-23 14:34:13.772 localhost mDNSResponder[287]: ERROR: DNSServiceQueryRecord(api.internal, A) failed: kDNSServiceErr_Timeout
+2026-04-23 14:34:14.016 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:14.182 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:34:14.473 localhost configd[287]: WARN: attempting to re-establish DHCPv4 on en0 (attempt 5)
+2026-04-23 14:34:14.533 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:14.720 localhost kernel[0]: WARN: en0: association failed (reason 15, 4-way handshake timeout)
+2026-04-23 14:34:14.993 localhost networkd[287]: ERROR: no usable default route
+2026-04-23 14:34:15.185 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:15.314 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:15.445 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:15.706 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:16.083 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=696236)
+2026-04-23 14:34:16.171 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:16.233 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:16.353 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:16.714 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:17.095 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:17.492 localhost configd[287]: INFO: IP address assigned: 10.0.1.250 on en0
+2026-04-23 14:34:17.643 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:17.893 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:18.216 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=486643)
+2026-04-23 14:34:18.295 localhost configd[287]: INFO: IP address assigned: 10.0.1.149 on en0
+2026-04-23 14:34:18.501 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:18.625 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:18.924 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=128015)
+2026-04-23 14:34:19.001 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:19.386 localhost configd[287]: INFO: IP address assigned: 10.0.1.117 on en0
+2026-04-23 14:34:19.601 localhost configd[287]: INFO: IP address assigned: 10.0.1.239 on en0
+2026-04-23 14:34:19.740 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:19.785 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:19.894 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:20.171 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:20.245 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=788938)
+2026-04-23 14:34:20.409 localhost configd[287]: INFO: IP address assigned: 10.0.1.132 on en0
+2026-04-23 14:34:20.520 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:20.702 localhost configd[287]: INFO: IP address assigned: 10.0.1.63 on en0
+2026-04-23 14:34:20.751 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:20.881 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:21.194 localhost configd[287]: INFO: IP address assigned: 10.0.1.63 on en0
+2026-04-23 14:34:21.273 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:21.318 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:21.436 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:21.567 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:21.624 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:21.936 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:22.332 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=765625)
+2026-04-23 14:34:22.639 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:23.016 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:23.255 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:23.522 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=104892)
+2026-04-23 14:34:23.586 localhost configd[287]: INFO: IP address assigned: 10.0.1.216 on en0
+2026-04-23 14:34:23.729 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:23.960 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:24.102 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=542166)
+2026-04-23 14:34:24.156 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:24.368 localhost configd[287]: INFO: IP address assigned: 10.0.1.194 on en0
+2026-04-23 14:34:24.750 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=201295)
+2026-04-23 14:34:25.130 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=275161)
+2026-04-23 14:34:25.192 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:25.287 localhost configd[287]: INFO: IP address assigned: 10.0.1.102 on en0
+2026-04-23 14:34:25.614 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:25.973 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:26.290 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:26.549 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=324164)
+2026-04-23 14:34:26.643 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:26.771 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=785761)
+2026-04-23 14:34:26.972 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=323103)
+2026-04-23 14:34:27.246 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:27.622 localhost configd[287]: INFO: IP address assigned: 10.0.1.186 on en0
+2026-04-23 14:34:27.981 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:28.055 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:28.305 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:28.651 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:28.743 localhost configd[287]: INFO: IP address assigned: 10.0.1.222 on en0
+2026-04-23 14:34:29.074 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=199346)
+2026-04-23 14:34:29.421 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:29.784 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:30.171 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:30.566 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=283847)
+2026-04-23 14:34:30.931 localhost configd[287]: INFO: IP address assigned: 10.0.1.196 on en0
+2026-04-23 14:34:31.133 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:31.514 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:31.725 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=713455)
+2026-04-23 14:34:31.994 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:32.361 localhost configd[287]: INFO: IP address assigned: 10.0.1.148 on en0
+2026-04-23 14:34:32.701 localhost configd[287]: INFO: IP address assigned: 10.0.1.23 on en0
+2026-04-23 14:34:32.860 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=895807)
+2026-04-23 14:34:32.963 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:33.222 localhost configd[287]: INFO: IP address assigned: 10.0.1.178 on en0
+2026-04-23 14:34:33.302 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=492716)
+2026-04-23 14:34:33.597 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:33.714 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:34.082 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=860541)
+2026-04-23 14:34:34.428 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:34.695 localhost configd[287]: INFO: IP address assigned: 10.0.1.104 on en0
+2026-04-23 14:34:34.803 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:35.172 localhost configd[287]: INFO: IP address assigned: 10.0.1.30 on en0
+2026-04-23 14:34:35.478 localhost configd[287]: INFO: IP address assigned: 10.0.1.126 on en0
+2026-04-23 14:34:35.849 localhost configd[287]: INFO: IP address assigned: 10.0.1.212 on en0
+2026-04-23 14:34:35.901 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:36.110 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:36.255 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:36.635 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:37.026 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:37.179 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:37.414 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:37.547 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:37.590 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=615524)
+2026-04-23 14:34:37.665 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:37.731 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:37.843 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:37.947 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=721418)
+2026-04-23 14:34:38.268 localhost configd[287]: INFO: IP address assigned: 10.0.1.72 on en0
+2026-04-23 14:34:38.428 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:38.686 localhost configd[287]: INFO: IP address assigned: 10.0.1.99 on en0
+2026-04-23 14:34:38.810 localhost configd[287]: INFO: IP address assigned: 10.0.1.82 on en0
+2026-04-23 14:34:39.067 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=361063)
+2026-04-23 14:34:39.262 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:39.531 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:39.674 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:39.960 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=477048)
+2026-04-23 14:34:40.203 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:40.484 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:40.782 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:41.043 localhost configd[287]: INFO: IP address assigned: 10.0.1.229 on en0
+2026-04-23 14:34:41.329 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=499947)
+2026-04-23 14:34:41.587 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:41.780 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:41.898 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:42.027 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:42.304 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:42.489 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:42.839 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:43.049 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=592053)
+2026-04-23 14:34:43.189 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=298837)
+2026-04-23 14:34:43.231 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=625021)
+2026-04-23 14:34:43.462 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:43.714 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:43.945 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:44.142 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:44.483 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=140712)
+2026-04-23 14:34:44.586 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:44.915 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=900011)
+2026-04-23 14:34:45.178 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:45.396 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:45.686 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:45.914 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:46.287 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:46.544 localhost configd[287]: INFO: IP address assigned: 10.0.1.82 on en0
+2026-04-23 14:34:46.828 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=952624)
+2026-04-23 14:34:47.053 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:47.439 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=798011)
+2026-04-23 14:34:47.809 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=734845)
+2026-04-23 14:34:48.082 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:48.197 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:48.545 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:48.924 localhost configd[287]: INFO: IP address assigned: 10.0.1.23 on en0
+2026-04-23 14:34:49.023 localhost configd[287]: INFO: IP address assigned: 10.0.1.184 on en0
+2026-04-23 14:34:49.259 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:49.599 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:49.680 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:49.816 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:49.940 localhost configd[287]: INFO: IP address assigned: 10.0.1.84 on en0
+2026-04-23 14:34:50.334 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:50.646 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:50.881 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:51.131 localhost configd[287]: INFO: IP address assigned: 10.0.1.206 on en0
+2026-04-23 14:34:51.216 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=700426)
+2026-04-23 14:34:51.432 localhost configd[287]: INFO: IP address assigned: 10.0.1.88 on en0
+2026-04-23 14:34:51.579 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:51.822 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:51.865 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:52.156 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=173234)
+2026-04-23 14:34:52.552 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:52.805 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:53.065 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=492850)
+2026-04-23 14:34:53.200 localhost configd[287]: INFO: IP address assigned: 10.0.1.70 on en0
+2026-04-23 14:34:53.489 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=215593)
+2026-04-23 14:34:53.759 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:53.907 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=161847)
+2026-04-23 14:34:54.040 localhost configd[287]: INFO: IP address assigned: 10.0.1.69 on en0
+2026-04-23 14:34:54.212 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:54.461 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:54.820 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=767349)
+2026-04-23 14:34:54.945 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=189870)
+2026-04-23 14:34:55.178 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=167384)
+2026-04-23 14:34:55.393 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=346184)
+2026-04-23 14:34:55.677 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:34:55.768 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=379005)
+2026-04-23 14:34:55.811 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:34:55.872 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=647707)
+2026-04-23 14:34:55.915 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:56.221 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:56.397 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:56.679 localhost configd[287]: INFO: IP address assigned: 10.0.1.174 on en0
+2026-04-23 14:34:56.938 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:57.327 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:57.528 localhost configd[287]: INFO: IP address assigned: 10.0.1.112 on en0
+2026-04-23 14:34:57.908 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:58.260 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=473323)
+2026-04-23 14:34:58.469 localhost configd[287]: INFO: IP address assigned: 10.0.1.20 on en0
+2026-04-23 14:34:58.742 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:34:58.987 localhost configd[287]: INFO: IP address assigned: 10.0.1.247 on en0
+2026-04-23 14:34:59.098 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=228864)
+2026-04-23 14:34:59.409 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:34:59.807 localhost configd[287]: INFO: IP address assigned: 10.0.1.83 on en0
+2026-04-23 14:35:00.035 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:00.426 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:00.709 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:01.087 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=769068)
+2026-04-23 14:35:01.291 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=477702)
+2026-04-23 14:35:01.354 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:01.560 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:01.719 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:01.963 localhost configd[287]: INFO: IP address assigned: 10.0.1.223 on en0
+2026-04-23 14:35:02.044 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:02.327 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:02.725 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:02.962 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:03.101 localhost configd[287]: INFO: IP address assigned: 10.0.1.242 on en0
+2026-04-23 14:35:03.407 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:03.705 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=622112)
+2026-04-23 14:35:03.789 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:04.173 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:04.452 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=567965)
+2026-04-23 14:35:04.551 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:04.867 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:05.015 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=791792)
+2026-04-23 14:35:05.413 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=556018)
+2026-04-23 14:35:05.467 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=442360)
+2026-04-23 14:35:05.703 localhost configd[287]: INFO: IP address assigned: 10.0.1.76 on en0
+2026-04-23 14:35:05.874 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:06.257 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=242350)
+2026-04-23 14:35:06.570 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:06.861 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=825388)
+2026-04-23 14:35:07.071 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:07.405 localhost configd[287]: INFO: IP address assigned: 10.0.1.173 on en0
+2026-04-23 14:35:07.478 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:07.711 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:07.946 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:08.273 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:08.536 localhost configd[287]: INFO: IP address assigned: 10.0.1.77 on en0
+2026-04-23 14:35:08.708 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=191939)
+2026-04-23 14:35:08.805 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=876555)
+2026-04-23 14:35:09.148 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:09.247 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:09.352 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:09.586 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:09.626 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:09.968 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:10.206 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:10.409 localhost configd[287]: INFO: IP address assigned: 10.0.1.224 on en0
+2026-04-23 14:35:10.796 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:10.900 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:11.248 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:11.342 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:11.657 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:11.858 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=411242)
+2026-04-23 14:35:12.010 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:12.283 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=397158)
+2026-04-23 14:35:12.397 localhost configd[287]: INFO: IP address assigned: 10.0.1.237 on en0
+2026-04-23 14:35:12.796 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=435690)
+2026-04-23 14:35:12.994 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:13.386 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=988845)
+2026-04-23 14:35:13.719 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:13.869 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:14.269 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:14.339 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:14.549 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=851583)
+2026-04-23 14:35:14.696 localhost configd[287]: INFO: IP address assigned: 10.0.1.227 on en0
+2026-04-23 14:35:14.851 localhost configd[287]: INFO: IP address assigned: 10.0.1.33 on en0
+2026-04-23 14:35:14.982 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:15.222 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:15.599 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:15.720 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:16.040 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:16.296 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:16.514 localhost configd[287]: INFO: IP address assigned: 10.0.1.120 on en0
+2026-04-23 14:35:16.590 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:16.774 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:16.913 localhost configd[287]: INFO: IP address assigned: 10.0.1.160 on en0
+2026-04-23 14:35:17.154 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=439128)
+2026-04-23 14:35:17.491 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:17.558 localhost configd[287]: INFO: IP address assigned: 10.0.1.201 on en0
+2026-04-23 14:35:17.753 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:17.876 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:18.142 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:18.331 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:18.478 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:18.618 localhost configd[287]: INFO: IP address assigned: 10.0.1.22 on en0
+2026-04-23 14:35:18.843 localhost configd[287]: INFO: IP address assigned: 10.0.1.167 on en0
+2026-04-23 14:35:18.935 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:19.050 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:19.308 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:19.434 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:19.523 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:19.805 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=155021)
+2026-04-23 14:35:19.905 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:20.277 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:20.539 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:20.900 localhost configd[287]: INFO: IP address assigned: 10.0.1.82 on en0
+2026-04-23 14:35:20.957 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=515912)
+2026-04-23 14:35:21.247 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:21.592 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:21.966 localhost configd[287]: INFO: IP address assigned: 10.0.1.218 on en0
+2026-04-23 14:35:22.360 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:22.743 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:23.020 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:23.392 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:23.755 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:23.983 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=222292)
+2026-04-23 14:35:24.065 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=772566)
+2026-04-23 14:35:24.447 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:24.602 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=700815)
+2026-04-23 14:35:24.935 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:25.330 localhost configd[287]: INFO: IP address assigned: 10.0.1.223 on en0
+2026-04-23 14:35:25.673 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=607711)
+2026-04-23 14:35:26.043 localhost configd[287]: INFO: IP address assigned: 10.0.1.96 on en0
+2026-04-23 14:35:26.375 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=441027)
+2026-04-23 14:35:26.447 localhost configd[287]: INFO: IP address assigned: 10.0.1.240 on en0
+2026-04-23 14:35:26.762 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=952353)
+2026-04-23 14:35:27.160 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=683071)
+2026-04-23 14:35:27.474 localhost configd[287]: INFO: IP address assigned: 10.0.1.155 on en0
+2026-04-23 14:35:27.764 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=977809)
+2026-04-23 14:35:28.103 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:28.476 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=889565)
+2026-04-23 14:35:28.622 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:28.722 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=728204)
+2026-04-23 14:35:29.117 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=681667)
+2026-04-23 14:35:29.385 localhost configd[287]: INFO: IP address assigned: 10.0.1.51 on en0
+2026-04-23 14:35:29.445 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=316247)
+2026-04-23 14:35:29.819 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=689820)
+2026-04-23 14:35:29.990 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:30.047 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=230775)
+2026-04-23 14:35:30.346 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:30.664 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=790130)
+2026-04-23 14:35:30.704 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:30.767 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:31.072 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:31.262 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:31.529 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=614266)
+2026-04-23 14:35:31.924 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:32.144 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:32.445 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:32.535 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:32.597 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:32.733 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=997670)
+2026-04-23 14:35:32.883 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:33.231 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:33.573 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:33.678 localhost configd[287]: INFO: IP address assigned: 10.0.1.128 on en0
+2026-04-23 14:35:33.756 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:33.929 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:34.052 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:34.134 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:34.520 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:34.915 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=313660)
+2026-04-23 14:35:34.991 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:35.168 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:35.564 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:35.794 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:36.165 localhost configd[287]: INFO: IP address assigned: 10.0.1.174 on en0
+2026-04-23 14:35:36.288 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:36.406 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:36.668 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:37.017 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:37.195 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=215333)
+2026-04-23 14:35:37.585 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:37.658 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:37.743 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:37.953 localhost configd[287]: INFO: IP address assigned: 10.0.1.57 on en0
+2026-04-23 14:35:38.108 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:38.198 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:38.351 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:38.444 localhost configd[287]: INFO: IP address assigned: 10.0.1.51 on en0
+2026-04-23 14:35:38.573 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:38.769 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:39.059 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=465848)
+2026-04-23 14:35:39.457 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:39.641 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:39.992 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=150293)
+2026-04-23 14:35:40.119 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:40.358 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=945241)
+2026-04-23 14:35:40.745 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:41.057 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:41.303 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:41.408 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:41.799 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:41.918 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:42.031 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:42.207 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=860657)
+2026-04-23 14:35:42.574 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:42.741 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:42.995 localhost configd[287]: INFO: IP address assigned: 10.0.1.66 on en0
+2026-04-23 14:35:43.259 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:43.538 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:43.719 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:44.025 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:44.182 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:44.266 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:44.514 localhost configd[287]: INFO: IP address assigned: 10.0.1.236 on en0
+2026-04-23 14:35:44.600 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:44.679 localhost configd[287]: INFO: IP address assigned: 10.0.1.43 on en0
+2026-04-23 14:35:44.803 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:44.886 localhost configd[287]: INFO: IP address assigned: 10.0.1.161 on en0
+2026-04-23 14:35:45.178 localhost configd[287]: INFO: IP address assigned: 10.0.1.22 on en0
+2026-04-23 14:35:45.435 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:45.544 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:45.847 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:46.233 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:46.630 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=114575)
+2026-04-23 14:35:46.985 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=971783)
+2026-04-23 14:35:47.028 localhost configd[287]: INFO: IP address assigned: 10.0.1.199 on en0
+2026-04-23 14:35:47.341 localhost configd[287]: INFO: IP address assigned: 10.0.1.82 on en0
+2026-04-23 14:35:47.719 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:48.029 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:48.090 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:48.216 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:48.524 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:48.653 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=980184)
+2026-04-23 14:35:48.761 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:48.827 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:49.061 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=218733)
+2026-04-23 14:35:49.274 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:49.441 localhost configd[287]: INFO: IP address assigned: 10.0.1.237 on en0
+2026-04-23 14:35:49.541 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:49.828 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:49.977 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=761836)
+2026-04-23 14:35:50.308 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:50.504 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:50.873 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:50.931 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:51.287 localhost configd[287]: INFO: IP address assigned: 10.0.1.34 on en0
+2026-04-23 14:35:51.509 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=582716)
+2026-04-23 14:35:51.717 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:51.811 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=857526)
+2026-04-23 14:35:51.946 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:51.990 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=615947)
+2026-04-23 14:35:52.131 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=639302)
+2026-04-23 14:35:52.249 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:52.538 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=906824)
+2026-04-23 14:35:52.914 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:53.194 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:53.387 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:53.520 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:53.697 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=559876)
+2026-04-23 14:35:54.073 localhost configd[287]: INFO: IP address assigned: 10.0.1.61 on en0
+2026-04-23 14:35:54.184 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:54.446 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=843670)
+2026-04-23 14:35:54.587 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=398739)
+2026-04-23 14:35:54.647 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=541508)
+2026-04-23 14:35:54.856 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:54.978 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:55.263 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:55.439 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=612824)
+2026-04-23 14:35:55.760 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:56.149 localhost configd[287]: INFO: IP address assigned: 10.0.1.103 on en0
+2026-04-23 14:35:56.393 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:56.632 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=213119)
+2026-04-23 14:35:56.682 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=460836)
+2026-04-23 14:35:56.978 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=817684)
+2026-04-23 14:35:57.139 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=970145)
+2026-04-23 14:35:57.354 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:35:57.699 localhost configd[287]: INFO: IP address assigned: 10.0.1.131 on en0
+2026-04-23 14:35:57.984 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:58.272 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=549788)
+2026-04-23 14:35:58.438 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:35:58.739 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=394795)
+2026-04-23 14:35:58.837 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:35:59.235 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:35:59.494 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=840777)
+2026-04-23 14:35:59.586 localhost configd[287]: INFO: IP address assigned: 10.0.1.148 on en0
+2026-04-23 14:35:59.938 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=996398)
+2026-04-23 14:36:00.280 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:00.396 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:00.503 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:00.683 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:00.797 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:01.152 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=153430)
+2026-04-23 14:36:01.386 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:01.582 localhost configd[287]: INFO: IP address assigned: 10.0.1.79 on en0
+2026-04-23 14:36:01.735 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:02.020 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=547818)
+2026-04-23 14:36:02.389 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=215400)
+2026-04-23 14:36:02.566 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:02.785 localhost configd[287]: INFO: IP address assigned: 10.0.1.83 on en0
+2026-04-23 14:36:02.988 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:03.121 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=154662)
+2026-04-23 14:36:03.499 localhost configd[287]: INFO: IP address assigned: 10.0.1.74 on en0
+2026-04-23 14:36:03.685 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:04.035 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=293818)
+2026-04-23 14:36:04.204 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:04.430 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:04.527 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=114325)
+2026-04-23 14:36:04.916 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:05.022 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:05.247 localhost configd[287]: INFO: IP address assigned: 10.0.1.170 on en0
+2026-04-23 14:36:05.557 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:05.718 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:05.865 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:05.949 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:06.055 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:06.403 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=715054)
+2026-04-23 14:36:06.778 localhost configd[287]: INFO: IP address assigned: 10.0.1.69 on en0
+2026-04-23 14:36:07.178 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:07.268 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=673129)
+2026-04-23 14:36:07.624 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:07.906 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:08.049 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:08.167 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=301019)
+2026-04-23 14:36:08.421 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:08.590 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:08.916 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:09.143 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:09.243 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:09.317 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:09.625 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:09.922 localhost configd[287]: INFO: IP address assigned: 10.0.1.62 on en0
+2026-04-23 14:36:10.268 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:10.374 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:10.703 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=827505)
+2026-04-23 14:36:10.840 localhost configd[287]: INFO: IP address assigned: 10.0.1.121 on en0
+2026-04-23 14:36:11.133 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:11.435 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:11.559 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:11.859 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:12.098 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:12.277 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:12.318 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=328387)
+2026-04-23 14:36:12.661 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:12.963 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:13.271 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:13.423 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:13.600 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:13.727 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:14.040 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:14.100 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:14.282 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:14.460 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:14.526 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:14.693 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:14.840 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:14.880 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:15.243 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:15.471 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:15.792 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:15.900 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:16.253 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:16.322 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:16.367 localhost configd[287]: INFO: IP address assigned: 10.0.1.76 on en0
+2026-04-23 14:36:16.550 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=116398)
+2026-04-23 14:36:16.865 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:17.203 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=881996)
+2026-04-23 14:36:17.595 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:17.969 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:18.329 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:18.651 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:18.917 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:19.094 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:19.456 localhost configd[287]: INFO: IP address assigned: 10.0.1.212 on en0
+2026-04-23 14:36:19.698 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=342979)
+2026-04-23 14:36:19.960 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:20.245 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=290330)
+2026-04-23 14:36:20.520 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=284665)
+2026-04-23 14:36:20.656 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:20.788 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:20.838 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:20.968 localhost configd[287]: INFO: IP address assigned: 10.0.1.195 on en0
+2026-04-23 14:36:21.319 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=250494)
+2026-04-23 14:36:21.395 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:21.667 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:21.913 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=652367)
+2026-04-23 14:36:22.023 localhost configd[287]: INFO: IP address assigned: 10.0.1.226 on en0
+2026-04-23 14:36:22.069 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:22.302 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:22.398 localhost configd[287]: INFO: IP address assigned: 10.0.1.215 on en0
+2026-04-23 14:36:22.767 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:22.874 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:22.956 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:23.317 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:23.361 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:23.455 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:23.668 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:23.751 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:24.036 localhost configd[287]: INFO: IP address assigned: 10.0.1.248 on en0
+2026-04-23 14:36:24.303 localhost configd[287]: INFO: IP address assigned: 10.0.1.98 on en0
+2026-04-23 14:36:24.512 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:24.676 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=825657)
+2026-04-23 14:36:24.852 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:24.955 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=146688)
+2026-04-23 14:36:25.047 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:25.139 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:25.391 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=335208)
+2026-04-23 14:36:25.443 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:25.680 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=787199)
+2026-04-23 14:36:25.866 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:26.256 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:26.353 localhost mDNSResponder[287]: WARN: retrying A query for api.internal
+2026-04-23 14:36:26.449 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:26.633 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:26.988 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:27.212 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:27.295 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:27.644 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=549449)
+2026-04-23 14:36:27.955 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:28.087 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:28.203 localhost powerd[287]: INFO: thermal pressure: nominal
+2026-04-23 14:36:28.594 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:28.780 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:28.873 localhost networkd[287]: NOTICE: scanning for replacement route
+2026-04-23 14:36:29.168 localhost kernel[0]: INFO: en0: scanning (background)
+2026-04-23 14:36:29.343 localhost configd[287]: INFO: IP address assigned: 10.0.1.202 on en0
+2026-04-23 14:36:29.422 localhost configd[287]: INFO: IP address assigned: 10.0.1.240 on en0
+2026-04-23 14:36:29.538 localhost configd[287]: INFO: IP address assigned: 10.0.1.57 on en0
+2026-04-23 14:36:29.741 localhost configd[287]: NOTICE: DHCPv4 REQUEST on en0 (xid=568394)
+2026-04-23 14:36:30.025 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:36:30.688 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:36:31.480 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 19716s)
+2026-04-23 14:36:32.424 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:36:34.068 localhost powerd[287]: INFO: battery: 72% (discharging, est 426m remaining)
+2026-04-23 14:36:35.963 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:36:37.528 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:36:38.735 localhost timed[287]: INFO: NTP sync complete, offset=17ms
+2026-04-23 14:36:40.971 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:36:43.352 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:36:45.127 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 58291s)
+2026-04-23 14:36:47.485 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:36:48.042 localhost powerd[287]: INFO: battery: 45% (discharging, est 284m remaining)
+2026-04-23 14:36:48.312 localhost timed[287]: INFO: NTP sync complete, offset=12ms
+2026-04-23 14:36:49.059 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:36:49.503 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:36:51.181 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:36:51.951 localhost powerd[287]: INFO: battery: 54% (discharging, est 462m remaining)
+2026-04-23 14:36:53.875 localhost powerd[287]: INFO: battery: 97% (discharging, est 294m remaining)
+2026-04-23 14:36:54.303 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:36:54.983 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:36:55.769 localhost timed[287]: INFO: NTP sync complete, offset=-17ms
+2026-04-23 14:36:57.708 localhost timed[287]: INFO: NTP sync complete, offset=-12ms
+2026-04-23 14:36:58.210 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:36:58.533 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:36:59.311 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 13101s)
+2026-04-23 14:36:59.562 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:37:00.375 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:37:02.499 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:04.859 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:06.285 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:37:08.303 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:37:08.557 localhost powerd[287]: INFO: battery: 54% (discharging, est 210m remaining)
+2026-04-23 14:37:08.888 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:09.798 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:37:11.621 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:37:13.681 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:37:15.936 localhost powerd[287]: INFO: battery: 59% (discharging, est 396m remaining)
+2026-04-23 14:37:16.778 localhost powerd[287]: INFO: battery: 50% (discharging, est 447m remaining)
+2026-04-23 14:37:18.524 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:37:19.236 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:21.076 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:22.172 localhost timed[287]: INFO: NTP sync complete, offset=17ms
+2026-04-23 14:37:22.688 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:37:24.806 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:37:26.564 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:37:28.285 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:29.282 localhost powerd[287]: INFO: battery: 51% (discharging, est 219m remaining)
+2026-04-23 14:37:30.967 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:32.541 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -51 dBm)
+2026-04-23 14:37:33.407 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:37:34.474 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:37:35.442 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:37:36.626 localhost powerd[287]: INFO: battery: 81% (discharging, est 469m remaining)
+2026-04-23 14:37:37.009 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:37:37.396 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -44 dBm)
+2026-04-23 14:37:38.860 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -53 dBm)
+2026-04-23 14:37:40.216 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:37:42.464 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:37:44.264 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:44.994 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:37:45.592 localhost powerd[287]: INFO: battery: 92% (discharging, est 437m remaining)
+2026-04-23 14:37:46.205 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:37:46.502 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:37:48.655 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:37:50.043 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:37:52.139 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 85044s)
+2026-04-23 14:37:52.721 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:37:53.869 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:37:54.645 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:37:55.504 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:37:57.758 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:37:59.790 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:38:01.378 localhost powerd[287]: INFO: battery: 84% (discharging, est 400m remaining)
+2026-04-23 14:38:01.741 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:38:03.528 localhost powerd[287]: INFO: battery: 84% (discharging, est 490m remaining)
+2026-04-23 14:38:04.035 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:38:06.272 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 4958s)
+2026-04-23 14:38:07.056 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:38:08.523 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:38:10.766 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 44119s)
+2026-04-23 14:38:11.661 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:38:12.522 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 78564s)
+2026-04-23 14:38:14.210 localhost timed[287]: INFO: NTP sync complete, offset=-14ms
+2026-04-23 14:38:15.143 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:38:17.230 localhost powerd[287]: INFO: battery: 75% (discharging, est 311m remaining)
+2026-04-23 14:38:19.240 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:38:20.015 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:38:22.214 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -51 dBm)
+2026-04-23 14:38:24.056 localhost timed[287]: INFO: NTP sync complete, offset=21ms
+2026-04-23 14:38:24.784 localhost timed[287]: INFO: NTP sync complete, offset=14ms
+2026-04-23 14:38:26.268 localhost timed[287]: INFO: NTP sync complete, offset=8ms
+2026-04-23 14:38:28.540 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:38:28.973 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:38:30.175 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:38:32.672 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -45 dBm)
+2026-04-23 14:38:34.062 localhost timed[287]: INFO: NTP sync complete, offset=18ms
+2026-04-23 14:38:35.897 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:38:37.010 localhost timed[287]: INFO: NTP sync complete, offset=11ms
+2026-04-23 14:38:37.592 localhost powerd[287]: INFO: battery: 74% (discharging, est 508m remaining)
+2026-04-23 14:38:39.983 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:38:42.087 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 26628s)
+2026-04-23 14:38:42.730 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:38:44.555 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:38:45.572 localhost timed[287]: INFO: NTP sync complete, offset=-14ms
+2026-04-23 14:38:47.071 localhost powerd[287]: INFO: battery: 83% (discharging, est 428m remaining)
+2026-04-23 14:38:48.141 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:38:50.291 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 62582s)
+2026-04-23 14:38:50.647 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:38:51.443 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:38:52.954 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:38:53.409 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:38:55.089 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:38:57.228 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:38:58.294 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:39:00.226 localhost powerd[287]: INFO: battery: 85% (discharging, est 270m remaining)
+2026-04-23 14:39:00.768 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:39:02.089 localhost timed[287]: INFO: NTP sync complete, offset=1ms
+2026-04-23 14:39:04.138 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:39:06.487 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:39:07.749 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:39:08.169 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 59168s)
+2026-04-23 14:39:09.769 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:39:11.185 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:39:12.815 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:39:14.987 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:39:16.976 localhost timed[287]: INFO: NTP sync complete, offset=18ms
+2026-04-23 14:39:18.769 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:39:21.266 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:39:22.279 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 78823s)
+2026-04-23 14:39:23.071 localhost powerd[287]: INFO: battery: 97% (discharging, est 342m remaining)
+2026-04-23 14:39:23.329 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:39:25.407 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:39:27.652 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:39:28.317 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:39:30.181 localhost powerd[287]: INFO: battery: 91% (discharging, est 181m remaining)
+2026-04-23 14:39:32.226 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:39:32.940 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:39:33.539 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -65 dBm)
+2026-04-23 14:39:34.507 localhost timed[287]: INFO: NTP sync complete, offset=16ms
+2026-04-23 14:39:35.387 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:39:36.472 localhost powerd[287]: INFO: battery: 57% (discharging, est 527m remaining)
+2026-04-23 14:39:36.730 localhost timed[287]: INFO: NTP sync complete, offset=5ms
+2026-04-23 14:39:36.996 localhost powerd[287]: INFO: battery: 64% (discharging, est 437m remaining)
+2026-04-23 14:39:37.706 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:39:39.773 localhost timed[287]: INFO: NTP sync complete, offset=4ms
+2026-04-23 14:39:41.415 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:39:43.359 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:39:44.023 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:39:46.102 localhost timed[287]: INFO: NTP sync complete, offset=-7ms
+2026-04-23 14:39:48.566 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:39:50.328 localhost powerd[287]: INFO: battery: 87% (discharging, est 532m remaining)
+2026-04-23 14:39:52.319 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:39:52.925 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:39:53.550 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 5153s)
+2026-04-23 14:39:55.434 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 84766s)
+2026-04-23 14:39:57.865 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 61209s)
+2026-04-23 14:40:00.126 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:40:01.513 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:40:02.580 localhost powerd[287]: INFO: battery: 74% (discharging, est 462m remaining)
+2026-04-23 14:40:04.340 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 64548s)
+2026-04-23 14:40:05.049 localhost timed[287]: INFO: NTP sync complete, offset=11ms
+2026-04-23 14:40:06.940 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:40:08.761 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -53 dBm)
+2026-04-23 14:40:09.878 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:40:11.161 localhost powerd[287]: INFO: battery: 95% (discharging, est 392m remaining)
+2026-04-23 14:40:12.350 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -55 dBm)
+2026-04-23 14:40:12.683 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -46 dBm)
+2026-04-23 14:40:14.416 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:40:16.741 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:40:18.241 localhost powerd[287]: INFO: battery: 81% (discharging, est 400m remaining)
+2026-04-23 14:40:19.431 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:40:20.420 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:40:22.231 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:40:24.188 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:40:25.987 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:40:26.898 localhost timed[287]: INFO: NTP sync complete, offset=2ms
+2026-04-23 14:40:29.216 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:40:30.362 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 19558s)
+2026-04-23 14:40:32.627 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 78619s)
+2026-04-23 14:40:34.432 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:40:35.697 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:40:36.548 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:40:37.582 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 6360s)
+2026-04-23 14:40:39.573 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -66 dBm)
+2026-04-23 14:40:40.399 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -64 dBm)
+2026-04-23 14:40:42.825 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:40:43.347 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:40:44.081 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:40:45.747 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:40:46.855 localhost powerd[287]: INFO: battery: 79% (discharging, est 305m remaining)
+2026-04-23 14:40:48.603 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:40:49.014 localhost powerd[287]: INFO: battery: 54% (discharging, est 501m remaining)
+2026-04-23 14:40:49.308 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:40:49.931 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 81105s)
+2026-04-23 14:40:50.633 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 40022s)
+2026-04-23 14:40:51.906 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:40:52.486 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 50369s)
+2026-04-23 14:40:53.537 localhost timed[287]: INFO: NTP sync complete, offset=13ms
+2026-04-23 14:40:53.826 localhost timed[287]: INFO: NTP sync complete, offset=13ms
+2026-04-23 14:40:54.338 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:40:56.257 localhost timed[287]: INFO: NTP sync complete, offset=2ms
+2026-04-23 14:40:58.303 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:40:59.239 localhost powerd[287]: INFO: battery: 56% (discharging, est 517m remaining)
+2026-04-23 14:40:59.567 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 47932s)
+2026-04-23 14:41:01.187 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=6)
+2026-04-23 14:41:02.035 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:41:02.733 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:41:03.054 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=11)
+2026-04-23 14:41:04.139 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:41:04.809 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:41:05.129 localhost powerd[287]: INFO: battery: 59% (discharging, est 222m remaining)
+2026-04-23 14:41:05.847 localhost powerd[287]: INFO: battery: 75% (discharging, est 282m remaining)
+2026-04-23 14:41:06.423 localhost powerd[287]: INFO: battery: 80% (discharging, est 513m remaining)
+2026-04-23 14:41:07.828 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:41:09.814 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:41:10.804 localhost powerd[287]: INFO: battery: 57% (discharging, est 531m remaining)
+2026-04-23 14:41:12.155 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:41:12.776 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:41:13.654 localhost configd[287]: DEBUG: Network change notification sent to 3 subscribers
+2026-04-23 14:41:15.852 localhost timed[287]: INFO: NTP sync complete, offset=10ms
+2026-04-23 14:41:17.787 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:41:19.292 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:41:21.060 localhost timed[287]: INFO: NTP sync complete, offset=18ms
+2026-04-23 14:41:22.705 localhost timed[287]: INFO: NTP sync complete, offset=22ms
+2026-04-23 14:41:23.168 localhost timed[287]: INFO: NTP sync complete, offset=-16ms
+2026-04-23 14:41:25.462 localhost powerd[287]: INFO: battery: 71% (discharging, est 330m remaining)
+2026-04-23 14:41:27.834 localhost timed[287]: INFO: NTP sync complete, offset=-17ms
+2026-04-23 14:41:28.503 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:41:30.024 localhost timed[287]: INFO: NTP sync complete, offset=-7ms
+2026-04-23 14:41:31.689 localhost powerd[287]: INFO: battery: 58% (discharging, est 516m remaining)
+2026-04-23 14:41:33.411 localhost timed[287]: INFO: NTP sync complete, offset=2ms
+2026-04-23 14:41:34.111 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -64 dBm)
+2026-04-23 14:41:34.355 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:41:35.430 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=36)
+2026-04-23 14:41:36.582 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:41:37.943 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:41:40.302 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:41:42.799 localhost powerd[287]: INFO: battery: 83% (discharging, est 523m remaining)
+2026-04-23 14:41:43.305 localhost kernel[0]: DEBUG: AppleBCMWLANCore: beacon received (ch=149)
+2026-04-23 14:41:45.287 localhost powerd[287]: INFO: battery: 65% (discharging, est 281m remaining)
+2026-04-23 14:41:46.294 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -57 dBm)
+2026-04-23 14:41:48.536 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -50 dBm)
+2026-04-23 14:41:50.461 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 62347s)
+2026-04-23 14:41:51.361 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:41:53.129 localhost powerd[287]: INFO: battery: 46% (discharging, est 325m remaining)
+2026-04-23 14:41:53.402 localhost mDNSResponder[287]: INFO: interface en0: multicast OK
+2026-04-23 14:41:53.621 localhost networkd[287]: DEBUG: route table unchanged (polling 30s)
+2026-04-23 14:41:54.985 localhost mDNSResponder[287]: DEBUG: resolved _services._dns-sd._udp.local
+2026-04-23 14:41:56.834 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -59 dBm)
+2026-04-23 14:41:59.194 localhost kernel[0]: NOTICE: en0: associated to BSSID 94:10:3e:11:aa:02 (RSSI -62 dBm)
+2026-04-23 14:41:59.460 localhost configd[287]: INFO: DHCPv4 lease renewed on en0 (expires in 15467s)

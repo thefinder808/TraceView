@@ -179,10 +179,18 @@ final class LogDocument: ObservableObject, Identifiable {
         // Parse the whole file on a background task. A 100K-line file takes
         // ~1.5s of synchronous parsing; doing it on the main thread froze the
         // UI from the user's first click through to first render.
+        //
+        // Parsers may opt into a whole-file pass (parseFile) when they need
+        // state across lines — e.g. .ips crash reports where the JSON header
+        // on line 1 carries the timestamp for every body line. Otherwise we
+        // fall through to the line-by-line loop.
         let capturedParser = parser
         let startID = nextEntryID
         let parsed: (entries: [LogEntry], nextID: Int) = await Task.detached(priority: .userInitiated) {
             let lines = text.components(separatedBy: .newlines)
+            if let whole = capturedParser.parseFile(lines: lines, startingEntryID: startID) {
+                return whole
+            }
             var entries: [LogEntry] = []
             entries.reserveCapacity(lines.count)
             var nextID = startID
