@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 struct NSLogTableView: NSViewRepresentable {
     let entries: [LogEntry]
@@ -21,6 +22,14 @@ struct NSLogTableView: NSViewRepresentable {
     var onLookupErrorCode: (String) -> Void = { _ in }
     var onToggleBookmark: (LogEntry) -> Void = { _ in }
     var onScrollUp: () -> Void
+    /// Fires (throttled ~100ms) when the top-visible entry changes. Used by
+    /// pane scroll-sync to broadcast this pane's position to the other.
+    var onVisibleTopChanged: (LogEntry?) -> Void = { _ in }
+    /// When this publisher fires a Date, scroll to the row with the largest
+    /// timestamp <= that Date. Used by pane scroll-sync. AppState gates
+    /// whether anything actually fires here, so passing the publisher even
+    /// when sync is off is harmless — no Dates arrive.
+    var scrollToTimestampSignal: AnyPublisher<Date, Never> = Empty().eraseToAnyPublisher()
 
     static let baseRowHeight: CGFloat = 24
     static let drawerHeight: CGFloat = 160
@@ -144,6 +153,15 @@ struct NSLogTableView: NSViewRepresentable {
         // Follow timer
         context.coordinator.startFollowTimer()
 
+        // Subscribe to sync-driven scroll commands. The publisher delivers
+        // a target Date; we find the nearest entry with timestamp <= that
+        // and scroll to it, suppressing our own visible-top reports for a
+        // short window so the inbound scroll doesn't bounce back.
+        context.coordinator.scrollSyncCancellable = scrollToTimestampSignal.sink {
+            [weak coordinator = context.coordinator] target in
+            coordinator?.scrollToTimestamp(target)
+        }
+
         return scrollView
     }
 
@@ -162,6 +180,7 @@ struct NSLogTableView: NSViewRepresentable {
         coordinator.theme = theme
         coordinator.fontSize = fontSize
         coordinator.onScrollUp = onScrollUp
+        coordinator.onVisibleTopChanged = onVisibleTopChanged
         coordinator.isFollowing = isFollowing
         coordinator.selectedEntryBinding = $selectedEntry
         coordinator.expandedEntryIDBinding = $expandedEntryID
@@ -290,6 +309,15 @@ struct NSLogTableView: NSViewRepresentable {
         weak var scrollView: NSScrollView?
         private var followTimer: Timer?
         private var userScrolling = false
+        var onVisibleTopChanged: (LogEntry?) -> Void = { _ in }
+        var scrollSyncCancellable: AnyCancellable?
+        // Throttle window for outbound visible-top reports. ~10 Hz max.
+        private var lastVisibleTopReport: Date = .distantPast
+        private var lastReportedEntryID: Int?
+        // After a sync-driven scroll lands, suppress outbound reports for
+        // this long so the resulting scrollViewDidScroll doesn't ricochet
+        // a "I just moved!" event back to the pane that drove us here.
+        private var suppressReportsUntil: Date = .distantPast
 
         init(parent: NSLogTableView) {
             self.parent = parent
@@ -345,10 +373,66 @@ struct NSLogTableView: NSViewRepresentable {
 
             let distanceFromBottom = contentHeight - (scrollOffset + visibleHeight)
 
-            // If user scrolled more than 2 rows away from bottom, pause following
-            if distanceFromBottom > 50 && isFollowing {
+            // During the sync-driven-scroll suppression window this scroll
+            // event came from pane sync, not the user — don't pause Following
+            // or fan out a visible-top report. Without this gate, a sync-
+            // driven landing >50pt from the bottom looks like a user scroll
+            // and trips auto-pause on both panes (see PR #33 review #1).
+            let inSyncScroll = Date() < suppressReportsUntil
+
+            if distanceFromBottom > 50 && isFollowing && !inSyncScroll {
                 onScrollUp()
             }
+
+            reportVisibleTopIfChanged()
+        }
+
+        /// Computes the top-visible row's entry and fires onVisibleTopChanged
+        /// if changed, throttled to ~10 Hz. Suppressed for a short window
+        /// after a sync-driven scroll to break the bounce-back loop.
+        private func reportVisibleTopIfChanged() {
+            let now = Date()
+            if now < suppressReportsUntil { return }
+            if now.timeIntervalSince(lastVisibleTopReport) < 0.1 { return }
+            guard let scrollView, let tableView else { return }
+            let visibleRows = tableView.rows(in: scrollView.contentView.documentVisibleRect)
+            guard visibleRows.location >= 0,
+                  visibleRows.location < entries.count else { return }
+            let topEntry = entries[visibleRows.location]
+            if topEntry.id == lastReportedEntryID { return }
+            lastReportedEntryID = topEntry.id
+            lastVisibleTopReport = now
+            onVisibleTopChanged(topEntry)
+        }
+
+        /// Sync-driven scroll: find the row whose timestamp is closest but
+        /// not later than `target`, scroll there, and arm the suppression
+        /// window so the resulting scroll notification doesn't echo back.
+        func scrollToTimestamp(_ target: Date) {
+            guard let tableView else { return }
+            guard let row = nearestRow(forTimestamp: target) else { return }
+            suppressReportsUntil = Date().addingTimeInterval(0.25)
+            tableView.scrollRowToVisible(row)
+        }
+
+        /// Largest index whose entry has `timestamp <= target`. If no entry
+        /// qualifies (target is before any timestamped row), returns the
+        /// first row that has any timestamp. Returns nil if no entry has a
+        /// timestamp at all.
+        private func nearestRow(forTimestamp target: Date) -> Int? {
+            var bestIndex: Int?
+            var bestTimestamp: Date?
+            for (i, entry) in entries.enumerated() {
+                guard let ts = entry.timestamp, ts <= target else { continue }
+                if bestTimestamp == nil || ts > bestTimestamp! {
+                    bestIndex = i
+                    bestTimestamp = ts
+                }
+            }
+            if bestIndex == nil {
+                bestIndex = entries.firstIndex(where: { $0.timestamp != nil })
+            }
+            return bestIndex
         }
 
         // MARK: - NSTableViewDataSource

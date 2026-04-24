@@ -27,6 +27,18 @@ final class AppState: ObservableObject {
     @Published var showExport: Bool = false
     @Published var showGoToLine: Bool = false
 
+    /// Scroll-sync between split panes. When on, scrolling one pane drives
+    /// the other to the entry with the closest timestamp. No-op when split
+    /// is closed or the driving pane has no parsed timestamps.
+    @Published var paneScrollSyncEnabled: Bool = false
+
+    /// Timestamps published by the secondary pane, consumed by the primary
+    /// to scroll itself. Cross-wired on purpose: each pane publishes its
+    /// own scroll position to the OPPOSITE subject so subscribers don't
+    /// need to filter by source.
+    let primaryScrollSyncSignal = PassthroughSubject<Date, Never>()
+    let secondaryScrollSyncSignal = PassthroughSubject<Date, Never>()
+
     /// Fires ⌘F / Find menu. FilterBarView observes this and focuses its
     /// search field. Tick instead of bool so repeated ⌘F presses re-focus
     /// even when the field is already in the window (e.g. after a click-
@@ -356,7 +368,8 @@ final class AppState: ObservableObject {
     }
 
     func toggleFollowing() {
-        selectedDocument?.isFollowing.toggle()
+        guard let current = selectedDocument?.isFollowing else { return }
+        setFollowing(pane: .primary, following: !current)
     }
 
     /// Open the error lookup panel pre-filled with `code`.
@@ -393,11 +406,41 @@ final class AppState: ObservableObject {
     }
 
     func jumpToBottom() {
-        selectedDocument?.isFollowing = true
+        setFollowing(pane: .primary, following: true)
     }
 
     func reloadCurrentFile() {
         guard let doc = selectedDocument, case .file = doc.source else { return }
         doc.reload()
+    }
+
+    // MARK: - Pane scroll sync
+
+    /// Called by each pane when its top-visible entry changes. Routes the
+    /// timestamp to the OTHER pane's signal so that pane can self-scroll.
+    func reportPaneScroll(pane: Pane, entry: LogEntry?) {
+        guard paneScrollSyncEnabled, isSplitView,
+              let timestamp = entry?.timestamp else { return }
+        switch pane {
+        case .primary:   secondaryScrollSyncSignal.send(timestamp)
+        case .secondary: primaryScrollSyncSignal.send(timestamp)
+        }
+    }
+
+    func togglePaneScrollSync() {
+        paneScrollSyncEnabled.toggle()
+    }
+
+    /// Set the follow state for a pane's active document. When sync is on
+    /// and the split is open, the other pane mirrors the change so a pause
+    /// or resume in one pane affects both.
+    func setFollowing(pane: Pane, following: Bool) {
+        let target = pane == .primary ? selectedDocument : secondaryDocument
+        target?.isFollowing = following
+
+        if paneScrollSyncEnabled, isSplitView {
+            let other = pane == .primary ? secondaryDocument : selectedDocument
+            other?.isFollowing = following
+        }
     }
 }

@@ -123,6 +123,14 @@ struct TraceViewApp: App {
                 .keyboardShortcut("\\", modifiers: .command)
                 .disabled(appState.selectedDocument == nil)
 
+                Button(appState.paneScrollSyncEnabled
+                       ? "Disable Pane Scroll Sync"
+                       : "Sync Pane Scrolling") {
+                    appState.togglePaneScrollSync()
+                }
+                .keyboardShortcut("s", modifiers: [.command, .shift])
+                .disabled(!appState.isSplitView)
+
                 Divider()
 
                 Button("Toggle Bookmark on Selected Line") { appState.toggleBookmarkOnSelection() }
@@ -132,7 +140,7 @@ struct TraceViewApp: App {
                 Divider()
 
                 Button("Export Filtered Log...") { appState.showExport = true }
-                    .keyboardShortcut("s", modifiers: [.command, .shift])
+                    .keyboardShortcut("e", modifiers: [.command, .shift])
             }
 
             // Theme menu
