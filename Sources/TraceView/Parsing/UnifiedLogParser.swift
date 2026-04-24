@@ -1,8 +1,9 @@
 import Foundation
 
-/// Parses JSON output from `log show --style json` and `log stream --style json`.
-/// Each entry is a JSON object with keys: timestamp, messageType, processImagePath,
-/// category, subsystem, eventMessage, etc.
+/// Parses JSON output from `log show --style ndjson` / `log stream --style ndjson`.
+/// Each line is one JSON object with keys: timestamp, messageType, processImagePath,
+/// category, subsystem, eventMessage, etc. `--style json` pretty-prints entries
+/// across many lines and does NOT work with this parser.
 struct UnifiedLogParser: LogParser {
     let name = "Unified Log (JSON)"
     let supportedExtensions: Set<String> = ["json"]

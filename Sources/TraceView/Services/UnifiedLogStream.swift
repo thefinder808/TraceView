@@ -18,7 +18,14 @@ final class UnifiedLogStream {
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: "/usr/bin/log")
 
-        var args = ["stream", "--style", "json", "--level", level]
+        // `ndjson` emits one complete JSON object per line, which is what
+        // UnifiedLogParser.parse(line:) expects. Plain `json` style on
+        // recent macOS pretty-prints each entry across many lines, so the
+        // parser would see {"source":null,\n  "formatString":"...",\n ...}
+        // as separate lines and fall through to the plain-text path —
+        // visible symptom: "All System" shows thousands of INFO entries
+        // with no timestamps and each line is one field fragment.
+        var args = ["stream", "--style", "ndjson", "--level", level]
         if let predicate {
             args += ["--predicate", predicate]
         }
