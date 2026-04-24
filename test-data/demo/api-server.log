@@ -1,0 +1,1737 @@
+2026-04-23 14:25:00.000 api-01 cache[4521]: DEBUG: hit user:4278:profile (ttl=287s)
+2026-04-23 14:25:01.326 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (5ms)
+2026-04-23 14:25:01.945 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (23ms)
+2026-04-23 14:25:03.873 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-22280 duration=647ms
+2026-04-23 14:25:05.025 api-01 auth[4521]: INFO: session validated user_id=4478 (cache hit)
+2026-04-23 14:25:07.523 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:25:09.441 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (9ms)
+2026-04-23 14:25:09.667 api-01 http[4521]: INFO: GET /v1/search?q=coffee+grinder -> 200 (55ms)
+2026-04-23 14:25:11.005 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (11ms)
+2026-04-23 14:25:11.623 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (4ms)
+2026-04-23 14:25:13.293 api-01 metrics[4521]: INFO: http.rps=107 db.conn.in_use=4/50 mem=655MB
+2026-04-23 14:25:15.689 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (13ms)
+2026-04-23 14:25:16.211 api-01 cache[4521]: DEBUG: hit user:83397:profile (ttl=287s)
+2026-04-23 14:25:17.892 api-01 cache[4521]: DEBUG: hit user:93349:profile (ttl=287s)
+2026-04-23 14:25:18.376 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-39871 duration=792ms
+2026-04-23 14:25:18.902 api-01 metrics[4521]: INFO: http.rps=65 db.conn.in_use=15/50 mem=562MB
+2026-04-23 14:25:20.959 api-01 cache[4521]: DEBUG: hit user:48819:profile (ttl=287s)
+2026-04-23 14:25:21.825 api-01 http[4521]: INFO: GET /v1/health -> 200 (56ms)
+2026-04-23 14:25:22.725 api-01 auth[4521]: INFO: session validated user_id=33087 (cache hit)
+2026-04-23 14:25:23.594 api-01 auth[4521]: INFO: session validated user_id=36382 (cache hit)
+2026-04-23 14:25:26.075 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (11ms)
+2026-04-23 14:25:26.504 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (2ms)
+2026-04-23 14:25:27.996 api-01 http[4521]: INFO: GET /v1/orders -> 204 (181ms)
+2026-04-23 14:25:29.066 api-01 http[4521]: INFO: GET /v1/catalog/SKU-94259 -> 200 (70ms)
+2026-04-23 14:25:29.851 api-01 http[4521]: INFO: GET /v1/metrics -> 204 (154ms)
+2026-04-23 14:25:31.805 api-01 metrics[4521]: INFO: http.rps=142 db.conn.in_use=14/50 mem=532MB
+2026-04-23 14:25:32.571 api-01 auth[4521]: INFO: session validated user_id=12915 (cache hit)
+2026-04-23 14:25:32.963 api-01 metrics[4521]: INFO: http.rps=79 db.conn.in_use=8/50 mem=768MB
+2026-04-23 14:25:34.892 api-01 cache[4521]: DEBUG: hit user:51432:profile (ttl=287s)
+2026-04-23 14:25:36.655 api-01 cache[4521]: DEBUG: hit user:62348:profile (ttl=287s)
+2026-04-23 14:25:39.022 api-01 http[4521]: INFO: PUT /v1/users/90166 -> 304 (78ms)
+2026-04-23 14:25:41.421 api-01 http[4521]: INFO: GET /v1/health -> 200 (55ms)
+2026-04-23 14:25:42.077 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (154ms)
+2026-04-23 14:25:44.327 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (25ms)
+2026-04-23 14:25:45.749 api-01 metrics[4521]: INFO: http.rps=169 db.conn.in_use=9/50 mem=498MB
+2026-04-23 14:25:47.480 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (111ms)
+2026-04-23 14:25:49.852 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:25:51.379 api-01 auth[4521]: INFO: session validated user_id=15662 (cache hit)
+2026-04-23 14:25:53.065 api-01 metrics[4521]: INFO: http.rps=118 db.conn.in_use=10/50 mem=449MB
+2026-04-23 14:25:54.251 api-01 metrics[4521]: INFO: http.rps=60 db.conn.in_use=5/50 mem=668MB
+2026-04-23 14:25:54.734 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:25:55.449 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (16ms)
+2026-04-23 14:25:57.900 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (17ms)
+2026-04-23 14:25:59.833 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:26:00.856 api-01 http[4521]: INFO: GET /v1/catalog/SKU-98039 -> 200 (95ms)
+2026-04-23 14:26:02.585 api-01 http[4521]: INFO: PUT /v1/auth/session -> 200 (146ms)
+2026-04-23 14:26:03.705 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-12757 duration=1404ms
+2026-04-23 14:26:06.173 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (8ms)
+2026-04-23 14:26:06.402 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-92719 duration=320ms
+2026-04-23 14:26:07.539 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-14117 duration=876ms
+2026-04-23 14:26:08.029 api-01 auth[4521]: INFO: session validated user_id=37500 (cache hit)
+2026-04-23 14:26:10.217 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (5ms)
+2026-04-23 14:26:12.353 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (16ms)
+2026-04-23 14:26:14.220 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (4ms)
+2026-04-23 14:26:16.185 api-01 http[4521]: INFO: POST /v1/auth/session -> 304 (47ms)
+2026-04-23 14:26:16.788 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-54473 duration=423ms
+2026-04-23 14:26:18.006 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:26:20.043 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (6ms)
+2026-04-23 14:26:21.383 api-01 auth[4521]: INFO: session validated user_id=10880 (cache hit)
+2026-04-23 14:26:23.398 api-01 metrics[4521]: INFO: http.rps=180 db.conn.in_use=6/50 mem=445MB
+2026-04-23 14:26:25.812 api-01 metrics[4521]: INFO: http.rps=63 db.conn.in_use=10/50 mem=505MB
+2026-04-23 14:26:27.676 api-01 auth[4521]: INFO: session validated user_id=29016 (cache hit)
+2026-04-23 14:26:29.518 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:26:31.270 api-01 cache[4521]: WARN: key evicted: user:52173:session (lru)
+2026-04-23 14:26:32.556 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:26:34.619 api-01 http[4521]: INFO: PUT /v1/metrics -> 204 (269ms)
+2026-04-23 14:26:35.453 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (7ms)
+2026-04-23 14:26:35.892 api-01 cache[4521]: DEBUG: hit user:72066:profile (ttl=287s)
+2026-04-23 14:26:36.341 api-01 http[4521]: INFO: GET /v1/users/7572 -> 200 (86ms)
+2026-04-23 14:26:38.493 api-01 auth[4521]: INFO: session validated user_id=70615 (cache hit)
+2026-04-23 14:26:39.337 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-76562 duration=364ms
+2026-04-23 14:26:40.298 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-18907 duration=681ms
+2026-04-23 14:26:42.151 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (8ms)
+2026-04-23 14:26:42.513 api-01 cache[4521]: DEBUG: hit user:55948:profile (ttl=287s)
+2026-04-23 14:26:44.854 api-01 http[4521]: INFO: POST /v1/orders -> 304 (180ms)
+2026-04-23 14:26:46.031 api-01 http[4521]: INFO: GET /v1/health -> 304 (173ms)
+2026-04-23 14:26:48.103 api-01 http[4521]: INFO: GET /v1/users/61068 -> 204 (71ms)
+2026-04-23 14:26:48.603 api-01 auth[4521]: INFO: session validated user_id=67307 (cache hit)
+2026-04-23 14:26:49.889 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (12ms)
+2026-04-23 14:26:50.370 api-01 metrics[4521]: INFO: http.rps=134 db.conn.in_use=12/50 mem=500MB
+2026-04-23 14:26:52.364 api-01 metrics[4521]: INFO: http.rps=117 db.conn.in_use=3/50 mem=761MB
+2026-04-23 14:26:54.835 api-01 http[4521]: INFO: PUT /v1/users/18601/profile -> 200 (79ms)
+2026-04-23 14:26:55.473 api-01 http[4521]: INFO: GET /v1/search?q=yogurt -> 200 (48ms)
+2026-04-23 14:26:56.535 api-01 http[4521]: INFO: GET /v1/orders -> 200 (99ms)
+2026-04-23 14:26:57.816 api-01 auth[4521]: INFO: session validated user_id=33914 (cache hit)
+2026-04-23 14:26:58.224 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:26:59.557 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-53719 duration=467ms
+2026-04-23 14:27:00.829 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (15ms)
+2026-04-23 14:27:03.288 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (13ms)
+2026-04-23 14:27:03.946 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-29536 duration=1317ms
+2026-04-23 14:27:04.293 api-01 metrics[4521]: INFO: http.rps=77 db.conn.in_use=16/50 mem=485MB
+2026-04-23 14:27:04.664 api-01 http[4521]: INFO: GET /v1/orders/28535/items -> 304 (147ms)
+2026-04-23 14:27:05.285 api-01 http[4521]: INFO: PUT /v1/catalog/SKU-91351 -> 304 (99ms)
+2026-04-23 14:27:06.454 api-01 metrics[4521]: INFO: http.rps=85 db.conn.in_use=16/50 mem=432MB
+2026-04-23 14:27:07.388 api-01 http[4521]: INFO: GET /v1/orders/54964/items -> 200 (114ms)
+2026-04-23 14:27:08.604 api-01 http[4521]: INFO: PUT /v1/users/51140/profile -> 200 (260ms)
+2026-04-23 14:27:09.715 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (15ms)
+2026-04-23 14:27:11.347 api-01 http[4521]: INFO: GET /v1/orders -> 200 (118ms)
+2026-04-23 14:27:13.179 api-01 http[4521]: INFO: GET /v1/orders/47025 -> 304 (280ms)
+2026-04-23 14:27:15.016 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (54ms)
+2026-04-23 14:27:15.329 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (9ms)
+2026-04-23 14:27:16.260 api-01 cache[4521]: DEBUG: hit user:35795:profile (ttl=287s)
+2026-04-23 14:27:16.616 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:27:18.231 api-01 http[4521]: INFO: GET /v1/orders/58199/items -> 200 (89ms)
+2026-04-23 14:27:20.525 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (7ms)
+2026-04-23 14:27:21.768 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-67154 duration=203ms
+2026-04-23 14:27:24.097 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:27:25.104 api-01 http[4521]: INFO: GET /v1/health -> 200 (180ms)
+2026-04-23 14:27:25.814 api-01 http[4521]: INFO: GET /v1/orders/67469 -> 200 (51ms)
+2026-04-23 14:27:27.686 api-01 http[4521]: INFO: PUT /v1/orders/73667 -> 200 (118ms)
+2026-04-23 14:27:29.608 api-01 http[4521]: INFO: GET /v1/catalog/SKU-98777 -> 200 (107ms)
+2026-04-23 14:27:30.520 api-01 cache[4521]: DEBUG: hit user:40446:profile (ttl=287s)
+2026-04-23 14:27:32.383 api-01 auth[4521]: INFO: session validated user_id=1053 (cache hit)
+2026-04-23 14:27:33.827 api-01 http[4521]: INFO: POST /v1/notifications -> 204 (184ms)
+2026-04-23 14:27:35.931 api-01 http[4521]: INFO: PUT /v1/orders -> 204 (262ms)
+2026-04-23 14:27:36.826 api-01 http[4521]: INFO: GET /v1/orders/68561 -> 200 (96ms)
+2026-04-23 14:27:38.398 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (8ms)
+2026-04-23 14:27:39.869 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (7ms)
+2026-04-23 14:27:40.672 api-01 cache[4521]: WARN: key evicted: user:33092:session (lru)
+2026-04-23 14:27:42.818 api-01 cache[4521]: DEBUG: hit user:10545:profile (ttl=287s)
+2026-04-23 14:27:44.883 api-01 http[4521]: INFO: PUT /v1/notifications -> 200 (216ms)
+2026-04-23 14:27:47.107 api-01 http[4521]: INFO: GET /v1/health -> 304 (22ms)
+2026-04-23 14:27:47.743 api-01 http[4521]: INFO: GET /v1/orders -> 200 (34ms)
+2026-04-23 14:27:50.064 api-01 auth[4521]: INFO: session validated user_id=74060 (cache hit)
+2026-04-23 14:27:51.284 api-01 worker[4521]: INFO: polled queue events (pending=0)
+2026-04-23 14:27:53.353 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (15ms)
+2026-04-23 14:27:55.728 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:27:57.227 api-01 worker[4521]: INFO: polled queue events (pending=3)
+2026-04-23 14:27:59.494 api-01 http[4521]: INFO: PUT /v1/auth/session -> 200 (263ms)
+2026-04-23 14:28:01.537 api-01 http[4521]: INFO: GET /v1/health -> 200 (268ms)
+2026-04-23 14:28:02.716 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (140ms)
+2026-04-23 14:28:04.028 api-01 http[4521]: INFO: PUT /v1/users/19136/profile -> 200 (138ms)
+2026-04-23 14:28:05.796 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (39ms)
+2026-04-23 14:28:06.259 api-01 http[4521]: INFO: POST /v1/auth/refresh -> 201 (232ms)
+2026-04-23 14:28:06.714 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:28:08.509 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:28:08.789 api-01 metrics[4521]: INFO: http.rps=137 db.conn.in_use=18/50 mem=423MB
+2026-04-23 14:28:10.429 api-01 http[4521]: INFO: POST /v1/catalog/SKU-80545 -> 304 (132ms)
+2026-04-23 14:28:12.628 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:28:14.817 api-01 cache[4521]: WARN: key evicted: user:45057:session (lru)
+2026-04-23 14:28:16.673 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (28ms)
+2026-04-23 14:28:19.060 api-01 cache[4521]: WARN: key evicted: user:52645:session (lru)
+2026-04-23 14:28:19.371 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:28:20.126 api-01 metrics[4521]: INFO: http.rps=86 db.conn.in_use=4/50 mem=553MB
+2026-04-23 14:28:21.878 api-01 http[4521]: INFO: POST /v1/orders/45236/items -> 201 (162ms)
+2026-04-23 14:28:23.804 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (46ms)
+2026-04-23 14:28:25.437 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (3ms)
+2026-04-23 14:28:25.801 api-01 http[4521]: INFO: GET /v1/orders -> 200 (37ms)
+2026-04-23 14:28:26.084 api-01 cache[4521]: DEBUG: hit user:32266:profile (ttl=287s)
+2026-04-23 14:28:26.801 api-01 auth[4521]: INFO: session validated user_id=15993 (cache hit)
+2026-04-23 14:28:27.893 api-01 auth[4521]: INFO: session validated user_id=34586 (cache hit)
+2026-04-23 14:28:29.603 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (4ms)
+2026-04-23 14:28:30.473 api-01 worker[4521]: INFO: polled queue events (pending=0)
+2026-04-23 14:28:30.778 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:28:32.515 api-01 http[4521]: INFO: PUT /v1/orders -> 200 (144ms)
+2026-04-23 14:28:33.132 api-01 http[4521]: INFO: GET /v1/orders/90687 -> 200 (88ms)
+2026-04-23 14:28:33.827 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (112ms)
+2026-04-23 14:28:34.195 api-01 http[4521]: INFO: POST /v1/health -> 200 (55ms)
+2026-04-23 14:28:36.467 api-01 cache[4521]: DEBUG: hit user:2658:profile (ttl=287s)
+2026-04-23 14:28:38.387 api-01 metrics[4521]: INFO: http.rps=67 db.conn.in_use=16/50 mem=605MB
+2026-04-23 14:28:40.470 api-01 http[4521]: INFO: GET /v1/catalog/SKU-33086 -> 200 (105ms)
+2026-04-23 14:28:42.807 api-01 worker[4521]: INFO: polled queue events (pending=2)
+2026-04-23 14:28:45.211 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (67ms)
+2026-04-23 14:28:46.510 api-01 http[4521]: INFO: GET /v1/users/37559/profile -> 201 (144ms)
+2026-04-23 14:28:48.613 api-01 cache[4521]: DEBUG: hit user:88580:profile (ttl=287s)
+2026-04-23 14:28:50.365 api-01 http[4521]: INFO: POST /v1/orders/24834/items -> 201 (128ms)
+2026-04-23 14:28:52.018 api-01 http[4521]: INFO: GET /v1/orders/37655/items -> 200 (88ms)
+2026-04-23 14:28:53.349 api-01 cache[4521]: DEBUG: hit user:68715:profile (ttl=287s)
+2026-04-23 14:28:54.331 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:28:56.532 api-01 cache[4521]: DEBUG: hit user:32499:profile (ttl=287s)
+2026-04-23 14:28:58.682 api-01 cache[4521]: DEBUG: hit user:65332:profile (ttl=287s)
+2026-04-23 14:29:00.717 api-01 http[4521]: INFO: GET /v1/users/39566/profile -> 200 (40ms)
+2026-04-23 14:29:02.573 api-01 http[4521]: INFO: GET /v1/orders/88026 -> 200 (86ms)
+2026-04-23 14:29:04.284 api-01 auth[4521]: INFO: session validated user_id=70588 (cache hit)
+2026-04-23 14:29:05.892 api-01 http[4521]: INFO: PUT /v1/auth/refresh -> 200 (200ms)
+2026-04-23 14:29:07.950 api-01 http[4521]: INFO: POST /v1/orders -> 200 (118ms)
+2026-04-23 14:29:09.442 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:29:10.400 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (16ms)
+2026-04-23 14:29:11.732 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (88ms)
+2026-04-23 14:29:13.091 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:29:14.086 api-01 http[4521]: INFO: POST /v1/search?q=yogurt -> 200 (84ms)
+2026-04-23 14:29:15.409 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-17146 duration=1333ms
+2026-04-23 14:29:16.805 api-01 http[4521]: INFO: GET /v1/search?q=coffee+grinder -> 200 (25ms)
+2026-04-23 14:29:17.055 api-01 cache[4521]: DEBUG: hit user:62524:profile (ttl=287s)
+2026-04-23 14:29:19.215 api-01 http[4521]: INFO: GET /v1/users/34092 -> 201 (78ms)
+2026-04-23 14:29:19.682 api-01 http[4521]: INFO: GET /v1/notifications -> 304 (47ms)
+2026-04-23 14:29:20.503 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (10ms)
+2026-04-23 14:29:21.051 api-01 worker[4521]: INFO: polled queue events (pending=0)
+2026-04-23 14:29:23.536 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (88ms)
+2026-04-23 14:29:24.660 api-01 http[4521]: INFO: GET /v1/catalog/SKU-69049 -> 200 (68ms)
+2026-04-23 14:29:26.077 api-01 metrics[4521]: INFO: http.rps=149 db.conn.in_use=12/50 mem=711MB
+2026-04-23 14:29:26.523 api-01 cache[4521]: DEBUG: hit user:98004:profile (ttl=287s)
+2026-04-23 14:29:27.129 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:29:28.193 api-01 http[4521]: INFO: GET /v1/search?q=linen+shirt -> 200 (58ms)
+2026-04-23 14:29:29.034 api-01 cache[4521]: WARN: key evicted: user:60048:session (lru)
+2026-04-23 14:29:31.158 api-01 http[4521]: INFO: GET /v1/orders/93662 -> 200 (252ms)
+2026-04-23 14:29:31.649 api-01 http[4521]: INFO: GET /v1/orders/82927 -> 200 (87ms)
+2026-04-23 14:29:32.659 api-01 http[4521]: INFO: PUT /v1/orders -> 304 (96ms)
+2026-04-23 14:29:33.947 api-01 metrics[4521]: INFO: http.rps=58 db.conn.in_use=4/50 mem=504MB
+2026-04-23 14:29:35.406 api-01 cache[4521]: DEBUG: hit user:75607:profile (ttl=287s)
+2026-04-23 14:29:36.788 api-01 http[4521]: INFO: POST /v1/metrics -> 200 (226ms)
+2026-04-23 14:29:38.103 api-01 auth[4521]: INFO: session validated user_id=65722 (cache hit)
+2026-04-23 14:29:40.096 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (2ms)
+2026-04-23 14:29:42.065 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (44ms)
+2026-04-23 14:29:42.370 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (1ms)
+2026-04-23 14:29:43.673 api-01 cache[4521]: DEBUG: hit user:23962:profile (ttl=287s)
+2026-04-23 14:29:45.800 api-01 auth[4521]: INFO: session validated user_id=58963 (cache hit)
+2026-04-23 14:29:47.139 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:29:49.353 api-01 worker[4521]: INFO: polled queue events (pending=3)
+2026-04-23 14:29:50.978 api-01 http[4521]: INFO: POST /v1/health -> 200 (102ms)
+2026-04-23 14:29:52.528 api-01 http[4521]: INFO: POST /v1/orders/87846 -> 201 (38ms)
+2026-04-23 14:29:54.590 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (9ms)
+2026-04-23 14:29:56.114 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (13ms)
+2026-04-23 14:29:58.421 api-01 metrics[4521]: INFO: http.rps=40 db.conn.in_use=17/50 mem=631MB
+2026-04-23 14:29:58.843 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (12ms)
+2026-04-23 14:30:01.084 api-01 cache[4521]: DEBUG: hit user:7764:profile (ttl=287s)
+2026-04-23 14:30:02.117 api-01 http[4521]: INFO: GET /v1/orders/58424 -> 304 (268ms)
+2026-04-23 14:30:02.814 api-01 cache[4521]: WARN: key evicted: user:83578:session (lru)
+2026-04-23 14:30:03.994 api-01 http[4521]: INFO: GET /v1/orders/73199 -> 200 (13ms)
+2026-04-23 14:30:06.456 api-01 http[4521]: INFO: GET /v1/users/61482/profile -> 200 (98ms)
+2026-04-23 14:30:08.697 api-01 worker[4521]: INFO: polled queue events (pending=2)
+2026-04-23 14:30:10.981 api-01 http[4521]: INFO: GET /v1/catalog/SKU-73242 -> 200 (72ms)
+2026-04-23 14:30:12.179 api-01 auth[4521]: INFO: session validated user_id=19958 (cache hit)
+2026-04-23 14:30:13.950 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (17ms)
+2026-04-23 14:30:14.709 api-01 metrics[4521]: INFO: http.rps=110 db.conn.in_use=16/50 mem=594MB
+2026-04-23 14:30:16.988 api-01 http[4521]: INFO: GET /v1/orders/96164 -> 200 (270ms)
+2026-04-23 14:30:17.796 api-01 http[4521]: INFO: POST /v1/orders/44573/items -> 204 (213ms)
+2026-04-23 14:30:19.861 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:30:20.833 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:30:22.601 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:30:22.979 api-01 http[4521]: INFO: POST /v1/metrics -> 201 (217ms)
+2026-04-23 14:30:23.802 api-01 auth[4521]: INFO: session validated user_id=5852 (cache hit)
+2026-04-23 14:30:24.519 api-01 auth[4521]: INFO: session validated user_id=78356 (cache hit)
+2026-04-23 14:30:26.078 api-01 metrics[4521]: INFO: http.rps=152 db.conn.in_use=6/50 mem=689MB
+2026-04-23 14:30:28.149 api-01 cache[4521]: WARN: key evicted: user:19894:session (lru)
+2026-04-23 14:30:30.028 api-01 metrics[4521]: INFO: http.rps=79 db.conn.in_use=5/50 mem=660MB
+2026-04-23 14:30:31.313 api-01 http[4521]: INFO: PUT /v1/catalog/SKU-95175 -> 200 (188ms)
+2026-04-23 14:30:33.698 api-01 http[4521]: INFO: POST /v1/health -> 304 (269ms)
+2026-04-23 14:30:36.114 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-18968 duration=680ms
+2026-04-23 14:30:37.491 api-01 worker[4521]: INFO: polled queue events (pending=5)
+2026-04-23 14:30:38.061 api-01 http[4521]: INFO: GET /v1/health -> 304 (71ms)
+2026-04-23 14:30:40.078 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (10ms)
+2026-04-23 14:30:40.396 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-17355 duration=800ms
+2026-04-23 14:30:42.064 api-01 http[4521]: INFO: GET /v1/orders -> 204 (230ms)
+2026-04-23 14:30:43.001 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (3ms)
+2026-04-23 14:30:44.767 api-01 cache[4521]: DEBUG: hit user:32566:profile (ttl=287s)
+2026-04-23 14:30:47.005 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:30:48.156 api-01 auth[4521]: INFO: session validated user_id=34289 (cache hit)
+2026-04-23 14:30:50.238 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (100ms)
+2026-04-23 14:30:50.740 api-01 http[4521]: INFO: POST /v1/notifications -> 200 (237ms)
+2026-04-23 14:30:51.964 api-01 auth[4521]: INFO: session validated user_id=40599 (cache hit)
+2026-04-23 14:30:52.979 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:30:55.158 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (13ms)
+2026-04-23 14:30:56.828 api-01 cache[4521]: DEBUG: hit user:92655:profile (ttl=287s)
+2026-04-23 14:30:58.237 api-01 cache[4521]: WARN: key evicted: user:87275:session (lru)
+2026-04-23 14:31:00.058 api-01 http[4521]: INFO: PUT /v1/health -> 304 (45ms)
+2026-04-23 14:31:02.292 api-01 metrics[4521]: INFO: http.rps=113 db.conn.in_use=10/50 mem=730MB
+2026-04-23 14:31:03.935 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (7ms)
+2026-04-23 14:31:05.161 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (110ms)
+2026-04-23 14:31:05.921 api-01 cache[4521]: DEBUG: hit user:83242:profile (ttl=287s)
+2026-04-23 14:31:06.282 api-01 http[4521]: INFO: POST /v1/users/76965 -> 200 (87ms)
+2026-04-23 14:31:06.851 api-01 worker[4521]: INFO: polled queue events (pending=2)
+2026-04-23 14:31:08.752 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (5ms)
+2026-04-23 14:31:11.161 api-01 metrics[4521]: INFO: http.rps=133 db.conn.in_use=11/50 mem=504MB
+2026-04-23 14:31:12.413 api-01 worker[4521]: INFO: polled queue events (pending=3)
+2026-04-23 14:31:13.821 api-01 http[4521]: INFO: GET /v1/orders/16095/items -> 200 (71ms)
+2026-04-23 14:31:14.329 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (8ms)
+2026-04-23 14:31:16.156 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:31:18.638 api-01 http[4521]: INFO: POST /v1/users/35663 -> 204 (83ms)
+2026-04-23 14:31:20.700 api-01 http[4521]: INFO: PUT /v1/health -> 200 (215ms)
+2026-04-23 14:31:22.421 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (8ms)
+2026-04-23 14:31:24.552 api-01 cache[4521]: WARN: key evicted: user:74584:session (lru)
+2026-04-23 14:31:26.095 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:31:26.553 api-01 cache[4521]: DEBUG: hit user:61852:profile (ttl=287s)
+2026-04-23 14:31:27.990 api-01 cache[4521]: DEBUG: hit user:16292:profile (ttl=287s)
+2026-04-23 14:31:28.762 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-14877 duration=823ms
+2026-04-23 14:31:30.979 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (8ms)
+2026-04-23 14:31:33.380 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (15ms)
+2026-04-23 14:31:35.099 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (101ms)
+2026-04-23 14:31:37.511 api-01 http[4521]: INFO: PUT /v1/metrics -> 200 (232ms)
+2026-04-23 14:31:38.116 api-01 metrics[4521]: INFO: http.rps=144 db.conn.in_use=11/50 mem=436MB
+2026-04-23 14:31:39.833 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (15ms)
+2026-04-23 14:31:41.000 api-01 metrics[4521]: INFO: http.rps=65 db.conn.in_use=14/50 mem=698MB
+2026-04-23 14:31:42.669 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-46160 duration=588ms
+2026-04-23 14:31:43.369 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:31:45.431 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (7ms)
+2026-04-23 14:31:45.718 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-53713 duration=698ms
+2026-04-23 14:31:46.433 api-01 http[4521]: INFO: GET /v1/orders -> 200 (20ms)
+2026-04-23 14:31:48.903 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (7ms)
+2026-04-23 14:31:50.057 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (161ms)
+2026-04-23 14:31:50.849 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:31:52.075 api-01 http[4521]: INFO: GET /v1/users/87646/profile -> 200 (15ms)
+2026-04-23 14:31:52.814 api-01 cache[4521]: WARN: key evicted: user:32186:session (lru)
+2026-04-23 14:31:54.340 api-01 cache[4521]: WARN: key evicted: user:35782:session (lru)
+2026-04-23 14:31:54.754 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:31:57.108 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (3ms)
+2026-04-23 14:31:59.258 api-01 http[4521]: INFO: POST /v1/auth/refresh -> 204 (75ms)
+2026-04-23 14:32:01.309 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/users/96321
+2026-04-23 14:32:01.686 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/health
+2026-04-23 14:32:01.741 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:02.026 api-01 metrics[4521]: INFO: http.p99=5492ms http.p50=310ms conn_wait_ms=1104
+2026-04-23 14:32:02.293 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:02.374 api-01 cache[4521]: WARN: redis round-trip 351ms (p50 normally <5ms)
+2026-04-23 14:32:02.447 api-01 http[4521]: WARN: slow request: GET /v1/notifications (2196ms)
+2026-04-23 14:32:02.786 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/catalog/SKU-88301
+2026-04-23 14:32:03.097 api-01 cache[4521]: WARN: redis round-trip 717ms (p50 normally <5ms)
+2026-04-23 14:32:03.446 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/users/86814/profile
+2026-04-23 14:32:03.819 api-01 metrics[4521]: INFO: http.p99=3761ms http.p50=640ms conn_wait_ms=1024
+2026-04-23 14:32:03.975 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/catalog/SKU-64524
+2026-04-23 14:32:04.063 api-01 cache[4521]: WARN: redis round-trip 520ms (p50 normally <5ms)
+2026-04-23 14:32:04.443 api-01 cache[4521]: WARN: redis round-trip 356ms (p50 normally <5ms)
+2026-04-23 14:32:04.834 api-01 metrics[4521]: INFO: http.p99=2549ms http.p50=293ms conn_wait_ms=1803
+2026-04-23 14:32:04.917 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:05.006 api-01 http[4521]: INFO: PUT /v1/search?q=tent -> 200 (417ms)
+2026-04-23 14:32:05.389 api-01 http[4521]: WARN: slow request: GET /v1/orders/88207/items (2436ms)
+2026-04-23 14:32:05.645 api-01 metrics[4521]: INFO: http.p99=2421ms http.p50=494ms conn_wait_ms=1329
+2026-04-23 14:32:05.844 api-01 cache[4521]: WARN: redis round-trip 791ms (p50 normally <5ms)
+2026-04-23 14:32:06.143 api-01 http[4521]: WARN: slow request: GET /v1/health (1887ms)
+2026-04-23 14:32:06.297 api-01 metrics[4521]: INFO: http.p99=4868ms http.p50=769ms conn_wait_ms=852
+2026-04-23 14:32:06.395 api-01 http[4521]: INFO: POST /v1/catalog/SKU-83526 -> 204 (106ms)
+2026-04-23 14:32:06.746 api-01 metrics[4521]: INFO: http.p99=4190ms http.p50=229ms conn_wait_ms=469
+2026-04-23 14:32:06.925 api-01 http[4521]: INFO: PUT /v1/orders/47009/items -> 200 (265ms)
+2026-04-23 14:32:07.038 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/users/19595/profile
+2026-04-23 14:32:07.402 api-01 metrics[4521]: INFO: http.p99=2751ms http.p50=743ms conn_wait_ms=540
+2026-04-23 14:32:07.634 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/search?q=yogurt
+2026-04-23 14:32:07.833 api-01 http[4521]: INFO: GET /v1/users/21392 -> 201 (130ms)
+2026-04-23 14:32:08.218 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:08.484 api-01 http[4521]: INFO: DELETE /v1/notifications -> 200 (504ms)
+2026-04-23 14:32:08.663 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1133ms)
+2026-04-23 14:32:08.879 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/health
+2026-04-23 14:32:09.266 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/health
+2026-04-23 14:32:09.463 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:09.705 api-01 metrics[4521]: INFO: http.p99=2448ms http.p50=207ms conn_wait_ms=518
+2026-04-23 14:32:09.899 api-01 metrics[4521]: INFO: http.p99=3124ms http.p50=461ms conn_wait_ms=692
+2026-04-23 14:32:10.106 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (2429ms)
+2026-04-23 14:32:10.366 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-79806 (2341ms)
+2026-04-23 14:32:10.523 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders/10447/items
+2026-04-23 14:32:10.766 api-01 metrics[4521]: INFO: http.p99=2346ms http.p50=646ms conn_wait_ms=138
+2026-04-23 14:32:11.041 api-01 metrics[4521]: INFO: http.p99=4564ms http.p50=789ms conn_wait_ms=979
+2026-04-23 14:32:11.374 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/catalog/SKU-47947
+2026-04-23 14:32:11.472 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/search?q=tent
+2026-04-23 14:32:11.747 api-01 metrics[4521]: INFO: http.p99=4964ms http.p50=290ms conn_wait_ms=994
+2026-04-23 14:32:11.841 api-01 http[4521]: WARN: slow request: GET /v1/notifications (1720ms)
+2026-04-23 14:32:12.149 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:12.347 api-01 http[4521]: INFO: POST /v1/orders/23037/items -> 200 (196ms)
+2026-04-23 14:32:12.658 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders/96339/items
+2026-04-23 14:32:13.028 api-01 metrics[4521]: INFO: http.p99=3935ms http.p50=305ms conn_wait_ms=399
+2026-04-23 14:32:13.199 api-01 http[4521]: WARN: slow request: GET /v1/notifications (1213ms)
+2026-04-23 14:32:13.574 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:13.935 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/notifications
+2026-04-23 14:32:14.204 api-01 http[4521]: INFO: PUT /v1/health -> 200 (234ms)
+2026-04-23 14:32:14.469 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:14.735 api-01 http[4521]: INFO: PUT /v1/notifications -> 200 (440ms)
+2026-04-23 14:32:15.034 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:15.310 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders/38627/items
+2026-04-23 14:32:15.389 api-01 http[4521]: INFO: GET /v1/notifications -> 204 (599ms)
+2026-04-23 14:32:15.625 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/metrics
+2026-04-23 14:32:15.686 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/health
+2026-04-23 14:32:15.822 api-01 cache[4521]: WARN: redis round-trip 687ms (p50 normally <5ms)
+2026-04-23 14:32:16.118 api-01 http[4521]: WARN: slow request: GET /v1/users/60050 (1111ms)
+2026-04-23 14:32:16.333 api-01 metrics[4521]: INFO: http.p99=2690ms http.p50=716ms conn_wait_ms=1423
+2026-04-23 14:32:16.461 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:16.725 api-01 metrics[4521]: INFO: http.p99=6293ms http.p50=735ms conn_wait_ms=1348
+2026-04-23 14:32:16.846 api-01 cache[4521]: WARN: redis round-trip 489ms (p50 normally <5ms)
+2026-04-23 14:32:17.084 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/health
+2026-04-23 14:32:17.430 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:17.793 api-01 http[4521]: INFO: GET /v1/orders/13387/items -> 204 (475ms)
+2026-04-23 14:32:17.978 api-01 cache[4521]: WARN: redis round-trip 872ms (p50 normally <5ms)
+2026-04-23 14:32:18.326 api-01 metrics[4521]: INFO: http.p99=4730ms http.p50=283ms conn_wait_ms=1293
+2026-04-23 14:32:18.705 api-01 http[4521]: WARN: slow request: GET /v1/orders/41662/items (2243ms)
+2026-04-23 14:32:19.102 api-01 http[4521]: INFO: POST /v1/notifications -> 200 (397ms)
+2026-04-23 14:32:19.428 api-01 cache[4521]: WARN: redis round-trip 536ms (p50 normally <5ms)
+2026-04-23 14:32:19.533 api-01 http[4521]: INFO: GET /v1/health -> 200 (600ms)
+2026-04-23 14:32:19.758 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:19.956 api-01 http[4521]: WARN: slow request: GET /v1/orders (1599ms)
+2026-04-23 14:32:20.244 api-01 http[4521]: WARN: slow request: GET /v1/search?q=linen+shirt (1058ms)
+2026-04-23 14:32:20.435 api-01 metrics[4521]: INFO: http.p99=2828ms http.p50=719ms conn_wait_ms=1678
+2026-04-23 14:32:20.751 api-01 metrics[4521]: INFO: http.p99=6313ms http.p50=238ms conn_wait_ms=1455
+2026-04-23 14:32:20.963 api-01 metrics[4521]: INFO: http.p99=3073ms http.p50=585ms conn_wait_ms=415
+2026-04-23 14:32:21.086 api-01 http[4521]: WARN: slow request: GET /v1/metrics (2479ms)
+2026-04-23 14:32:21.445 api-01 metrics[4521]: INFO: http.p99=3356ms http.p50=648ms conn_wait_ms=189
+2026-04-23 14:32:21.695 api-01 cache[4521]: WARN: redis round-trip 443ms (p50 normally <5ms)
+2026-04-23 14:32:21.962 api-01 http[4521]: INFO: DELETE /v1/orders -> 204 (324ms)
+2026-04-23 14:32:22.160 api-01 metrics[4521]: INFO: http.p99=5842ms http.p50=398ms conn_wait_ms=853
+2026-04-23 14:32:22.547 api-01 metrics[4521]: INFO: http.p99=5609ms http.p50=672ms conn_wait_ms=1675
+2026-04-23 14:32:22.731 api-01 http[4521]: INFO: DELETE /v1/search?q=linen+shirt -> 204 (221ms)
+2026-04-23 14:32:22.899 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:23.185 api-01 metrics[4521]: INFO: http.p99=2840ms http.p50=728ms conn_wait_ms=1843
+2026-04-23 14:32:23.288 api-01 cache[4521]: WARN: redis round-trip 364ms (p50 normally <5ms)
+2026-04-23 14:32:23.467 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/search?q=coffee+grinder
+2026-04-23 14:32:23.553 api-01 metrics[4521]: INFO: http.p99=3818ms http.p50=661ms conn_wait_ms=1911
+2026-04-23 14:32:23.771 api-01 metrics[4521]: INFO: http.p99=5398ms http.p50=254ms conn_wait_ms=911
+2026-04-23 14:32:24.068 api-01 cache[4521]: WARN: redis round-trip 595ms (p50 normally <5ms)
+2026-04-23 14:32:24.149 api-01 cache[4521]: WARN: redis round-trip 228ms (p50 normally <5ms)
+2026-04-23 14:32:24.352 api-01 metrics[4521]: INFO: http.p99=4746ms http.p50=349ms conn_wait_ms=381
+2026-04-23 14:32:24.411 api-01 cache[4521]: WARN: redis round-trip 683ms (p50 normally <5ms)
+2026-04-23 14:32:24.807 api-01 metrics[4521]: INFO: http.p99=5842ms http.p50=659ms conn_wait_ms=1360
+2026-04-23 14:32:24.849 api-01 metrics[4521]: INFO: http.p99=2155ms http.p50=462ms conn_wait_ms=541
+2026-04-23 14:32:24.965 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/notifications
+2026-04-23 14:32:25.275 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders
+2026-04-23 14:32:25.469 api-01 http[4521]: WARN: slow request: GET /v1/orders (1759ms)
+2026-04-23 14:32:25.836 api-01 http[4521]: INFO: DELETE /v1/users/15530/profile -> 200 (96ms)
+2026-04-23 14:32:26.199 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/metrics
+2026-04-23 14:32:26.312 api-01 cache[4521]: WARN: redis round-trip 201ms (p50 normally <5ms)
+2026-04-23 14:32:26.666 api-01 cache[4521]: WARN: redis round-trip 784ms (p50 normally <5ms)
+2026-04-23 14:32:26.919 api-01 http[4521]: WARN: slow request: GET /v1/health (1075ms)
+2026-04-23 14:32:27.227 api-01 metrics[4521]: INFO: http.p99=2554ms http.p50=738ms conn_wait_ms=1214
+2026-04-23 14:32:27.526 api-01 http[4521]: INFO: GET /v1/catalog/SKU-71621 -> 200 (476ms)
+2026-04-23 14:32:27.757 api-01 cache[4521]: WARN: redis round-trip 216ms (p50 normally <5ms)
+2026-04-23 14:32:27.979 api-01 http[4521]: INFO: PUT /v1/orders -> 200 (420ms)
+2026-04-23 14:32:28.087 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:28.406 api-01 cache[4521]: WARN: redis round-trip 858ms (p50 normally <5ms)
+2026-04-23 14:32:28.535 api-01 metrics[4521]: INFO: http.p99=5806ms http.p50=690ms conn_wait_ms=1393
+2026-04-23 14:32:28.668 api-01 metrics[4521]: INFO: http.p99=2516ms http.p50=668ms conn_wait_ms=175
+2026-04-23 14:32:28.858 api-01 http[4521]: WARN: slow request: GET /v1/orders (2714ms)
+2026-04-23 14:32:28.919 api-01 cache[4521]: WARN: redis round-trip 517ms (p50 normally <5ms)
+2026-04-23 14:32:29.222 api-01 cache[4521]: WARN: redis round-trip 756ms (p50 normally <5ms)
+2026-04-23 14:32:29.504 api-01 cache[4521]: WARN: redis round-trip 862ms (p50 normally <5ms)
+2026-04-23 14:32:29.641 api-01 cache[4521]: WARN: redis round-trip 248ms (p50 normally <5ms)
+2026-04-23 14:32:30.016 api-01 cache[4521]: WARN: redis round-trip 327ms (p50 normally <5ms)
+2026-04-23 14:32:30.244 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/metrics
+2026-04-23 14:32:30.509 api-01 metrics[4521]: INFO: http.p99=5167ms http.p50=547ms conn_wait_ms=482
+2026-04-23 14:32:30.803 api-01 http[4521]: INFO: PUT /v1/auth/refresh -> 200 (164ms)
+2026-04-23 14:32:31.060 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:31.408 api-01 metrics[4521]: INFO: http.p99=3478ms http.p50=758ms conn_wait_ms=701
+2026-04-23 14:32:31.612 api-01 http[4521]: WARN: slow request: GET /v1/orders/87628/items (1505ms)
+2026-04-23 14:32:31.808 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/catalog/SKU-31842
+2026-04-23 14:32:32.201 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/users/96265
+2026-04-23 14:32:32.421 api-01 http[4521]: INFO: DELETE /v1/orders/84816 -> 200 (156ms)
+2026-04-23 14:32:32.804 api-01 http[4521]: INFO: PUT /v1/auth/refresh -> 201 (111ms)
+2026-04-23 14:32:32.917 api-01 metrics[4521]: INFO: http.p99=5589ms http.p50=235ms conn_wait_ms=358
+2026-04-23 14:32:32.991 api-01 http[4521]: WARN: slow request: GET /v1/health (1650ms)
+2026-04-23 14:32:33.216 api-01 cache[4521]: WARN: redis round-trip 780ms (p50 normally <5ms)
+2026-04-23 14:32:33.272 api-01 http[4521]: INFO: DELETE /v1/orders/49760/items -> 200 (158ms)
+2026-04-23 14:32:33.605 api-01 http[4521]: WARN: slow request: GET /v1/orders/53171/items (1543ms)
+2026-04-23 14:32:33.977 api-01 cache[4521]: WARN: redis round-trip 316ms (p50 normally <5ms)
+2026-04-23 14:32:34.030 api-01 http[4521]: INFO: DELETE /v1/auth/refresh -> 200 (200ms)
+2026-04-23 14:32:34.204 api-01 http[4521]: INFO: DELETE /v1/orders -> 204 (372ms)
+2026-04-23 14:32:34.599 api-01 metrics[4521]: INFO: http.p99=6023ms http.p50=404ms conn_wait_ms=351
+2026-04-23 14:32:34.708 api-01 metrics[4521]: INFO: http.p99=5703ms http.p50=376ms conn_wait_ms=1940
+2026-04-23 14:32:34.975 api-01 metrics[4521]: INFO: http.p99=4618ms http.p50=555ms conn_wait_ms=1553
+2026-04-23 14:32:35.048 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders/21644
+2026-04-23 14:32:35.446 api-01 http[4521]: INFO: PUT /v1/auth/refresh -> 201 (204ms)
+2026-04-23 14:32:35.588 api-01 http[4521]: INFO: POST /v1/auth/session -> 200 (449ms)
+2026-04-23 14:32:35.911 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:32:36.017 api-01 http[4521]: INFO: GET /v1/users/41539/profile -> 200 (570ms)
+2026-04-23 14:32:36.326 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/notifications
+2026-04-23 14:32:36.403 api-01 http[4521]: WARN: slow request: GET /v1/orders/85192/items (1051ms)
+2026-04-23 14:32:36.673 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders/17821/items
+2026-04-23 14:32:36.995 api-01 http[4521]: INFO: POST /v1/search?q=coffee+grinder -> 204 (136ms)
+2026-04-23 14:32:37.098 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/search?q=linen+shirt
+2026-04-23 14:32:37.303 api-01 metrics[4521]: INFO: http.p99=3847ms http.p50=554ms conn_wait_ms=1162
+2026-04-23 14:32:37.488 api-01 metrics[4521]: INFO: http.p99=4052ms http.p50=401ms conn_wait_ms=1400
+2026-04-23 14:32:37.810 api-01 cache[4521]: WARN: redis round-trip 840ms (p50 normally <5ms)
+2026-04-23 14:32:38.005 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 201 (237ms)
+2026-04-23 14:32:38.132 api-01 http[4521]: INFO: PUT /v1/notifications -> 200 (109ms)
+2026-04-23 14:32:38.213 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:32:38.581 api-01 http[4521]: INFO: PUT /v1/health -> 201 (506ms)
+2026-04-23 14:32:38.937 api-01 http[4521]: INFO: DELETE /v1/health -> 204 (376ms)
+2026-04-23 14:32:39.305 api-01 metrics[4521]: INFO: http.p99=5956ms http.p50=450ms conn_wait_ms=1748
+2026-04-23 14:32:39.695 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/users/91257/profile
+2026-04-23 14:32:39.765 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-73471 (1851ms)
+2026-04-23 14:32:39.909 api-01 cache[4521]: WARN: redis round-trip 347ms (p50 normally <5ms)
+2026-04-23 14:32:40.109 api-01 metrics[4521]: INFO: http.p99=4615ms http.p50=553ms conn_wait_ms=916
+2026-04-23 14:32:40.215 api-01 http[4521]: INFO: GET /v1/orders/32685/items -> 200 (205ms)
+2026-04-23 14:32:40.391 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/7632/profile
+2026-04-23 14:32:40.579 api-01 metrics[4521]: INFO: http.p99=5425ms http.p50=454ms conn_wait_ms=1872
+2026-04-23 14:32:40.700 api-01 metrics[4521]: INFO: http.p99=4561ms http.p50=394ms conn_wait_ms=1662
+2026-04-23 14:32:40.821 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/session
+2026-04-23 14:32:41.116 api-01 metrics[4521]: INFO: http.p99=6074ms http.p50=223ms conn_wait_ms=284
+2026-04-23 14:32:41.357 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders
+2026-04-23 14:32:41.695 api-01 cache[4521]: WARN: redis round-trip 251ms (p50 normally <5ms)
+2026-04-23 14:32:41.879 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/health
+2026-04-23 14:32:42.159 api-01 cache[4521]: WARN: redis round-trip 208ms (p50 normally <5ms)
+2026-04-23 14:32:42.254 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/metrics
+2026-04-23 14:32:42.481 api-01 http[4521]: INFO: PUT /v1/users/53505 -> 200 (279ms)
+2026-04-23 14:32:42.706 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/catalog/SKU-76093
+2026-04-23 14:32:42.976 api-01 http[4521]: INFO: PUT /v1/notifications -> 204 (201ms)
+2026-04-23 14:32:43.081 api-01 metrics[4521]: INFO: http.p99=5226ms http.p50=582ms conn_wait_ms=1727
+2026-04-23 14:32:43.294 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/search?q=linen+shirt
+2026-04-23 14:32:43.642 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/users/6938
+2026-04-23 14:32:43.701 api-01 http[4521]: WARN: slow request: GET /v1/orders/63094/items (1963ms)
+2026-04-23 14:32:43.974 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1186ms)
+2026-04-23 14:32:44.181 api-01 metrics[4521]: INFO: http.p99=4609ms http.p50=366ms conn_wait_ms=904
+2026-04-23 14:32:44.536 api-01 http[4521]: INFO: PUT /v1/notifications -> 200 (599ms)
+2026-04-23 14:32:44.836 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/notifications
+2026-04-23 14:32:45.029 api-01 http[4521]: ERROR: GET /v1/orders/44416/items -> 503 Service Unavailable (27079ms, upstream_timeout)
+2026-04-23 14:32:45.125 api-01 auth[4521]: WARN: session refresh took 3590ms, cache miss
+2026-04-23 14:32:45.322 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:45.714 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:32:46.059 api-01 http[4521]: ERROR: PUT /v1/notifications -> 503 Service Unavailable (23927ms, upstream_timeout)
+2026-04-23 14:32:46.215 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:46.553 api-01 http[4521]: ERROR: PUT /v1/health -> 503 Service Unavailable (28631ms, upstream_timeout)
+2026-04-23 14:32:46.910 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:47.144 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=102), request queued
+2026-04-23 14:32:47.200 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:32:47.598 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=44), request queued
+2026-04-23 14:32:47.863 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=78), request queued
+2026-04-23 14:32:48.114 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:48.364 api-01 http[4521]: ERROR: PUT /v1/auth/session -> 503 Service Unavailable (28835ms, upstream_timeout)
+2026-04-23 14:32:48.435 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:48.740 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=123), request queued
+2026-04-23 14:32:49.119 api-01 http[4521]: ERROR: POST /v1/orders/23699/items -> 503 Service Unavailable (20062ms, upstream_timeout)
+2026-04-23 14:32:49.431 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=130), request queued
+2026-04-23 14:32:49.817 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:50.205 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:32:50.599 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=163), request queued
+2026-04-23 14:32:50.737 api-01 auth[4521]: WARN: session refresh took 2342ms, cache miss
+2026-04-23 14:32:51.062 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=116), request queued
+2026-04-23 14:32:51.249 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:51.642 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:51.844 api-01 http[4521]: ERROR: PUT /v1/metrics -> 503 Service Unavailable (13960ms, upstream_timeout)
+2026-04-23 14:32:52.031 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=179), request queued
+2026-04-23 14:32:52.265 api-01 http[4521]: WARN: slow request: POST /v1/orders/20198/items (4879ms)
+2026-04-23 14:32:52.326 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=60), request queued
+2026-04-23 14:32:52.543 api-01 auth[4521]: WARN: session refresh took 3886ms, cache miss
+2026-04-23 14:32:52.714 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:52.863 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=177), request queued
+2026-04-23 14:32:53.041 api-01 auth[4521]: WARN: session refresh took 4051ms, cache miss
+2026-04-23 14:32:53.220 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=101), request queued
+2026-04-23 14:32:53.384 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=175), request queued
+2026-04-23 14:32:53.539 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:32:53.605 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=124), request queued
+2026-04-23 14:32:53.886 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=75), request queued
+2026-04-23 14:32:53.928 api-01 auth[4521]: WARN: session refresh took 1846ms, cache miss
+2026-04-23 14:32:54.176 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:32:54.459 api-01 http[4521]: ERROR: GET /v1/orders/43096 -> 503 Service Unavailable (14352ms, upstream_timeout)
+2026-04-23 14:32:54.829 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=62), request queued
+2026-04-23 14:32:55.202 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:32:55.515 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:55.574 api-01 auth[4521]: WARN: session refresh took 1917ms, cache miss
+2026-04-23 14:32:55.827 api-01 http[4521]: WARN: slow request: GET /v1/users/53034 (6558ms)
+2026-04-23 14:32:55.962 api-01 auth[4521]: WARN: session refresh took 2385ms, cache miss
+2026-04-23 14:32:56.021 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=67), request queued
+2026-04-23 14:32:56.232 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=179), request queued
+2026-04-23 14:32:56.540 api-01 http[4521]: ERROR: GET /v1/auth/refresh -> 503 Service Unavailable (20336ms, upstream_timeout)
+2026-04-23 14:32:56.719 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=68), request queued
+2026-04-23 14:32:56.928 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=157), request queued
+2026-04-23 14:32:57.299 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=87), request queued
+2026-04-23 14:32:57.346 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:57.537 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:32:57.675 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=143), request queued
+2026-04-23 14:32:57.933 api-01 http[4521]: ERROR: GET /v1/catalog/SKU-97720 -> 503 Service Unavailable (8125ms, upstream_timeout)
+2026-04-23 14:32:58.067 api-01 auth[4521]: WARN: session refresh took 3155ms, cache miss
+2026-04-23 14:32:58.272 api-01 auth[4521]: WARN: session refresh took 1227ms, cache miss
+2026-04-23 14:32:58.445 api-01 http[4521]: ERROR: POST /v1/orders/44204 -> 503 Service Unavailable (14894ms, upstream_timeout)
+2026-04-23 14:32:58.783 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:32:58.828 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=132), request queued
+2026-04-23 14:32:59.222 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=70), request queued
+2026-04-23 14:32:59.500 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=143), request queued
+2026-04-23 14:32:59.891 api-01 http[4521]: ERROR: PUT /v1/orders/91477 -> 503 Service Unavailable (8847ms, upstream_timeout)
+2026-04-23 14:33:00.258 api-01 auth[4521]: WARN: session refresh took 2408ms, cache miss
+2026-04-23 14:33:00.486 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:00.638 api-01 auth[4521]: WARN: session refresh took 3158ms, cache miss
+2026-04-23 14:33:00.756 api-01 http[4521]: ERROR: PUT /v1/orders/55505/items -> 503 Service Unavailable (28001ms, upstream_timeout)
+2026-04-23 14:33:01.077 api-01 auth[4521]: WARN: session refresh took 4302ms, cache miss
+2026-04-23 14:33:01.392 api-01 http[4521]: WARN: slow request: GET /v1/orders (7380ms)
+2026-04-23 14:33:01.473 api-01 http[4521]: ERROR: PUT /v1/metrics -> 503 Service Unavailable (16854ms, upstream_timeout)
+2026-04-23 14:33:01.552 api-01 auth[4521]: WARN: session refresh took 1659ms, cache miss
+2026-04-23 14:33:01.623 api-01 http[4521]: WARN: slow request: GET /v1/notifications (6896ms)
+2026-04-23 14:33:01.739 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=173), request queued
+2026-04-23 14:33:02.005 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=92), request queued
+2026-04-23 14:33:02.343 api-01 http[4521]: ERROR: PUT /v1/auth/session -> 503 Service Unavailable (6823ms, upstream_timeout)
+2026-04-23 14:33:02.615 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=146), request queued
+2026-04-23 14:33:02.888 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:03.214 api-01 http[4521]: ERROR: POST /v1/metrics -> 503 Service Unavailable (5713ms, upstream_timeout)
+2026-04-23 14:33:03.456 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=40), request queued
+2026-04-23 14:33:03.607 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:03.670 api-01 http[4521]: ERROR: PUT /v1/users/71931/profile -> 503 Service Unavailable (6974ms, upstream_timeout)
+2026-04-23 14:33:03.745 api-01 auth[4521]: WARN: session refresh took 3133ms, cache miss
+2026-04-23 14:33:03.801 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=86), request queued
+2026-04-23 14:33:03.910 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:04.280 api-01 auth[4521]: WARN: session refresh took 2733ms, cache miss
+2026-04-23 14:33:04.515 api-01 http[4521]: ERROR: POST /v1/catalog/SKU-20518 -> 503 Service Unavailable (27371ms, upstream_timeout)
+2026-04-23 14:33:04.893 api-01 http[4521]: WARN: slow request: GET /v1/health (5348ms)
+2026-04-23 14:33:04.993 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=177), request queued
+2026-04-23 14:33:05.234 api-01 http[4521]: ERROR: PUT /v1/orders -> 503 Service Unavailable (5113ms, upstream_timeout)
+2026-04-23 14:33:05.285 api-01 auth[4521]: WARN: session refresh took 3096ms, cache miss
+2026-04-23 14:33:05.669 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:05.926 api-01 http[4521]: ERROR: GET /v1/orders -> 503 Service Unavailable (20093ms, upstream_timeout)
+2026-04-23 14:33:06.143 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=88), request queued
+2026-04-23 14:33:06.240 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=147), request queued
+2026-04-23 14:33:06.594 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:06.642 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=57), request queued
+2026-04-23 14:33:06.733 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:07.001 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:07.401 api-01 http[4521]: WARN: slow request: GET /v1/metrics (2862ms)
+2026-04-23 14:33:07.646 api-01 http[4521]: ERROR: PUT /v1/orders -> 503 Service Unavailable (6849ms, upstream_timeout)
+2026-04-23 14:33:07.757 api-01 http[4521]: ERROR: POST /v1/orders -> 503 Service Unavailable (28970ms, upstream_timeout)
+2026-04-23 14:33:08.091 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=122), request queued
+2026-04-23 14:33:08.252 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=76), request queued
+2026-04-23 14:33:08.630 api-01 http[4521]: ERROR: POST /v1/orders/37064 -> 503 Service Unavailable (6997ms, upstream_timeout)
+2026-04-23 14:33:08.955 api-01 auth[4521]: WARN: session refresh took 4211ms, cache miss
+2026-04-23 14:33:09.084 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:09.342 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:09.406 api-01 auth[4521]: WARN: session refresh took 3835ms, cache miss
+2026-04-23 14:33:09.789 api-01 http[4521]: ERROR: PUT /v1/orders/92266/items -> 503 Service Unavailable (18642ms, upstream_timeout)
+2026-04-23 14:33:10.038 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=136), request queued
+2026-04-23 14:33:10.172 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:10.454 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=97), request queued
+2026-04-23 14:33:10.647 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (2972ms)
+2026-04-23 14:33:10.974 api-01 http[4521]: ERROR: POST /v1/auth/refresh -> 503 Service Unavailable (22366ms, upstream_timeout)
+2026-04-23 14:33:11.082 api-01 http[4521]: ERROR: POST /v1/orders -> 503 Service Unavailable (15822ms, upstream_timeout)
+2026-04-23 14:33:11.453 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=155), request queued
+2026-04-23 14:33:11.682 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=88), request queued
+2026-04-23 14:33:11.748 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=50), request queued
+2026-04-23 14:33:11.825 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=95), request queued
+2026-04-23 14:33:12.110 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=125), request queued
+2026-04-23 14:33:12.305 api-01 auth[4521]: WARN: session refresh took 1262ms, cache miss
+2026-04-23 14:33:12.453 api-01 auth[4521]: WARN: session refresh took 4237ms, cache miss
+2026-04-23 14:33:12.553 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:12.838 api-01 auth[4521]: WARN: session refresh took 4049ms, cache miss
+2026-04-23 14:33:13.187 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:13.430 api-01 auth[4521]: WARN: session refresh took 3461ms, cache miss
+2026-04-23 14:33:13.634 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:13.868 api-01 http[4521]: ERROR: PUT /v1/orders/41425/items -> 503 Service Unavailable (13570ms, upstream_timeout)
+2026-04-23 14:33:14.092 api-01 http[4521]: ERROR: POST /v1/auth/session -> 503 Service Unavailable (8231ms, upstream_timeout)
+2026-04-23 14:33:14.372 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:14.575 api-01 auth[4521]: WARN: session refresh took 2718ms, cache miss
+2026-04-23 14:33:14.775 api-01 http[4521]: ERROR: PUT /v1/orders -> 503 Service Unavailable (9781ms, upstream_timeout)
+2026-04-23 14:33:14.823 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=146), request queued
+2026-04-23 14:33:15.014 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=124), request queued
+2026-04-23 14:33:15.171 api-01 http[4521]: ERROR: GET /v1/auth/session -> 503 Service Unavailable (23043ms, upstream_timeout)
+2026-04-23 14:33:15.546 api-01 auth[4521]: WARN: session refresh took 2582ms, cache miss
+2026-04-23 14:33:15.717 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:16.007 api-01 auth[4521]: WARN: session refresh took 3828ms, cache miss
+2026-04-23 14:33:16.298 api-01 http[4521]: ERROR: PUT /v1/orders/23185/items -> 503 Service Unavailable (9586ms, upstream_timeout)
+2026-04-23 14:33:16.617 api-01 http[4521]: ERROR: PUT /v1/health -> 503 Service Unavailable (6924ms, upstream_timeout)
+2026-04-23 14:33:16.925 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=59), request queued
+2026-04-23 14:33:17.307 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=41), request queued
+2026-04-23 14:33:17.558 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=99), request queued
+2026-04-23 14:33:17.632 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:17.676 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=156), request queued
+2026-04-23 14:33:17.907 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=163), request queued
+2026-04-23 14:33:18.284 api-01 http[4521]: ERROR: GET /v1/auth/refresh -> 503 Service Unavailable (23076ms, upstream_timeout)
+2026-04-23 14:33:18.534 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=175), request queued
+2026-04-23 14:33:18.714 api-01 http[4521]: ERROR: POST /v1/users/66826 -> 503 Service Unavailable (27867ms, upstream_timeout)
+2026-04-23 14:33:19.099 api-01 http[4521]: ERROR: GET /v1/users/13624/profile -> 503 Service Unavailable (22183ms, upstream_timeout)
+2026-04-23 14:33:19.215 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=174), request queued
+2026-04-23 14:33:19.384 api-01 http[4521]: WARN: slow request: POST /v1/catalog/SKU-20357 (5556ms)
+2026-04-23 14:33:19.631 api-01 http[4521]: ERROR: GET /v1/metrics -> 503 Service Unavailable (12400ms, upstream_timeout)
+2026-04-23 14:33:19.824 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:19.905 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:20.277 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:20.364 api-01 http[4521]: ERROR: POST /v1/auth/refresh -> 503 Service Unavailable (20597ms, upstream_timeout)
+2026-04-23 14:33:20.432 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:20.831 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=167), request queued
+2026-04-23 14:33:21.093 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:21.302 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:21.390 api-01 http[4521]: WARN: slow request: GET /v1/orders (4231ms)
+2026-04-23 14:33:21.784 api-01 http[4521]: WARN: slow request: POST /v1/orders/7102 (3109ms)
+2026-04-23 14:33:22.174 api-01 auth[4521]: WARN: session refresh took 3424ms, cache miss
+2026-04-23 14:33:22.502 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:22.633 api-01 auth[4521]: WARN: session refresh took 2488ms, cache miss
+2026-04-23 14:33:22.681 api-01 auth[4521]: WARN: session refresh took 3604ms, cache miss
+2026-04-23 14:33:22.794 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:23.037 api-01 auth[4521]: WARN: session refresh took 2425ms, cache miss
+2026-04-23 14:33:23.160 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:23.490 api-01 http[4521]: WARN: slow request: POST /v1/health (6928ms)
+2026-04-23 14:33:23.699 api-01 http[4521]: ERROR: PUT /v1/search?q=sneakers -> 503 Service Unavailable (21409ms, upstream_timeout)
+2026-04-23 14:33:23.916 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=151), request queued
+2026-04-23 14:33:24.074 api-01 http[4521]: WARN: slow request: POST /v1/notifications (7528ms)
+2026-04-23 14:33:24.418 api-01 http[4521]: ERROR: POST /v1/users/84115 -> 503 Service Unavailable (13956ms, upstream_timeout)
+2026-04-23 14:33:24.688 api-01 http[4521]: ERROR: POST /v1/auth/refresh -> 503 Service Unavailable (17301ms, upstream_timeout)
+2026-04-23 14:33:24.949 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=137), request queued
+2026-04-23 14:33:25.032 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:25.223 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:25.300 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=79), request queued
+2026-04-23 14:33:25.534 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:25.898 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=139), request queued
+2026-04-23 14:33:26.100 api-01 http[4521]: ERROR: GET /v1/users/41405 -> 503 Service Unavailable (19573ms, upstream_timeout)
+2026-04-23 14:33:26.324 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:26.416 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=87), request queued
+2026-04-23 14:33:26.676 api-01 http[4521]: ERROR: PUT /v1/auth/refresh -> 503 Service Unavailable (18370ms, upstream_timeout)
+2026-04-23 14:33:26.768 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=130), request queued
+2026-04-23 14:33:27.091 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=123), request queued
+2026-04-23 14:33:27.328 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=145), request queued
+2026-04-23 14:33:27.566 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:27.892 api-01 auth[4521]: WARN: session refresh took 2194ms, cache miss
+2026-04-23 14:33:28.224 api-01 http[4521]: ERROR: PUT /v1/catalog/SKU-32216 -> 503 Service Unavailable (9549ms, upstream_timeout)
+2026-04-23 14:33:28.401 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=166), request queued
+2026-04-23 14:33:28.515 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=151), request queued
+2026-04-23 14:33:28.696 api-01 http[4521]: ERROR: POST /v1/users/48333/profile -> 503 Service Unavailable (13247ms, upstream_timeout)
+2026-04-23 14:33:28.862 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:29.155 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:29.295 api-01 http[4521]: ERROR: GET /v1/orders/1887 -> 503 Service Unavailable (17966ms, upstream_timeout)
+2026-04-23 14:33:29.505 api-01 http[4521]: WARN: slow request: POST /v1/orders/58700/items (5242ms)
+2026-04-23 14:33:29.765 api-01 http[4521]: WARN: slow request: GET /v1/orders/43030 (7441ms)
+2026-04-23 14:33:30.160 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=120), request queued
+2026-04-23 14:33:30.290 api-01 auth[4521]: WARN: session refresh took 2507ms, cache miss
+2026-04-23 14:33:30.479 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:30.843 api-01 http[4521]: ERROR: PUT /v1/orders -> 503 Service Unavailable (15678ms, upstream_timeout)
+2026-04-23 14:33:31.075 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=140), request queued
+2026-04-23 14:33:31.301 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=91), request queued
+2026-04-23 14:33:31.644 api-01 auth[4521]: WARN: session refresh took 1936ms, cache miss
+2026-04-23 14:33:32.033 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:32.086 api-01 auth[4521]: WARN: session refresh took 3090ms, cache miss
+2026-04-23 14:33:32.233 api-01 http[4521]: ERROR: POST /v1/metrics -> 503 Service Unavailable (7266ms, upstream_timeout)
+2026-04-23 14:33:32.482 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:32.593 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:32.756 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=79), request queued
+2026-04-23 14:33:33.012 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:33.089 api-01 http[4521]: ERROR: PUT /v1/auth/session -> 503 Service Unavailable (24078ms, upstream_timeout)
+2026-04-23 14:33:33.334 api-01 http[4521]: ERROR: PUT /v1/catalog/SKU-81256 -> 503 Service Unavailable (6204ms, upstream_timeout)
+2026-04-23 14:33:33.558 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:33.872 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:33.955 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=103), request queued
+2026-04-23 14:33:34.331 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:34.456 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:34.518 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:34.888 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:35.132 api-01 auth[4521]: WARN: session refresh took 2558ms, cache miss
+2026-04-23 14:33:35.392 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=65), request queued
+2026-04-23 14:33:35.564 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=172), request queued
+2026-04-23 14:33:35.889 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:36.223 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=135), request queued
+2026-04-23 14:33:36.463 api-01 http[4521]: ERROR: PUT /v1/notifications -> 503 Service Unavailable (27624ms, upstream_timeout)
+2026-04-23 14:33:36.759 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=46), request queued
+2026-04-23 14:33:37.046 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=146), request queued
+2026-04-23 14:33:37.129 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=76), request queued
+2026-04-23 14:33:37.347 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=156), request queued
+2026-04-23 14:33:37.492 api-01 http[4521]: ERROR: POST /v1/auth/session -> 503 Service Unavailable (8198ms, upstream_timeout)
+2026-04-23 14:33:37.756 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:38.027 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=116), request queued
+2026-04-23 14:33:38.089 api-01 http[4521]: WARN: slow request: GET /v1/users/45967 (7808ms)
+2026-04-23 14:33:38.184 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:38.308 api-01 auth[4521]: WARN: session refresh took 4233ms, cache miss
+2026-04-23 14:33:38.472 api-01 http[4521]: ERROR: PUT /v1/search?q=yogurt -> 503 Service Unavailable (23345ms, upstream_timeout)
+2026-04-23 14:33:38.730 api-01 auth[4521]: WARN: session refresh took 2149ms, cache miss
+2026-04-23 14:33:38.977 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:39.112 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:39.373 api-01 http[4521]: ERROR: PUT /v1/notifications -> 503 Service Unavailable (11465ms, upstream_timeout)
+2026-04-23 14:33:39.643 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:39.882 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=94), request queued
+2026-04-23 14:33:40.027 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=56), request queued
+2026-04-23 14:33:40.362 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=177), request queued
+2026-04-23 14:33:40.497 api-01 http[4521]: ERROR: GET /v1/auth/session -> 503 Service Unavailable (8734ms, upstream_timeout)
+2026-04-23 14:33:40.671 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:40.961 api-01 http[4521]: ERROR: PUT /v1/orders/79246/items -> 503 Service Unavailable (17734ms, upstream_timeout)
+2026-04-23 14:33:41.313 api-01 http[4521]: ERROR: GET /v1/orders/47135/items -> 503 Service Unavailable (20003ms, upstream_timeout)
+2026-04-23 14:33:41.669 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=116), request queued
+2026-04-23 14:33:42.023 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:42.407 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=70), request queued
+2026-04-23 14:33:42.569 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=86), request queued
+2026-04-23 14:33:42.800 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:43.101 api-01 http[4521]: ERROR: PUT /v1/search?q=tent -> 503 Service Unavailable (17573ms, upstream_timeout)
+2026-04-23 14:33:43.357 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=177), request queued
+2026-04-23 14:33:43.752 api-01 auth[4521]: WARN: session refresh took 1909ms, cache miss
+2026-04-23 14:33:44.076 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=113), request queued
+2026-04-23 14:33:44.187 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=155), request queued
+2026-04-23 14:33:44.544 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=131), request queued
+2026-04-23 14:33:44.588 api-01 http[4521]: ERROR: GET /v1/catalog/SKU-83607 -> 503 Service Unavailable (21562ms, upstream_timeout)
+2026-04-23 14:33:44.962 api-01 http[4521]: ERROR: PUT /v1/auth/session -> 503 Service Unavailable (18619ms, upstream_timeout)
+2026-04-23 14:33:45.229 api-01 http[4521]: ERROR: GET /v1/notifications -> 503 Service Unavailable (6011ms, upstream_timeout)
+2026-04-23 14:33:45.381 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=110), request queued
+2026-04-23 14:33:45.536 api-01 http[4521]: ERROR: GET /v1/auth/session -> 503 Service Unavailable (23535ms, upstream_timeout)
+2026-04-23 14:33:45.829 api-01 http[4521]: ERROR: GET /v1/notifications -> 503 Service Unavailable (8742ms, upstream_timeout)
+2026-04-23 14:33:46.006 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:46.233 api-01 http[4521]: ERROR: GET /v1/metrics -> 503 Service Unavailable (19462ms, upstream_timeout)
+2026-04-23 14:33:46.552 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=148), request queued
+2026-04-23 14:33:46.644 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:47.018 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:47.210 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (4652ms)
+2026-04-23 14:33:47.428 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (3461ms)
+2026-04-23 14:33:47.589 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=129), request queued
+2026-04-23 14:33:47.941 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:48.065 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:48.210 api-01 http[4521]: WARN: slow request: GET /v1/notifications (5373ms)
+2026-04-23 14:33:48.522 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=177), request queued
+2026-04-23 14:33:48.648 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=114), request queued
+2026-04-23 14:33:48.836 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:49.139 api-01 auth[4521]: WARN: session refresh took 3982ms, cache miss
+2026-04-23 14:33:49.227 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=145), request queued
+2026-04-23 14:33:49.297 api-01 auth[4521]: WARN: session refresh took 3886ms, cache miss
+2026-04-23 14:33:49.401 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:49.508 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=122), request queued
+2026-04-23 14:33:49.674 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:50.060 api-01 http[4521]: ERROR: GET /v1/notifications -> 503 Service Unavailable (25722ms, upstream_timeout)
+2026-04-23 14:33:50.237 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:50.469 api-01 http[4521]: ERROR: PUT /v1/users/53802/profile -> 503 Service Unavailable (21895ms, upstream_timeout)
+2026-04-23 14:33:50.651 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:50.879 api-01 http[4521]: ERROR: POST /v1/orders/77278/items -> 503 Service Unavailable (5081ms, upstream_timeout)
+2026-04-23 14:33:50.966 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:51.240 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:51.637 api-01 http[4521]: ERROR: GET /v1/auth/refresh -> 503 Service Unavailable (18032ms, upstream_timeout)
+2026-04-23 14:33:51.788 api-01 auth[4521]: WARN: session refresh took 2067ms, cache miss
+2026-04-23 14:33:52.081 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=112), request queued
+2026-04-23 14:33:52.293 api-01 http[4521]: ERROR: GET /v1/notifications -> 503 Service Unavailable (20903ms, upstream_timeout)
+2026-04-23 14:33:52.508 api-01 http[4521]: WARN: slow request: GET /v1/users/14051 (7629ms)
+2026-04-23 14:33:52.783 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=80), request queued
+2026-04-23 14:33:53.048 api-01 http[4521]: ERROR: POST /v1/orders -> 503 Service Unavailable (27563ms, upstream_timeout)
+2026-04-23 14:33:53.155 api-01 http[4521]: WARN: slow request: POST /v1/search?q=yogurt (3264ms)
+2026-04-23 14:33:53.530 api-01 http[4521]: ERROR: GET /v1/orders/88098/items -> 503 Service Unavailable (26263ms, upstream_timeout)
+2026-04-23 14:33:53.654 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=118), request queued
+2026-04-23 14:33:54.052 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:54.311 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:54.711 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=94), request queued
+2026-04-23 14:33:54.995 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=97), request queued
+2026-04-23 14:33:55.300 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:55.344 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=127), request queued
+2026-04-23 14:33:55.445 api-01 auth[4521]: WARN: session refresh took 2929ms, cache miss
+2026-04-23 14:33:55.840 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=58), request queued
+2026-04-23 14:33:55.997 api-01 http[4521]: ERROR: PUT /v1/users/14526/profile -> 503 Service Unavailable (15267ms, upstream_timeout)
+2026-04-23 14:33:56.225 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-27451 (7755ms)
+2026-04-23 14:33:56.611 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=175), request queued
+2026-04-23 14:33:56.939 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=82), request queued
+2026-04-23 14:33:57.204 api-01 http[4521]: ERROR: GET /v1/health -> 503 Service Unavailable (9960ms, upstream_timeout)
+2026-04-23 14:33:57.454 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:57.720 api-01 http[4521]: WARN: slow request: GET /v1/users/19351/profile (3508ms)
+2026-04-23 14:33:58.061 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:58.280 api-01 auth[4521]: WARN: session refresh took 2488ms, cache miss
+2026-04-23 14:33:58.391 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=61), request queued
+2026-04-23 14:33:58.558 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:58.905 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:59.090 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:33:59.483 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=117), request queued
+2026-04-23 14:33:59.628 api-01 http[4521]: ERROR: PUT /v1/orders -> 503 Service Unavailable (17836ms, upstream_timeout)
+2026-04-23 14:33:59.819 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:33:59.981 api-01 http[4521]: ERROR: GET /v1/orders -> 503 Service Unavailable (21370ms, upstream_timeout)
+2026-04-23 14:34:00.347 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:34:00.657 api-01 http[4521]: WARN: slow request: GET /v1/orders/42480/items (3581ms)
+2026-04-23 14:34:00.895 api-01 http[4521]: WARN: slow request: POST /v1/orders/72612/items (3915ms)
+2026-04-23 14:34:01.176 api-01 auth[4521]: WARN: session refresh took 4355ms, cache miss
+2026-04-23 14:34:01.253 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=57), request queued
+2026-04-23 14:34:01.300 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=50), request queued
+2026-04-23 14:34:01.370 api-01 auth[4521]: WARN: session refresh took 2830ms, cache miss
+2026-04-23 14:34:01.669 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=168), request queued
+2026-04-23 14:34:01.921 api-01 http[4521]: ERROR: POST /v1/users/84956/profile -> 503 Service Unavailable (22582ms, upstream_timeout)
+2026-04-23 14:34:02.236 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:34:02.418 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=60), request queued
+2026-04-23 14:34:02.719 api-01 auth[4521]: WARN: session refresh took 1836ms, cache miss
+2026-04-23 14:34:03.033 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=56), request queued
+2026-04-23 14:34:03.231 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:03.393 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=62), request queued
+2026-04-23 14:34:03.655 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=54), request queued
+2026-04-23 14:34:03.853 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:34:04.229 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:04.330 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=75), request queued
+2026-04-23 14:34:04.729 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=167), request queued
+2026-04-23 14:34:04.946 api-01 http[4521]: ERROR: PUT /v1/orders/22884 -> 503 Service Unavailable (17185ms, upstream_timeout)
+2026-04-23 14:34:05.050 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:05.227 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:05.327 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:05.382 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=149), request queued
+2026-04-23 14:34:05.561 api-01 http[4521]: ERROR: POST /v1/metrics -> 503 Service Unavailable (23895ms, upstream_timeout)
+2026-04-23 14:34:05.922 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=156), request queued
+2026-04-23 14:34:06.223 api-01 http[4521]: ERROR: POST /v1/notifications -> 503 Service Unavailable (10468ms, upstream_timeout)
+2026-04-23 14:34:06.451 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=66), request queued
+2026-04-23 14:34:06.784 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:34:06.883 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=170), request queued
+2026-04-23 14:34:06.924 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=43), request queued
+2026-04-23 14:34:07.089 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=133), request queued
+2026-04-23 14:34:07.325 api-01 auth[4521]: WARN: session refresh took 1933ms, cache miss
+2026-04-23 14:34:07.383 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:34:07.758 api-01 http[4521]: ERROR: POST /v1/orders -> 503 Service Unavailable (18639ms, upstream_timeout)
+2026-04-23 14:34:07.961 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=59), request queued
+2026-04-23 14:34:08.293 api-01 http[4521]: ERROR: PUT /v1/health -> 503 Service Unavailable (6725ms, upstream_timeout)
+2026-04-23 14:34:08.424 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=172), request queued
+2026-04-23 14:34:08.487 api-01 auth[4521]: WARN: session refresh took 1482ms, cache miss
+2026-04-23 14:34:08.765 api-01 http[4521]: WARN: slow request: POST /v1/orders/12322/items (7030ms)
+2026-04-23 14:34:09.038 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=91), request queued
+2026-04-23 14:34:09.227 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:34:09.422 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:09.586 api-01 http[4521]: ERROR: PUT /v1/auth/session -> 503 Service Unavailable (11403ms, upstream_timeout)
+2026-04-23 14:34:09.905 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:10.070 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=144), request queued
+2026-04-23 14:34:10.122 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=128), request queued
+2026-04-23 14:34:10.487 api-01 http[4521]: WARN: slow request: GET /v1/orders/1191/items (7884ms)
+2026-04-23 14:34:10.719 api-01 http[4521]: WARN: slow request: POST /v1/users/27895/profile (6840ms)
+2026-04-23 14:34:10.880 api-01 http[4521]: ERROR: GET /v1/search?q=yogurt -> 503 Service Unavailable (8048ms, upstream_timeout)
+2026-04-23 14:34:10.942 api-01 auth[4521]: WARN: session refresh took 3328ms, cache miss
+2026-04-23 14:34:11.193 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:11.423 api-01 http[4521]: ERROR: PUT /v1/users/77122/profile -> 503 Service Unavailable (8131ms, upstream_timeout)
+2026-04-23 14:34:11.721 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=140), request queued
+2026-04-23 14:34:11.799 api-01 db[4521]: CRITICAL: postgres primary unreachable (connect timeout after 5000ms to 10.42.11.19:5432)
+2026-04-23 14:34:11.870 api-01 http[4521]: ERROR: GET /v1/orders -> 503 Service Unavailable (14557ms, upstream_timeout)
+2026-04-23 14:34:12.043 api-01 http[4521]: WARN: slow request: POST /v1/metrics (5172ms)
+2026-04-23 14:34:12.245 api-01 http[4521]: ERROR: GET /v1/users/27569/profile -> 503 Service Unavailable (9460ms, upstream_timeout)
+2026-04-23 14:34:12.584 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=67), request queued
+2026-04-23 14:34:12.708 api-01 http[4521]: ERROR: POST /v1/catalog/SKU-25825 -> 503 Service Unavailable (22561ms, upstream_timeout)
+2026-04-23 14:34:12.931 api-01 auth[4521]: WARN: session refresh took 2050ms, cache miss
+2026-04-23 14:34:13.202 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=107), request queued
+2026-04-23 14:34:13.303 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=117), request queued
+2026-04-23 14:34:13.703 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:13.763 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=123), request queued
+2026-04-23 14:34:13.878 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=103), request queued
+2026-04-23 14:34:14.100 api-01 http[4521]: ERROR: GET /v1/health -> 503 Service Unavailable (14792ms, upstream_timeout)
+2026-04-23 14:34:14.273 api-01 http[4521]: WARN: slow request: GET /v1/users/54004 (6204ms)
+2026-04-23 14:34:14.597 api-01 worker[4521]: ERROR: job enqueue failed — redis connection refused (io/timeout after 3000ms)
+2026-04-23 14:34:14.764 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=66), request queued
+2026-04-23 14:34:14.875 api-01 db[4521]: ERROR: connection pool exhausted (max=50 in_use=50 waiting=55), request queued
+2026-04-23 14:34:15.028 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-58790 (2305ms)
+2026-04-23 14:34:15.390 api-01 metrics[4521]: INFO: http.p99=2688ms http.p50=796ms conn_wait_ms=1300
+2026-04-23 14:34:15.562 api-01 metrics[4521]: INFO: http.p99=2614ms http.p50=222ms conn_wait_ms=232
+2026-04-23 14:34:15.703 api-01 metrics[4521]: INFO: http.p99=5632ms http.p50=331ms conn_wait_ms=288
+2026-04-23 14:34:15.912 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (1003ms)
+2026-04-23 14:34:16.038 api-01 metrics[4521]: INFO: http.p99=5548ms http.p50=604ms conn_wait_ms=1116
+2026-04-23 14:34:16.093 api-01 cache[4521]: WARN: redis round-trip 636ms (p50 normally <5ms)
+2026-04-23 14:34:16.221 api-01 cache[4521]: WARN: redis round-trip 391ms (p50 normally <5ms)
+2026-04-23 14:34:16.401 api-01 cache[4521]: WARN: redis round-trip 352ms (p50 normally <5ms)
+2026-04-23 14:34:16.458 api-01 http[4521]: INFO: POST /v1/health -> 200 (590ms)
+2026-04-23 14:34:16.708 api-01 metrics[4521]: INFO: http.p99=5924ms http.p50=262ms conn_wait_ms=279
+2026-04-23 14:34:16.891 api-01 cache[4521]: WARN: redis round-trip 629ms (p50 normally <5ms)
+2026-04-23 14:34:17.033 api-01 http[4521]: INFO: POST /v1/health -> 204 (99ms)
+2026-04-23 14:34:17.268 api-01 http[4521]: INFO: PUT /v1/auth/session -> 204 (576ms)
+2026-04-23 14:34:17.484 api-01 metrics[4521]: INFO: http.p99=6115ms http.p50=529ms conn_wait_ms=895
+2026-04-23 14:34:17.662 api-01 http[4521]: WARN: slow request: GET /v1/orders/79265/items (1348ms)
+2026-04-23 14:34:17.717 api-01 metrics[4521]: INFO: http.p99=4301ms http.p50=259ms conn_wait_ms=1756
+2026-04-23 14:34:17.998 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders
+2026-04-23 14:34:18.119 api-01 http[4521]: WARN: slow request: GET /v1/health (1393ms)
+2026-04-23 14:34:18.295 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/users/29758
+2026-04-23 14:34:18.629 api-01 metrics[4521]: INFO: http.p99=5181ms http.p50=563ms conn_wait_ms=1818
+2026-04-23 14:34:18.757 api-01 http[4521]: WARN: slow request: GET /v1/notifications (1551ms)
+2026-04-23 14:34:19.154 api-01 cache[4521]: WARN: redis round-trip 805ms (p50 normally <5ms)
+2026-04-23 14:34:19.208 api-01 http[4521]: INFO: PUT /v1/notifications -> 204 (225ms)
+2026-04-23 14:34:19.536 api-01 metrics[4521]: INFO: http.p99=6032ms http.p50=755ms conn_wait_ms=732
+2026-04-23 14:34:19.665 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/31490
+2026-04-23 14:34:20.013 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1878ms)
+2026-04-23 14:34:20.053 api-01 cache[4521]: WARN: redis round-trip 828ms (p50 normally <5ms)
+2026-04-23 14:34:20.196 api-01 metrics[4521]: INFO: http.p99=4791ms http.p50=381ms conn_wait_ms=1981
+2026-04-23 14:34:20.401 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:20.516 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/69982/profile
+2026-04-23 14:34:20.742 api-01 metrics[4521]: INFO: http.p99=5060ms http.p50=605ms conn_wait_ms=1300
+2026-04-23 14:34:20.833 api-01 cache[4521]: WARN: redis round-trip 530ms (p50 normally <5ms)
+2026-04-23 14:34:20.942 api-01 metrics[4521]: INFO: http.p99=5578ms http.p50=698ms conn_wait_ms=1429
+2026-04-23 14:34:21.144 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (2320ms)
+2026-04-23 14:34:21.498 api-01 http[4521]: INFO: POST /v1/health -> 204 (259ms)
+2026-04-23 14:34:21.731 api-01 cache[4521]: WARN: redis round-trip 501ms (p50 normally <5ms)
+2026-04-23 14:34:21.836 api-01 http[4521]: WARN: slow request: GET /v1/users/93013 (2073ms)
+2026-04-23 14:34:22.076 api-01 metrics[4521]: INFO: http.p99=2265ms http.p50=386ms conn_wait_ms=1333
+2026-04-23 14:34:22.278 api-01 metrics[4521]: INFO: http.p99=3809ms http.p50=779ms conn_wait_ms=313
+2026-04-23 14:34:22.572 api-01 http[4521]: WARN: slow request: GET /v1/metrics (1059ms)
+2026-04-23 14:34:22.733 api-01 cache[4521]: WARN: redis round-trip 527ms (p50 normally <5ms)
+2026-04-23 14:34:22.858 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (537ms)
+2026-04-23 14:34:22.903 api-01 cache[4521]: WARN: redis round-trip 455ms (p50 normally <5ms)
+2026-04-23 14:34:23.297 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:23.468 api-01 http[4521]: INFO: GET /v1/users/51585 -> 200 (509ms)
+2026-04-23 14:34:23.593 api-01 metrics[4521]: INFO: http.p99=6039ms http.p50=587ms conn_wait_ms=819
+2026-04-23 14:34:23.912 api-01 cache[4521]: WARN: redis round-trip 690ms (p50 normally <5ms)
+2026-04-23 14:34:24.247 api-01 http[4521]: INFO: POST /v1/search?q=coffee+grinder -> 200 (114ms)
+2026-04-23 14:34:24.437 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:24.610 api-01 metrics[4521]: INFO: http.p99=2607ms http.p50=550ms conn_wait_ms=448
+2026-04-23 14:34:24.842 api-01 http[4521]: WARN: slow request: GET /v1/users/72702/profile (2739ms)
+2026-04-23 14:34:24.929 api-01 cache[4521]: WARN: redis round-trip 828ms (p50 normally <5ms)
+2026-04-23 14:34:25.216 api-01 http[4521]: INFO: DELETE /v1/health -> 201 (524ms)
+2026-04-23 14:34:25.336 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:25.545 api-01 http[4521]: WARN: slow request: GET /v1/orders (1738ms)
+2026-04-23 14:34:25.941 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:34:26.116 api-01 http[4521]: INFO: PUT /v1/orders -> 200 (130ms)
+2026-04-23 14:34:26.357 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/search?q=sneakers
+2026-04-23 14:34:26.581 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:26.665 api-01 cache[4521]: WARN: redis round-trip 877ms (p50 normally <5ms)
+2026-04-23 14:34:27.025 api-01 http[4521]: INFO: POST /v1/users/4373/profile -> 201 (254ms)
+2026-04-23 14:34:27.391 api-01 cache[4521]: WARN: redis round-trip 283ms (p50 normally <5ms)
+2026-04-23 14:34:27.673 api-01 metrics[4521]: INFO: http.p99=4526ms http.p50=607ms conn_wait_ms=1064
+2026-04-23 14:34:27.963 api-01 metrics[4521]: INFO: http.p99=4170ms http.p50=293ms conn_wait_ms=1414
+2026-04-23 14:34:28.281 api-01 cache[4521]: WARN: redis round-trip 579ms (p50 normally <5ms)
+2026-04-23 14:34:28.516 api-01 cache[4521]: WARN: redis round-trip 656ms (p50 normally <5ms)
+2026-04-23 14:34:28.578 api-01 cache[4521]: WARN: redis round-trip 676ms (p50 normally <5ms)
+2026-04-23 14:34:28.752 api-01 http[4521]: WARN: slow request: GET /v1/orders/74956 (1026ms)
+2026-04-23 14:34:28.869 api-01 http[4521]: INFO: GET /v1/users/88574/profile -> 200 (503ms)
+2026-04-23 14:34:29.210 api-01 http[4521]: WARN: slow request: GET /v1/users/51738 (2576ms)
+2026-04-23 14:34:29.517 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/health
+2026-04-23 14:34:29.800 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/auth/session
+2026-04-23 14:34:29.993 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:30.050 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/notifications
+2026-04-23 14:34:30.436 api-01 metrics[4521]: INFO: http.p99=3207ms http.p50=323ms conn_wait_ms=1650
+2026-04-23 14:34:30.705 api-01 http[4521]: WARN: slow request: GET /v1/search?q=linen+shirt (2555ms)
+2026-04-23 14:34:30.843 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-20271 (2299ms)
+2026-04-23 14:34:31.105 api-01 http[4521]: WARN: slow request: GET /v1/health (1202ms)
+2026-04-23 14:34:31.449 api-01 cache[4521]: WARN: redis round-trip 268ms (p50 normally <5ms)
+2026-04-23 14:34:31.533 api-01 cache[4521]: WARN: redis round-trip 606ms (p50 normally <5ms)
+2026-04-23 14:34:31.855 api-01 cache[4521]: WARN: redis round-trip 482ms (p50 normally <5ms)
+2026-04-23 14:34:32.161 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/metrics
+2026-04-23 14:34:32.520 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/users/55321/profile
+2026-04-23 14:34:32.636 api-01 http[4521]: WARN: slow request: GET /v1/notifications (2093ms)
+2026-04-23 14:34:32.727 api-01 metrics[4521]: INFO: http.p99=2827ms http.p50=492ms conn_wait_ms=1876
+2026-04-23 14:34:33.041 api-01 metrics[4521]: INFO: http.p99=5366ms http.p50=470ms conn_wait_ms=884
+2026-04-23 14:34:33.416 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/session
+2026-04-23 14:34:33.475 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-28855 (2166ms)
+2026-04-23 14:34:33.826 api-01 http[4521]: INFO: DELETE /v1/users/52877 -> 200 (323ms)
+2026-04-23 14:34:33.891 api-01 http[4521]: INFO: PUT /v1/orders/3651/items -> 200 (390ms)
+2026-04-23 14:34:34.090 api-01 cache[4521]: WARN: redis round-trip 703ms (p50 normally <5ms)
+2026-04-23 14:34:34.486 api-01 http[4521]: INFO: POST /v1/search?q=yogurt -> 200 (408ms)
+2026-04-23 14:34:34.663 api-01 http[4521]: INFO: GET /v1/orders -> 200 (296ms)
+2026-04-23 14:34:34.911 api-01 http[4521]: INFO: PUT /v1/users/68537 -> 201 (147ms)
+2026-04-23 14:34:35.110 api-01 http[4521]: INFO: DELETE /v1/search?q=tent -> 204 (109ms)
+2026-04-23 14:34:35.238 api-01 http[4521]: WARN: slow request: GET /v1/orders (2614ms)
+2026-04-23 14:34:35.307 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (1003ms)
+2026-04-23 14:34:35.531 api-01 http[4521]: INFO: PUT /v1/orders/61846/items -> 204 (486ms)
+2026-04-23 14:34:35.896 api-01 metrics[4521]: INFO: http.p99=2250ms http.p50=447ms conn_wait_ms=862
+2026-04-23 14:34:36.186 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/auth/session
+2026-04-23 14:34:36.526 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/search?q=yogurt
+2026-04-23 14:34:36.918 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:36.972 api-01 cache[4521]: WARN: redis round-trip 366ms (p50 normally <5ms)
+2026-04-23 14:34:37.304 api-01 http[4521]: INFO: POST /v1/orders -> 201 (291ms)
+2026-04-23 14:34:37.481 api-01 http[4521]: INFO: GET /v1/health -> 200 (565ms)
+2026-04-23 14:34:37.588 api-01 http[4521]: INFO: GET /v1/orders -> 200 (392ms)
+2026-04-23 14:34:37.957 api-01 cache[4521]: WARN: redis round-trip 585ms (p50 normally <5ms)
+2026-04-23 14:34:38.175 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/auth/session
+2026-04-23 14:34:38.369 api-01 http[4521]: INFO: DELETE /v1/notifications -> 200 (87ms)
+2026-04-23 14:34:38.670 api-01 metrics[4521]: INFO: http.p99=5065ms http.p50=774ms conn_wait_ms=1425
+2026-04-23 14:34:39.014 api-01 http[4521]: INFO: PUT /v1/health -> 200 (573ms)
+2026-04-23 14:34:39.086 api-01 cache[4521]: WARN: redis round-trip 483ms (p50 normally <5ms)
+2026-04-23 14:34:39.453 api-01 cache[4521]: WARN: redis round-trip 483ms (p50 normally <5ms)
+2026-04-23 14:34:39.626 api-01 http[4521]: INFO: PUT /v1/orders -> 201 (326ms)
+2026-04-23 14:34:39.695 api-01 metrics[4521]: INFO: http.p99=5310ms http.p50=527ms conn_wait_ms=1494
+2026-04-23 14:34:39.806 api-01 http[4521]: INFO: DELETE /v1/orders/35003 -> 200 (494ms)
+2026-04-23 14:34:40.044 api-01 http[4521]: INFO: POST /v1/orders/96230/items -> 201 (567ms)
+2026-04-23 14:34:40.427 api-01 cache[4521]: WARN: redis round-trip 507ms (p50 normally <5ms)
+2026-04-23 14:34:40.554 api-01 metrics[4521]: INFO: http.p99=3483ms http.p50=500ms conn_wait_ms=299
+2026-04-23 14:34:40.835 api-01 http[4521]: WARN: slow request: GET /v1/orders/96051 (2555ms)
+2026-04-23 14:34:41.161 api-01 http[4521]: INFO: POST /v1/health -> 200 (171ms)
+2026-04-23 14:34:41.314 api-01 cache[4521]: WARN: redis round-trip 514ms (p50 normally <5ms)
+2026-04-23 14:34:41.569 api-01 http[4521]: INFO: PUT /v1/orders/35152/items -> 204 (381ms)
+2026-04-23 14:34:41.846 api-01 metrics[4521]: INFO: http.p99=5854ms http.p50=254ms conn_wait_ms=1874
+2026-04-23 14:34:42.210 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/users/62894/profile
+2026-04-23 14:34:42.349 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/catalog/SKU-79446
+2026-04-23 14:34:42.541 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/search?q=linen+shirt
+2026-04-23 14:34:42.756 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/session
+2026-04-23 14:34:42.869 api-01 cache[4521]: WARN: redis round-trip 384ms (p50 normally <5ms)
+2026-04-23 14:34:42.950 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/search?q=yogurt
+2026-04-23 14:34:43.314 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:43.585 api-01 cache[4521]: WARN: redis round-trip 372ms (p50 normally <5ms)
+2026-04-23 14:34:43.920 api-01 http[4521]: INFO: DELETE /v1/users/17961/profile -> 204 (524ms)
+2026-04-23 14:34:44.284 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/auth/session
+2026-04-23 14:34:44.520 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:44.833 api-01 http[4521]: WARN: slow request: GET /v1/orders/2845/items (2726ms)
+2026-04-23 14:34:45.037 api-01 http[4521]: INFO: POST /v1/users/89702 -> 200 (334ms)
+2026-04-23 14:34:45.192 api-01 http[4521]: INFO: PUT /v1/orders/17899 -> 200 (472ms)
+2026-04-23 14:34:45.489 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/6992/profile
+2026-04-23 14:34:45.681 api-01 metrics[4521]: INFO: http.p99=5734ms http.p50=732ms conn_wait_ms=1321
+2026-04-23 14:34:45.989 api-01 cache[4521]: WARN: redis round-trip 337ms (p50 normally <5ms)
+2026-04-23 14:34:46.204 api-01 metrics[4521]: INFO: http.p99=6015ms http.p50=567ms conn_wait_ms=1636
+2026-04-23 14:34:46.340 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-12506 (1367ms)
+2026-04-23 14:34:46.494 api-01 http[4521]: INFO: POST /v1/orders -> 200 (596ms)
+2026-04-23 14:34:46.620 api-01 http[4521]: WARN: slow request: GET /v1/metrics (2232ms)
+2026-04-23 14:34:46.679 api-01 cache[4521]: WARN: redis round-trip 855ms (p50 normally <5ms)
+2026-04-23 14:34:46.849 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (190ms)
+2026-04-23 14:34:47.223 api-01 metrics[4521]: INFO: http.p99=2395ms http.p50=318ms conn_wait_ms=953
+2026-04-23 14:34:47.490 api-01 cache[4521]: WARN: redis round-trip 760ms (p50 normally <5ms)
+2026-04-23 14:34:47.659 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders
+2026-04-23 14:34:48.054 api-01 http[4521]: INFO: GET /v1/orders/56164 -> 200 (356ms)
+2026-04-23 14:34:48.412 api-01 http[4521]: INFO: POST /v1/catalog/SKU-23751 -> 204 (200ms)
+2026-04-23 14:34:48.596 api-01 http[4521]: WARN: slow request: GET /v1/users/66239/profile (1306ms)
+2026-04-23 14:34:48.947 api-01 http[4521]: WARN: slow request: GET /v1/orders/69569 (1313ms)
+2026-04-23 14:34:49.170 api-01 http[4521]: INFO: PUT /v1/search?q=sneakers -> 204 (588ms)
+2026-04-23 14:34:49.316 api-01 http[4521]: INFO: DELETE /v1/orders/31737/items -> 200 (93ms)
+2026-04-23 14:34:49.699 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:49.795 api-01 metrics[4521]: INFO: http.p99=6047ms http.p50=352ms conn_wait_ms=284
+2026-04-23 14:34:50.096 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:50.187 api-01 metrics[4521]: INFO: http.p99=3893ms http.p50=667ms conn_wait_ms=706
+2026-04-23 14:34:50.362 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/search?q=sneakers
+2026-04-23 14:34:50.550 api-01 cache[4521]: WARN: redis round-trip 893ms (p50 normally <5ms)
+2026-04-23 14:34:50.750 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/7014/profile
+2026-04-23 14:34:50.794 api-01 metrics[4521]: INFO: http.p99=3396ms http.p50=536ms conn_wait_ms=832
+2026-04-23 14:34:51.058 api-01 metrics[4521]: INFO: http.p99=4197ms http.p50=295ms conn_wait_ms=863
+2026-04-23 14:34:51.273 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-62461 (1834ms)
+2026-04-23 14:34:51.452 api-01 metrics[4521]: INFO: http.p99=5917ms http.p50=631ms conn_wait_ms=1428
+2026-04-23 14:34:51.577 api-01 http[4521]: WARN: slow request: GET /v1/metrics (2387ms)
+2026-04-23 14:34:51.647 api-01 metrics[4521]: INFO: http.p99=3305ms http.p50=306ms conn_wait_ms=952
+2026-04-23 14:34:51.989 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/health
+2026-04-23 14:34:52.253 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-57002 (2152ms)
+2026-04-23 14:34:52.307 api-01 metrics[4521]: INFO: http.p99=3070ms http.p50=694ms conn_wait_ms=1984
+2026-04-23 14:34:52.596 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-67761 (994ms)
+2026-04-23 14:34:52.668 api-01 cache[4521]: WARN: redis round-trip 521ms (p50 normally <5ms)
+2026-04-23 14:34:52.714 api-01 http[4521]: INFO: POST /v1/health -> 200 (177ms)
+2026-04-23 14:34:52.975 api-01 http[4521]: INFO: POST /v1/auth/session -> 200 (474ms)
+2026-04-23 14:34:53.091 api-01 metrics[4521]: INFO: http.p99=2447ms http.p50=211ms conn_wait_ms=1417
+2026-04-23 14:34:53.211 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/auth/session
+2026-04-23 14:34:53.335 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:53.626 api-01 cache[4521]: WARN: redis round-trip 538ms (p50 normally <5ms)
+2026-04-23 14:34:53.808 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:53.962 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/catalog/SKU-40801
+2026-04-23 14:34:54.042 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/session
+2026-04-23 14:34:54.127 api-01 metrics[4521]: INFO: http.p99=5662ms http.p50=523ms conn_wait_ms=343
+2026-04-23 14:34:54.421 api-01 http[4521]: INFO: GET /v1/users/53879/profile -> 200 (116ms)
+2026-04-23 14:34:54.746 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/notifications
+2026-04-23 14:34:55.102 api-01 http[4521]: INFO: POST /v1/health -> 200 (429ms)
+2026-04-23 14:34:55.328 api-01 metrics[4521]: INFO: http.p99=3826ms http.p50=665ms conn_wait_ms=779
+2026-04-23 14:34:55.654 api-01 http[4521]: INFO: DELETE /v1/metrics -> 200 (543ms)
+2026-04-23 14:34:55.752 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:34:56.129 api-01 http[4521]: WARN: slow request: GET /v1/orders/47548/items (2599ms)
+2026-04-23 14:34:56.493 api-01 metrics[4521]: INFO: http.p99=4391ms http.p50=760ms conn_wait_ms=1169
+2026-04-23 14:34:56.724 api-01 http[4521]: INFO: GET /v1/search?q=coffee+grinder -> 201 (499ms)
+2026-04-23 14:34:56.818 api-01 cache[4521]: WARN: redis round-trip 400ms (p50 normally <5ms)
+2026-04-23 14:34:56.954 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-38257 (1836ms)
+2026-04-23 14:34:57.091 api-01 http[4521]: INFO: GET /v1/catalog/SKU-16094 -> 204 (206ms)
+2026-04-23 14:34:57.361 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:34:57.469 api-01 metrics[4521]: INFO: http.p99=2035ms http.p50=743ms conn_wait_ms=1607
+2026-04-23 14:34:57.533 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/notifications
+2026-04-23 14:34:57.820 api-01 metrics[4521]: INFO: http.p99=3451ms http.p50=792ms conn_wait_ms=455
+2026-04-23 14:34:57.925 api-01 http[4521]: WARN: slow request: GET /v1/health (2129ms)
+2026-04-23 14:34:58.275 api-01 metrics[4521]: INFO: http.p99=6129ms http.p50=593ms conn_wait_ms=957
+2026-04-23 14:34:58.626 api-01 metrics[4521]: INFO: http.p99=4033ms http.p50=480ms conn_wait_ms=914
+2026-04-23 14:34:58.841 api-01 metrics[4521]: INFO: http.p99=5709ms http.p50=336ms conn_wait_ms=382
+2026-04-23 14:34:59.092 api-01 http[4521]: INFO: PUT /v1/metrics -> 204 (401ms)
+2026-04-23 14:34:59.415 api-01 http[4521]: INFO: POST /v1/orders -> 204 (377ms)
+2026-04-23 14:34:59.806 api-01 cache[4521]: WARN: redis round-trip 888ms (p50 normally <5ms)
+2026-04-23 14:34:59.913 api-01 metrics[4521]: INFO: http.p99=3456ms http.p50=715ms conn_wait_ms=1211
+2026-04-23 14:35:00.308 api-01 http[4521]: INFO: GET /v1/orders/74699/items -> 200 (507ms)
+2026-04-23 14:35:00.693 api-01 http[4521]: INFO: PUT /v1/catalog/SKU-11673 -> 204 (189ms)
+2026-04-23 14:35:00.745 api-01 cache[4521]: WARN: redis round-trip 254ms (p50 normally <5ms)
+2026-04-23 14:35:01.128 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:01.304 api-01 http[4521]: INFO: POST /v1/orders/90573 -> 200 (229ms)
+2026-04-23 14:35:01.375 api-01 http[4521]: INFO: PUT /v1/orders -> 204 (113ms)
+2026-04-23 14:35:01.598 api-01 metrics[4521]: INFO: http.p99=2839ms http.p50=775ms conn_wait_ms=1871
+2026-04-23 14:35:01.752 api-01 http[4521]: INFO: DELETE /v1/orders -> 204 (374ms)
+2026-04-23 14:35:02.146 api-01 http[4521]: INFO: DELETE /v1/catalog/SKU-64600 -> 200 (135ms)
+2026-04-23 14:35:02.192 api-01 http[4521]: INFO: POST /v1/notifications -> 200 (310ms)
+2026-04-23 14:35:02.556 api-01 http[4521]: INFO: PUT /v1/notifications -> 204 (281ms)
+2026-04-23 14:35:02.695 api-01 cache[4521]: WARN: redis round-trip 381ms (p50 normally <5ms)
+2026-04-23 14:35:03.084 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:03.212 api-01 http[4521]: INFO: GET /v1/catalog/SKU-15326 -> 200 (365ms)
+2026-04-23 14:35:03.536 api-01 cache[4521]: WARN: redis round-trip 364ms (p50 normally <5ms)
+2026-04-23 14:35:03.875 api-01 metrics[4521]: INFO: http.p99=2046ms http.p50=538ms conn_wait_ms=1055
+2026-04-23 14:35:03.994 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:04.199 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/notifications
+2026-04-23 14:35:04.577 api-01 cache[4521]: WARN: redis round-trip 786ms (p50 normally <5ms)
+2026-04-23 14:35:04.898 api-01 cache[4521]: WARN: redis round-trip 525ms (p50 normally <5ms)
+2026-04-23 14:35:05.207 api-01 http[4521]: WARN: slow request: GET /v1/search?q=tent (1039ms)
+2026-04-23 14:35:05.505 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1999ms)
+2026-04-23 14:35:05.751 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:05.904 api-01 metrics[4521]: INFO: http.p99=4718ms http.p50=539ms conn_wait_ms=838
+2026-04-23 14:35:06.094 api-01 http[4521]: WARN: slow request: GET /v1/notifications (1986ms)
+2026-04-23 14:35:06.377 api-01 metrics[4521]: INFO: http.p99=2072ms http.p50=317ms conn_wait_ms=1469
+2026-04-23 14:35:06.594 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/notifications
+2026-04-23 14:35:06.952 api-01 http[4521]: WARN: slow request: GET /v1/users/90463 (2713ms)
+2026-04-23 14:35:07.156 api-01 cache[4521]: WARN: redis round-trip 316ms (p50 normally <5ms)
+2026-04-23 14:35:07.393 api-01 cache[4521]: WARN: redis round-trip 489ms (p50 normally <5ms)
+2026-04-23 14:35:07.445 api-01 metrics[4521]: INFO: http.p99=5071ms http.p50=726ms conn_wait_ms=1744
+2026-04-23 14:35:07.745 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders/86397
+2026-04-23 14:35:07.883 api-01 cache[4521]: WARN: redis round-trip 284ms (p50 normally <5ms)
+2026-04-23 14:35:07.972 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1992ms)
+2026-04-23 14:35:08.015 api-01 http[4521]: INFO: POST /v1/health -> 201 (514ms)
+2026-04-23 14:35:08.108 api-01 http[4521]: WARN: slow request: GET /v1/metrics (2699ms)
+2026-04-23 14:35:08.370 api-01 http[4521]: INFO: GET /v1/metrics -> 201 (104ms)
+2026-04-23 14:35:08.645 api-01 http[4521]: INFO: GET /v1/users/10600/profile -> 200 (262ms)
+2026-04-23 14:35:08.813 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders
+2026-04-23 14:35:08.985 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/health
+2026-04-23 14:35:09.232 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/catalog/SKU-98250
+2026-04-23 14:35:09.332 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/metrics
+2026-04-23 14:35:09.688 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:10.027 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:10.104 api-01 cache[4521]: WARN: redis round-trip 714ms (p50 normally <5ms)
+2026-04-23 14:35:10.198 api-01 cache[4521]: WARN: redis round-trip 508ms (p50 normally <5ms)
+2026-04-23 14:35:10.548 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:10.812 api-01 cache[4521]: WARN: redis round-trip 876ms (p50 normally <5ms)
+2026-04-23 14:35:10.867 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders
+2026-04-23 14:35:10.976 api-01 http[4521]: INFO: PUT /v1/health -> 201 (385ms)
+2026-04-23 14:35:11.362 api-01 metrics[4521]: INFO: http.p99=5056ms http.p50=211ms conn_wait_ms=1233
+2026-04-23 14:35:11.686 api-01 http[4521]: WARN: slow request: GET /v1/users/1659 (2072ms)
+2026-04-23 14:35:12.031 api-01 cache[4521]: WARN: redis round-trip 760ms (p50 normally <5ms)
+2026-04-23 14:35:12.114 api-01 cache[4521]: WARN: redis round-trip 552ms (p50 normally <5ms)
+2026-04-23 14:35:12.262 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:35:12.374 api-01 http[4521]: WARN: slow request: GET /v1/orders (2163ms)
+2026-04-23 14:35:12.543 api-01 http[4521]: WARN: slow request: GET /v1/search?q=tent (2645ms)
+2026-04-23 14:35:12.610 api-01 metrics[4521]: INFO: http.p99=6496ms http.p50=672ms conn_wait_ms=1420
+2026-04-23 14:35:12.931 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:13.314 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:13.404 api-01 http[4521]: WARN: slow request: GET /v1/notifications (1897ms)
+2026-04-23 14:35:13.613 api-01 cache[4521]: WARN: redis round-trip 887ms (p50 normally <5ms)
+2026-04-23 14:35:13.988 api-01 http[4521]: WARN: slow request: GET /v1/orders/82201 (1042ms)
+2026-04-23 14:35:14.127 api-01 cache[4521]: WARN: redis round-trip 661ms (p50 normally <5ms)
+2026-04-23 14:35:14.335 api-01 http[4521]: INFO: PUT /v1/metrics -> 204 (236ms)
+2026-04-23 14:35:14.664 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/catalog/SKU-32103
+2026-04-23 14:35:14.706 api-01 cache[4521]: WARN: redis round-trip 426ms (p50 normally <5ms)
+2026-04-23 14:35:15.074 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/search?q=yogurt
+2026-04-23 14:35:15.359 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders/64828
+2026-04-23 14:35:15.681 api-01 http[4521]: WARN: slow request: GET /v1/health (2142ms)
+2026-04-23 14:35:15.762 api-01 metrics[4521]: INFO: http.p99=3146ms http.p50=751ms conn_wait_ms=502
+2026-04-23 14:35:15.936 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (99ms)
+2026-04-23 14:35:16.235 api-01 http[4521]: INFO: DELETE /v1/notifications -> 201 (117ms)
+2026-04-23 14:35:16.557 api-01 cache[4521]: WARN: redis round-trip 752ms (p50 normally <5ms)
+2026-04-23 14:35:16.838 api-01 http[4521]: INFO: POST /v1/orders/52445/items -> 201 (377ms)
+2026-04-23 14:35:16.946 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/users/53007/profile
+2026-04-23 14:35:17.172 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders
+2026-04-23 14:35:17.526 api-01 http[4521]: INFO: POST /v1/auth/session -> 201 (263ms)
+2026-04-23 14:35:17.855 api-01 metrics[4521]: INFO: http.p99=3197ms http.p50=695ms conn_wait_ms=834
+2026-04-23 14:35:17.915 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (1374ms)
+2026-04-23 14:35:17.987 api-01 cache[4521]: WARN: redis round-trip 439ms (p50 normally <5ms)
+2026-04-23 14:35:18.048 api-01 http[4521]: INFO: PUT /v1/catalog/SKU-71561 -> 200 (127ms)
+2026-04-23 14:35:18.108 api-01 metrics[4521]: INFO: http.p99=4654ms http.p50=305ms conn_wait_ms=1541
+2026-04-23 14:35:18.414 api-01 http[4521]: INFO: PUT /v1/metrics -> 200 (258ms)
+2026-04-23 14:35:18.646 api-01 http[4521]: INFO: PUT /v1/notifications -> 200 (337ms)
+2026-04-23 14:35:18.878 api-01 metrics[4521]: INFO: http.p99=3825ms http.p50=728ms conn_wait_ms=931
+2026-04-23 14:35:19.098 api-01 metrics[4521]: INFO: http.p99=4826ms http.p50=698ms conn_wait_ms=1723
+2026-04-23 14:35:19.384 api-01 metrics[4521]: INFO: http.p99=2054ms http.p50=713ms conn_wait_ms=1906
+2026-04-23 14:35:19.495 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/68441/profile
+2026-04-23 14:35:19.864 api-01 cache[4521]: WARN: redis round-trip 353ms (p50 normally <5ms)
+2026-04-23 14:35:19.999 api-01 http[4521]: WARN: slow request: GET /v1/notifications (2369ms)
+2026-04-23 14:35:20.099 api-01 http[4521]: INFO: DELETE /v1/orders/95405/items -> 200 (573ms)
+2026-04-23 14:35:20.484 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/notifications
+2026-04-23 14:35:20.606 api-01 http[4521]: INFO: DELETE /v1/users/32938 -> 200 (210ms)
+2026-04-23 14:35:20.939 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/health
+2026-04-23 14:35:21.241 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:21.574 api-01 http[4521]: WARN: slow request: GET /v1/search?q=yogurt (2789ms)
+2026-04-23 14:35:21.706 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/notifications
+2026-04-23 14:35:22.034 api-01 http[4521]: INFO: PUT /v1/users/29389/profile -> 200 (562ms)
+2026-04-23 14:35:22.320 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-88753 (1192ms)
+2026-04-23 14:35:22.658 api-01 metrics[4521]: INFO: http.p99=3489ms http.p50=723ms conn_wait_ms=641
+2026-04-23 14:35:22.783 api-01 http[4521]: INFO: PUT /v1/auth/session -> 204 (150ms)
+2026-04-23 14:35:22.940 api-01 cache[4521]: WARN: redis round-trip 335ms (p50 normally <5ms)
+2026-04-23 14:35:23.035 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:23.342 api-01 metrics[4521]: INFO: http.p99=6131ms http.p50=629ms conn_wait_ms=1792
+2026-04-23 14:35:23.458 api-01 http[4521]: INFO: POST /v1/auth/session -> 204 (119ms)
+2026-04-23 14:35:23.770 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/64208/profile
+2026-04-23 14:35:24.147 api-01 http[4521]: WARN: slow request: GET /v1/notifications (2004ms)
+2026-04-23 14:35:24.187 api-01 metrics[4521]: INFO: http.p99=5534ms http.p50=734ms conn_wait_ms=961
+2026-04-23 14:35:24.416 api-01 metrics[4521]: INFO: http.p99=6340ms http.p50=639ms conn_wait_ms=569
+2026-04-23 14:35:24.702 api-01 http[4521]: INFO: DELETE /v1/orders/78207/items -> 204 (180ms)
+2026-04-23 14:35:24.959 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (2468ms)
+2026-04-23 14:35:25.118 api-01 metrics[4521]: INFO: http.p99=2686ms http.p50=490ms conn_wait_ms=1325
+2026-04-23 14:35:25.436 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/93949
+2026-04-23 14:35:25.479 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:35:25.522 api-01 cache[4521]: WARN: redis round-trip 410ms (p50 normally <5ms)
+2026-04-23 14:35:25.914 api-01 metrics[4521]: INFO: http.p99=5349ms http.p50=570ms conn_wait_ms=318
+2026-04-23 14:35:26.033 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders/35249
+2026-04-23 14:35:26.347 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/notifications
+2026-04-23 14:35:26.528 api-01 metrics[4521]: INFO: http.p99=5255ms http.p50=408ms conn_wait_ms=946
+2026-04-23 14:35:26.850 api-01 http[4521]: INFO: DELETE /v1/search?q=yogurt -> 204 (575ms)
+2026-04-23 14:35:27.019 api-01 metrics[4521]: INFO: http.p99=4820ms http.p50=607ms conn_wait_ms=1606
+2026-04-23 14:35:27.129 api-01 metrics[4521]: INFO: http.p99=2975ms http.p50=435ms conn_wait_ms=1014
+2026-04-23 14:35:27.527 api-01 metrics[4521]: INFO: http.p99=2821ms http.p50=419ms conn_wait_ms=1141
+2026-04-23 14:35:27.772 api-01 http[4521]: INFO: GET /v1/search?q=coffee+grinder -> 200 (173ms)
+2026-04-23 14:35:27.886 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/catalog/SKU-21552
+2026-04-23 14:35:27.958 api-01 cache[4521]: WARN: redis round-trip 579ms (p50 normally <5ms)
+2026-04-23 14:35:28.038 api-01 http[4521]: INFO: DELETE /v1/catalog/SKU-90473 -> 204 (373ms)
+2026-04-23 14:35:28.383 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:28.512 api-01 http[4521]: INFO: DELETE /v1/users/27438 -> 204 (372ms)
+2026-04-23 14:35:28.651 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:28.997 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders
+2026-04-23 14:35:29.351 api-01 http[4521]: WARN: slow request: GET /v1/users/48151 (1389ms)
+2026-04-23 14:35:29.726 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:29.846 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:30.027 api-01 http[4521]: INFO: PUT /v1/health -> 200 (495ms)
+2026-04-23 14:35:30.367 api-01 http[4521]: WARN: slow request: GET /v1/users/97590 (2341ms)
+2026-04-23 14:35:30.442 api-01 metrics[4521]: INFO: http.p99=4330ms http.p50=772ms conn_wait_ms=1973
+2026-04-23 14:35:30.780 api-01 cache[4521]: WARN: redis round-trip 483ms (p50 normally <5ms)
+2026-04-23 14:35:30.935 api-01 http[4521]: INFO: POST /v1/auth/session -> 200 (84ms)
+2026-04-23 14:35:31.108 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1118ms)
+2026-04-23 14:35:31.434 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:31.624 api-01 cache[4521]: WARN: redis round-trip 319ms (p50 normally <5ms)
+2026-04-23 14:35:31.926 api-01 metrics[4521]: INFO: http.p99=6406ms http.p50=788ms conn_wait_ms=612
+2026-04-23 14:35:32.321 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/notifications
+2026-04-23 14:35:32.608 api-01 http[4521]: INFO: PUT /v1/auth/session -> 200 (108ms)
+2026-04-23 14:35:32.894 api-01 http[4521]: WARN: slow request: GET /v1/users/51157/profile (2197ms)
+2026-04-23 14:35:33.046 api-01 http[4521]: INFO: POST /v1/orders/55057/items -> 200 (89ms)
+2026-04-23 14:35:33.444 api-01 metrics[4521]: INFO: http.p99=4033ms http.p50=494ms conn_wait_ms=290
+2026-04-23 14:35:33.688 api-01 http[4521]: INFO: PUT /v1/users/73686/profile -> 201 (567ms)
+2026-04-23 14:35:33.888 api-01 cache[4521]: WARN: redis round-trip 787ms (p50 normally <5ms)
+2026-04-23 14:35:34.065 api-01 http[4521]: WARN: slow request: GET /v1/metrics (2299ms)
+2026-04-23 14:35:34.202 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders
+2026-04-23 14:35:34.365 api-01 metrics[4521]: INFO: http.p99=3693ms http.p50=434ms conn_wait_ms=515
+2026-04-23 14:35:34.532 api-01 metrics[4521]: INFO: http.p99=4916ms http.p50=359ms conn_wait_ms=1695
+2026-04-23 14:35:34.626 api-01 http[4521]: WARN: slow request: GET /v1/users/89580/profile (2258ms)
+2026-04-23 14:35:34.918 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (402ms)
+2026-04-23 14:35:35.210 api-01 metrics[4521]: INFO: http.p99=4250ms http.p50=702ms conn_wait_ms=474
+2026-04-23 14:35:35.511 api-01 cache[4521]: WARN: redis round-trip 427ms (p50 normally <5ms)
+2026-04-23 14:35:35.846 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (2536ms)
+2026-04-23 14:35:36.102 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/users/66860
+2026-04-23 14:35:36.319 api-01 cache[4521]: WARN: redis round-trip 378ms (p50 normally <5ms)
+2026-04-23 14:35:36.593 api-01 metrics[4521]: INFO: http.p99=6245ms http.p50=671ms conn_wait_ms=746
+2026-04-23 14:35:36.985 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:37.370 api-01 http[4521]: WARN: slow request: GET /v1/notifications (1106ms)
+2026-04-23 14:35:37.576 api-01 cache[4521]: WARN: redis round-trip 465ms (p50 normally <5ms)
+2026-04-23 14:35:37.711 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders/62780
+2026-04-23 14:35:38.064 api-01 cache[4521]: WARN: redis round-trip 388ms (p50 normally <5ms)
+2026-04-23 14:35:38.359 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/metrics
+2026-04-23 14:35:38.589 api-01 cache[4521]: WARN: redis round-trip 610ms (p50 normally <5ms)
+2026-04-23 14:35:38.772 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/search?q=tent
+2026-04-23 14:35:39.163 api-01 http[4521]: WARN: slow request: GET /v1/users/95478/profile (1452ms)
+2026-04-23 14:35:39.323 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders
+2026-04-23 14:35:39.437 api-01 metrics[4521]: INFO: http.p99=3225ms http.p50=684ms conn_wait_ms=1750
+2026-04-23 14:35:39.481 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (1175ms)
+2026-04-23 14:35:39.843 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders/64782/items
+2026-04-23 14:35:40.036 api-01 cache[4521]: WARN: redis round-trip 781ms (p50 normally <5ms)
+2026-04-23 14:35:40.100 api-01 cache[4521]: WARN: redis round-trip 367ms (p50 normally <5ms)
+2026-04-23 14:35:40.170 api-01 http[4521]: WARN: slow request: GET /v1/orders/63460 (2618ms)
+2026-04-23 14:35:40.532 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:40.743 api-01 cache[4521]: WARN: redis round-trip 568ms (p50 normally <5ms)
+2026-04-23 14:35:41.069 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders/3599/items
+2026-04-23 14:35:41.319 api-01 http[4521]: WARN: slow request: GET /v1/health (2140ms)
+2026-04-23 14:35:41.460 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/health
+2026-04-23 14:35:41.775 api-01 http[4521]: WARN: slow request: GET /v1/orders/47544 (1565ms)
+2026-04-23 14:35:42.159 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/session
+2026-04-23 14:35:42.239 api-01 cache[4521]: WARN: redis round-trip 493ms (p50 normally <5ms)
+2026-04-23 14:35:42.516 api-01 http[4521]: INFO: POST /v1/search?q=yogurt -> 200 (494ms)
+2026-04-23 14:35:42.592 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:42.807 api-01 http[4521]: WARN: slow request: GET /v1/orders/86591/items (1496ms)
+2026-04-23 14:35:42.983 api-01 http[4521]: INFO: DELETE /v1/orders/59313 -> 200 (541ms)
+2026-04-23 14:35:43.234 api-01 http[4521]: WARN: slow request: GET /v1/users/17389 (2390ms)
+2026-04-23 14:35:43.394 api-01 http[4521]: INFO: GET /v1/orders -> 201 (486ms)
+2026-04-23 14:35:43.486 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:43.768 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/catalog/SKU-78679
+2026-04-23 14:35:43.850 api-01 http[4521]: WARN: slow request: GET /v1/notifications (1218ms)
+2026-04-23 14:35:43.933 api-01 http[4521]: INFO: DELETE /v1/orders/31062 -> 201 (370ms)
+2026-04-23 14:35:44.199 api-01 http[4521]: INFO: POST /v1/auth/refresh -> 201 (109ms)
+2026-04-23 14:35:44.256 api-01 http[4521]: INFO: PUT /v1/auth/session -> 200 (358ms)
+2026-04-23 14:35:44.576 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:35:44.706 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/health
+2026-04-23 14:35:45.071 api-01 metrics[4521]: INFO: http.p99=5563ms http.p50=736ms conn_wait_ms=1410
+2026-04-23 14:35:45.438 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/auth/session
+2026-04-23 14:35:45.754 api-01 http[4521]: WARN: slow request: GET /v1/users/58915/profile (1530ms)
+2026-04-23 14:35:45.981 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders/2383
+2026-04-23 14:35:46.021 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders/38586/items
+2026-04-23 14:35:46.301 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/session
+2026-04-23 14:35:46.585 api-01 cache[4521]: WARN: redis round-trip 640ms (p50 normally <5ms)
+2026-04-23 14:35:46.774 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:35:47.005 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1795ms)
+2026-04-23 14:35:47.247 api-01 http[4521]: WARN: slow request: GET /v1/metrics (2409ms)
+2026-04-23 14:35:47.617 api-01 cache[4521]: WARN: redis round-trip 587ms (p50 normally <5ms)
+2026-04-23 14:35:47.769 api-01 cache[4521]: WARN: redis round-trip 632ms (p50 normally <5ms)
+2026-04-23 14:35:48.129 api-01 http[4521]: WARN: slow request: GET /v1/notifications (2553ms)
+2026-04-23 14:35:48.524 api-01 http[4521]: INFO: PUT /v1/health -> 204 (355ms)
+2026-04-23 14:35:48.775 api-01 http[4521]: WARN: slow request: GET /v1/users/24908/profile (1179ms)
+2026-04-23 14:35:48.963 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (2165ms)
+2026-04-23 14:35:49.234 api-01 cache[4521]: WARN: redis round-trip 837ms (p50 normally <5ms)
+2026-04-23 14:35:49.525 api-01 http[4521]: WARN: slow request: GET /v1/users/20942 (1001ms)
+2026-04-23 14:35:49.838 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:49.930 api-01 cache[4521]: WARN: redis round-trip 328ms (p50 normally <5ms)
+2026-04-23 14:35:50.194 api-01 http[4521]: INFO: POST /v1/users/20750/profile -> 200 (585ms)
+2026-04-23 14:35:50.345 api-01 cache[4521]: WARN: redis round-trip 519ms (p50 normally <5ms)
+2026-04-23 14:35:50.640 api-01 metrics[4521]: INFO: http.p99=5798ms http.p50=232ms conn_wait_ms=776
+2026-04-23 14:35:50.721 api-01 metrics[4521]: INFO: http.p99=3196ms http.p50=257ms conn_wait_ms=645
+2026-04-23 14:35:50.961 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:35:51.241 api-01 http[4521]: WARN: slow request: GET /v1/orders/51014 (2596ms)
+2026-04-23 14:35:51.287 api-01 http[4521]: WARN: slow request: GET /v1/metrics (1409ms)
+2026-04-23 14:35:51.524 api-01 http[4521]: INFO: DELETE /v1/orders -> 200 (283ms)
+2026-04-23 14:35:51.799 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 201 (564ms)
+2026-04-23 14:35:52.038 api-01 http[4521]: INFO: PUT /v1/orders/21789/items -> 200 (205ms)
+2026-04-23 14:35:52.207 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders
+2026-04-23 14:35:52.431 api-01 metrics[4521]: INFO: http.p99=3784ms http.p50=315ms conn_wait_ms=583
+2026-04-23 14:35:52.795 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/search?q=yogurt
+2026-04-23 14:35:53.134 api-01 http[4521]: WARN: slow request: GET /v1/orders (918ms)
+2026-04-23 14:35:53.195 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/session
+2026-04-23 14:35:53.587 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/users/33600/profile
+2026-04-23 14:35:53.707 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/notifications
+2026-04-23 14:35:53.920 api-01 metrics[4521]: INFO: http.p99=2491ms http.p50=261ms conn_wait_ms=828
+2026-04-23 14:35:54.290 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (2520ms)
+2026-04-23 14:35:54.384 api-01 http[4521]: WARN: slow request: GET /v1/orders (1548ms)
+2026-04-23 14:35:54.709 api-01 http[4521]: INFO: PUT /v1/auth/session -> 201 (101ms)
+2026-04-23 14:35:55.101 api-01 cache[4521]: WARN: redis round-trip 337ms (p50 normally <5ms)
+2026-04-23 14:35:55.269 api-01 metrics[4521]: INFO: http.p99=5975ms http.p50=648ms conn_wait_ms=1244
+2026-04-23 14:35:55.459 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders
+2026-04-23 14:35:55.789 api-01 http[4521]: WARN: slow request: GET /v1/orders/43425/items (2399ms)
+2026-04-23 14:35:56.068 api-01 cache[4521]: WARN: redis round-trip 813ms (p50 normally <5ms)
+2026-04-23 14:35:56.391 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1217ms)
+2026-04-23 14:35:56.661 api-01 cache[4521]: WARN: redis round-trip 469ms (p50 normally <5ms)
+2026-04-23 14:35:56.978 api-01 cache[4521]: WARN: redis round-trip 200ms (p50 normally <5ms)
+2026-04-23 14:35:57.344 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/search?q=sneakers
+2026-04-23 14:35:57.701 api-01 metrics[4521]: INFO: http.p99=3956ms http.p50=528ms conn_wait_ms=1576
+2026-04-23 14:35:57.773 api-01 http[4521]: INFO: DELETE /v1/orders -> 204 (589ms)
+2026-04-23 14:35:58.095 api-01 http[4521]: WARN: slow request: GET /v1/orders/43283 (1739ms)
+2026-04-23 14:35:58.463 api-01 cache[4521]: WARN: redis round-trip 298ms (p50 normally <5ms)
+2026-04-23 14:35:58.770 api-01 http[4521]: INFO: GET /v1/search?q=linen+shirt -> 200 (286ms)
+2026-04-23 14:35:58.864 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/users/75843
+2026-04-23 14:35:59.232 api-01 metrics[4521]: INFO: http.p99=6013ms http.p50=738ms conn_wait_ms=1377
+2026-04-23 14:35:59.631 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders/29930/items
+2026-04-23 14:35:59.981 api-01 http[4521]: INFO: GET /v1/orders -> 200 (161ms)
+2026-04-23 14:36:00.260 api-01 metrics[4521]: INFO: http.p99=2497ms http.p50=569ms conn_wait_ms=1242
+2026-04-23 14:36:00.512 api-01 metrics[4521]: INFO: http.p99=2477ms http.p50=472ms conn_wait_ms=1183
+2026-04-23 14:36:00.572 api-01 http[4521]: INFO: PUT /v1/users/29298/profile -> 204 (179ms)
+2026-04-23 14:36:00.663 api-01 http[4521]: INFO: DELETE /v1/orders -> 201 (334ms)
+2026-04-23 14:36:00.994 api-01 http[4521]: INFO: POST /v1/auth/refresh -> 204 (505ms)
+2026-04-23 14:36:01.088 api-01 http[4521]: INFO: PUT /v1/health -> 200 (517ms)
+2026-04-23 14:36:01.181 api-01 http[4521]: WARN: slow request: GET /v1/search?q=tent (1722ms)
+2026-04-23 14:36:01.479 api-01 cache[4521]: WARN: redis round-trip 361ms (p50 normally <5ms)
+2026-04-23 14:36:01.792 api-01 metrics[4521]: INFO: http.p99=5629ms http.p50=560ms conn_wait_ms=1948
+2026-04-23 14:36:01.993 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/orders/55046/items
+2026-04-23 14:36:02.357 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders/80745/items
+2026-04-23 14:36:02.520 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/catalog/SKU-82120
+2026-04-23 14:36:02.690 api-01 cache[4521]: WARN: redis round-trip 663ms (p50 normally <5ms)
+2026-04-23 14:36:02.959 api-01 metrics[4521]: INFO: http.p99=2001ms http.p50=235ms conn_wait_ms=682
+2026-04-23 14:36:03.304 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:03.413 api-01 metrics[4521]: INFO: http.p99=4472ms http.p50=206ms conn_wait_ms=715
+2026-04-23 14:36:03.566 api-01 http[4521]: WARN: slow request: GET /v1/orders/3844/items (2480ms)
+2026-04-23 14:36:03.959 api-01 metrics[4521]: INFO: http.p99=6188ms http.p50=769ms conn_wait_ms=1268
+2026-04-23 14:36:04.291 api-01 http[4521]: WARN: slow request: GET /v1/users/61341 (1628ms)
+2026-04-23 14:36:04.410 api-01 http[4521]: WARN: slow request: GET /v1/orders/77304/items (1411ms)
+2026-04-23 14:36:04.569 api-01 cache[4521]: WARN: redis round-trip 507ms (p50 normally <5ms)
+2026-04-23 14:36:04.656 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders
+2026-04-23 14:36:04.735 api-01 http[4521]: INFO: DELETE /v1/search?q=coffee+grinder -> 204 (177ms)
+2026-04-23 14:36:05.079 api-01 http[4521]: INFO: GET /v1/metrics -> 204 (470ms)
+2026-04-23 14:36:05.159 api-01 http[4521]: INFO: PUT /v1/orders/57925/items -> 200 (203ms)
+2026-04-23 14:36:05.315 api-01 http[4521]: INFO: GET /v1/health -> 200 (135ms)
+2026-04-23 14:36:05.511 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:36:05.840 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (2329ms)
+2026-04-23 14:36:05.993 api-01 http[4521]: WARN: slow request: GET /v1/health (2398ms)
+2026-04-23 14:36:06.234 api-01 metrics[4521]: INFO: http.p99=6134ms http.p50=292ms conn_wait_ms=554
+2026-04-23 14:36:06.495 api-01 cache[4521]: WARN: redis round-trip 603ms (p50 normally <5ms)
+2026-04-23 14:36:06.610 api-01 http[4521]: WARN: slow request: GET /v1/users/63371/profile (2070ms)
+2026-04-23 14:36:06.675 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/users/53235/profile
+2026-04-23 14:36:06.971 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/search?q=linen+shirt
+2026-04-23 14:36:07.257 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/catalog/SKU-95491
+2026-04-23 14:36:07.589 api-01 http[4521]: WARN: slow request: GET /v1/notifications (2406ms)
+2026-04-23 14:36:07.897 api-01 http[4521]: WARN: slow request: GET /v1/users/35898/profile (2490ms)
+2026-04-23 14:36:08.157 api-01 cache[4521]: WARN: redis round-trip 789ms (p50 normally <5ms)
+2026-04-23 14:36:08.242 api-01 http[4521]: WARN: slow request: GET /v1/catalog/SKU-65514 (1648ms)
+2026-04-23 14:36:08.460 api-01 http[4521]: WARN: slow request: GET /v1/orders/78840/items (2242ms)
+2026-04-23 14:36:08.512 api-01 http[4521]: INFO: POST /v1/orders/81769/items -> 200 (229ms)
+2026-04-23 14:36:08.777 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:08.936 api-01 http[4521]: WARN: slow request: GET /v1/orders/21446/items (2451ms)
+2026-04-23 14:36:09.019 api-01 http[4521]: WARN: slow request: GET /v1/users/32856 (2171ms)
+2026-04-23 14:36:09.134 api-01 metrics[4521]: INFO: http.p99=4356ms http.p50=214ms conn_wait_ms=803
+2026-04-23 14:36:09.529 api-01 metrics[4521]: INFO: http.p99=4499ms http.p50=660ms conn_wait_ms=1064
+2026-04-23 14:36:09.580 api-01 cache[4521]: WARN: redis round-trip 750ms (p50 normally <5ms)
+2026-04-23 14:36:09.728 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (2436ms)
+2026-04-23 14:36:09.900 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/metrics
+2026-04-23 14:36:10.012 api-01 http[4521]: INFO: GET /v1/catalog/SKU-86415 -> 204 (124ms)
+2026-04-23 14:36:10.182 api-01 http[4521]: WARN: slow request: GET /v1/orders/27305 (2516ms)
+2026-04-23 14:36:10.578 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (148ms)
+2026-04-23 14:36:10.816 api-01 http[4521]: INFO: PUT /v1/users/3500/profile -> 200 (475ms)
+2026-04-23 14:36:10.974 api-01 metrics[4521]: INFO: http.p99=6165ms http.p50=301ms conn_wait_ms=1951
+2026-04-23 14:36:11.175 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:36:11.260 api-01 http[4521]: WARN: slow request: GET /v1/auth/refresh (1837ms)
+2026-04-23 14:36:11.587 api-01 metrics[4521]: INFO: http.p99=2176ms http.p50=240ms conn_wait_ms=606
+2026-04-23 14:36:11.898 api-01 cache[4521]: WARN: redis round-trip 701ms (p50 normally <5ms)
+2026-04-23 14:36:12.139 api-01 http[4521]: INFO: GET /v1/orders/90694/items -> 200 (443ms)
+2026-04-23 14:36:12.499 api-01 cache[4521]: WARN: redis round-trip 713ms (p50 normally <5ms)
+2026-04-23 14:36:12.680 api-01 metrics[4521]: INFO: http.p99=4110ms http.p50=596ms conn_wait_ms=1923
+2026-04-23 14:36:12.735 api-01 metrics[4521]: INFO: http.p99=4295ms http.p50=430ms conn_wait_ms=410
+2026-04-23 14:36:12.949 api-01 metrics[4521]: INFO: http.p99=3124ms http.p50=289ms conn_wait_ms=1594
+2026-04-23 14:36:13.184 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/notifications
+2026-04-23 14:36:13.544 api-01 http[4521]: INFO: DELETE /v1/orders -> 204 (236ms)
+2026-04-23 14:36:13.802 api-01 metrics[4521]: INFO: http.p99=4697ms http.p50=659ms conn_wait_ms=1210
+2026-04-23 14:36:13.909 api-01 http[4521]: WARN: slow request: GET /v1/search?q=tent (2008ms)
+2026-04-23 14:36:14.299 api-01 metrics[4521]: INFO: http.p99=3131ms http.p50=516ms conn_wait_ms=1510
+2026-04-23 14:36:14.607 api-01 metrics[4521]: INFO: http.p99=5523ms http.p50=348ms conn_wait_ms=1443
+2026-04-23 14:36:14.936 api-01 metrics[4521]: INFO: http.p99=4600ms http.p50=269ms conn_wait_ms=1241
+2026-04-23 14:36:15.248 api-01 metrics[4521]: INFO: http.p99=2969ms http.p50=388ms conn_wait_ms=750
+2026-04-23 14:36:15.362 api-01 http[4521]: INFO: PUT /v1/catalog/SKU-63903 -> 200 (533ms)
+2026-04-23 14:36:15.728 api-01 metrics[4521]: INFO: http.p99=4242ms http.p50=355ms conn_wait_ms=1695
+2026-04-23 14:36:15.864 api-01 http[4521]: WARN: slow request: GET /v1/search?q=sneakers (2461ms)
+2026-04-23 14:36:16.217 api-01 http[4521]: INFO: POST /v1/notifications -> 201 (316ms)
+2026-04-23 14:36:16.608 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:16.688 api-01 http[4521]: INFO: DELETE /v1/search?q=tent -> 204 (560ms)
+2026-04-23 14:36:17.060 api-01 cache[4521]: WARN: redis round-trip 596ms (p50 normally <5ms)
+2026-04-23 14:36:17.351 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/orders
+2026-04-23 14:36:17.506 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:17.553 api-01 metrics[4521]: INFO: http.p99=5383ms http.p50=427ms conn_wait_ms=1620
+2026-04-23 14:36:17.936 api-01 metrics[4521]: INFO: http.p99=3675ms http.p50=267ms conn_wait_ms=462
+2026-04-23 14:36:18.200 api-01 metrics[4521]: INFO: http.p99=6013ms http.p50=532ms conn_wait_ms=1875
+2026-04-23 14:36:18.474 api-01 metrics[4521]: INFO: http.p99=5502ms http.p50=614ms conn_wait_ms=1689
+2026-04-23 14:36:18.535 api-01 http[4521]: INFO: DELETE /v1/metrics -> 200 (483ms)
+2026-04-23 14:36:18.888 api-01 metrics[4521]: INFO: http.p99=6392ms http.p50=737ms conn_wait_ms=1413
+2026-04-23 14:36:19.288 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (123ms)
+2026-04-23 14:36:19.453 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/metrics
+2026-04-23 14:36:19.513 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/health
+2026-04-23 14:36:19.578 api-01 http[4521]: WARN: slow request: GET /v1/auth/session (1715ms)
+2026-04-23 14:36:19.773 api-01 http[4521]: INFO: PUT /v1/auth/session -> 201 (512ms)
+2026-04-23 14:36:19.963 api-01 http[4521]: INFO: GET /v1/metrics -> 204 (225ms)
+2026-04-23 14:36:20.240 api-01 metrics[4521]: INFO: http.p99=5700ms http.p50=292ms conn_wait_ms=1579
+2026-04-23 14:36:20.536 api-01 http[4521]: WARN: slow request: GET /v1/notifications (2731ms)
+2026-04-23 14:36:20.932 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/catalog/SKU-52396
+2026-04-23 14:36:21.202 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:21.474 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/orders
+2026-04-23 14:36:21.746 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:21.951 api-01 http[4521]: INFO: POST /v1/metrics -> 200 (173ms)
+2026-04-23 14:36:22.049 api-01 http[4521]: INFO: PUT /v1/users/69657/profile -> 200 (243ms)
+2026-04-23 14:36:22.282 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/search?q=yogurt
+2026-04-23 14:36:22.611 api-01 metrics[4521]: INFO: http.p99=3229ms http.p50=366ms conn_wait_ms=1879
+2026-04-23 14:36:22.725 api-01 http[4521]: WARN: slow request: GET /v1/metrics (1005ms)
+2026-04-23 14:36:22.979 api-01 cache[4521]: WARN: redis round-trip 656ms (p50 normally <5ms)
+2026-04-23 14:36:23.166 api-01 http[4521]: INFO: GET /v1/search?q=linen+shirt -> 200 (339ms)
+2026-04-23 14:36:23.212 api-01 http[4521]: NOTICE: request retry succeeded after 2 attempt(s): GET /v1/auth/refresh
+2026-04-23 14:36:23.254 api-01 http[4521]: INFO: DELETE /v1/orders -> 201 (567ms)
+2026-04-23 14:36:23.526 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/notifications
+2026-04-23 14:36:23.873 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:24.193 api-01 cache[4521]: WARN: redis round-trip 843ms (p50 normally <5ms)
+2026-04-23 14:36:24.518 api-01 metrics[4521]: INFO: http.p99=3700ms http.p50=250ms conn_wait_ms=478
+2026-04-23 14:36:24.633 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:24.851 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:24.907 api-01 http[4521]: INFO: PUT /v1/orders/12495/items -> 200 (191ms)
+2026-04-23 14:36:25.160 api-01 metrics[4521]: INFO: http.p99=3321ms http.p50=491ms conn_wait_ms=1351
+2026-04-23 14:36:25.538 api-01 http[4521]: INFO: POST /v1/auth/session -> 204 (448ms)
+2026-04-23 14:36:25.596 api-01 db[4521]: ERROR: connection acquire timeout after 2000ms
+2026-04-23 14:36:25.789 api-01 cache[4521]: WARN: redis round-trip 588ms (p50 normally <5ms)
+2026-04-23 14:36:25.863 api-01 http[4521]: INFO: GET /v1/orders/62710 -> 201 (204ms)
+2026-04-23 14:36:26.258 api-01 metrics[4521]: INFO: http.p99=4696ms http.p50=739ms conn_wait_ms=947
+2026-04-23 14:36:26.566 api-01 http[4521]: WARN: slow request: GET /v1/orders (2153ms)
+2026-04-23 14:36:26.635 api-01 http[4521]: WARN: slow request: GET /v1/metrics (2188ms)
+2026-04-23 14:36:26.945 api-01 metrics[4521]: INFO: http.p99=5962ms http.p50=494ms conn_wait_ms=974
+2026-04-23 14:36:27.296 api-01 metrics[4521]: INFO: http.p99=4127ms http.p50=738ms conn_wait_ms=1277
+2026-04-23 14:36:27.655 api-01 cache[4521]: WARN: redis round-trip 332ms (p50 normally <5ms)
+2026-04-23 14:36:28.009 api-01 http[4521]: NOTICE: request retry succeeded after 3 attempt(s): GET /v1/metrics
+2026-04-23 14:36:28.372 api-01 http[4521]: NOTICE: request retry succeeded after 1 attempt(s): GET /v1/notifications
+2026-04-23 14:36:28.531 api-01 http[4521]: INFO: POST /v1/users/16493 -> 200 (556ms)
+2026-04-23 14:36:28.891 api-01 http[4521]: INFO: POST /v1/notifications -> 200 (503ms)
+2026-04-23 14:36:28.954 api-01 cache[4521]: WARN: redis round-trip 773ms (p50 normally <5ms)
+2026-04-23 14:36:29.320 api-01 http[4521]: WARN: slow request: GET /v1/health (1312ms)
+2026-04-23 14:36:29.713 api-01 cache[4521]: WARN: redis round-trip 269ms (p50 normally <5ms)
+2026-04-23 14:36:29.910 api-01 cache[4521]: WARN: redis round-trip 763ms (p50 normally <5ms)
+2026-04-23 14:36:30.115 api-01 http[4521]: INFO: GET /v1/users/90893/profile -> 200 (54ms)
+2026-04-23 14:36:31.713 api-01 http[4521]: INFO: PUT /v1/notifications -> 200 (109ms)
+2026-04-23 14:36:32.707 api-01 http[4521]: INFO: POST /v1/health -> 201 (262ms)
+2026-04-23 14:36:33.052 api-01 cache[4521]: DEBUG: hit user:64110:profile (ttl=287s)
+2026-04-23 14:36:33.888 api-01 cache[4521]: DEBUG: hit user:71381:profile (ttl=287s)
+2026-04-23 14:36:35.460 api-01 auth[4521]: INFO: session validated user_id=55257 (cache hit)
+2026-04-23 14:36:35.889 api-01 metrics[4521]: INFO: http.rps=116 db.conn.in_use=13/50 mem=704MB
+2026-04-23 14:36:38.283 api-01 cache[4521]: WARN: key evicted: user:76680:session (lru)
+2026-04-23 14:36:39.841 api-01 http[4521]: INFO: GET /v1/orders/9678/items -> 200 (31ms)
+2026-04-23 14:36:41.189 api-01 metrics[4521]: INFO: http.rps=126 db.conn.in_use=15/50 mem=740MB
+2026-04-23 14:36:43.577 api-01 metrics[4521]: INFO: http.rps=139 db.conn.in_use=8/50 mem=724MB
+2026-04-23 14:36:44.255 api-01 metrics[4521]: INFO: http.rps=118 db.conn.in_use=13/50 mem=436MB
+2026-04-23 14:36:45.567 api-01 http[4521]: INFO: POST /v1/orders -> 200 (251ms)
+2026-04-23 14:36:47.006 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (10ms)
+2026-04-23 14:36:47.922 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (2ms)
+2026-04-23 14:36:48.949 api-01 worker[4521]: INFO: polled queue events (pending=3)
+2026-04-23 14:36:51.221 api-01 cache[4521]: WARN: key evicted: user:64263:session (lru)
+2026-04-23 14:36:53.469 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (11ms)
+2026-04-23 14:36:55.649 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (51ms)
+2026-04-23 14:36:57.189 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (4ms)
+2026-04-23 14:36:59.503 api-01 http[4521]: INFO: GET /v1/search?q=linen+shirt -> 200 (104ms)
+2026-04-23 14:36:59.852 api-01 auth[4521]: INFO: session validated user_id=94543 (cache hit)
+2026-04-23 14:37:02.191 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (10ms)
+2026-04-23 14:37:02.571 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (23ms)
+2026-04-23 14:37:04.136 api-01 auth[4521]: INFO: session validated user_id=7047 (cache hit)
+2026-04-23 14:37:04.758 api-01 auth[4521]: INFO: session validated user_id=87374 (cache hit)
+2026-04-23 14:37:06.237 api-01 cache[4521]: WARN: key evicted: user:41913:session (lru)
+2026-04-23 14:37:07.296 api-01 http[4521]: INFO: GET /v1/orders/37261 -> 204 (183ms)
+2026-04-23 14:37:09.302 api-01 http[4521]: INFO: GET /v1/orders/20571 -> 200 (32ms)
+2026-04-23 14:37:10.622 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:37:12.927 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:37:14.561 api-01 auth[4521]: INFO: session validated user_id=36527 (cache hit)
+2026-04-23 14:37:15.340 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:37:16.700 api-01 cache[4521]: DEBUG: hit user:23449:profile (ttl=287s)
+2026-04-23 14:37:17.191 api-01 http[4521]: INFO: POST /v1/auth/refresh -> 201 (45ms)
+2026-04-23 14:37:17.923 api-01 cache[4521]: WARN: key evicted: user:89538:session (lru)
+2026-04-23 14:37:18.329 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (2ms)
+2026-04-23 14:37:18.881 api-01 http[4521]: INFO: GET /v1/metrics -> 204 (248ms)
+2026-04-23 14:37:20.537 api-01 http[4521]: INFO: GET /v1/metrics -> 304 (60ms)
+2026-04-23 14:37:22.644 api-01 cache[4521]: DEBUG: hit user:13178:profile (ttl=287s)
+2026-04-23 14:37:24.762 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (10ms)
+2026-04-23 14:37:26.868 api-01 auth[4521]: INFO: session validated user_id=30333 (cache hit)
+2026-04-23 14:37:27.656 api-01 metrics[4521]: INFO: http.rps=106 db.conn.in_use=14/50 mem=620MB
+2026-04-23 14:37:28.607 api-01 http[4521]: INFO: GET /v1/health -> 200 (54ms)
+2026-04-23 14:37:30.137 api-01 auth[4521]: INFO: session validated user_id=4966 (cache hit)
+2026-04-23 14:37:30.604 api-01 auth[4521]: INFO: session validated user_id=47064 (cache hit)
+2026-04-23 14:37:32.764 api-01 auth[4521]: INFO: session validated user_id=23387 (cache hit)
+2026-04-23 14:37:34.120 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (85ms)
+2026-04-23 14:37:34.841 api-01 auth[4521]: INFO: session validated user_id=54174 (cache hit)
+2026-04-23 14:37:35.479 api-01 http[4521]: INFO: PUT /v1/users/40599/profile -> 204 (256ms)
+2026-04-23 14:37:37.320 api-01 cache[4521]: DEBUG: hit user:32270:profile (ttl=287s)
+2026-04-23 14:37:38.518 api-01 auth[4521]: INFO: session validated user_id=64225 (cache hit)
+2026-04-23 14:37:40.290 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-37294 duration=1410ms
+2026-04-23 14:37:42.255 api-01 http[4521]: INFO: GET /v1/catalog/SKU-84345 -> 200 (112ms)
+2026-04-23 14:37:43.856 api-01 auth[4521]: INFO: session validated user_id=31953 (cache hit)
+2026-04-23 14:37:44.764 api-01 http[4521]: INFO: GET /v1/users/97910/profile -> 200 (103ms)
+2026-04-23 14:37:46.957 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (15ms)
+2026-04-23 14:37:48.489 api-01 cache[4521]: DEBUG: hit user:59355:profile (ttl=287s)
+2026-04-23 14:37:49.410 api-01 http[4521]: INFO: POST /v1/users/79415/profile -> 200 (214ms)
+2026-04-23 14:37:50.951 api-01 auth[4521]: INFO: session validated user_id=87529 (cache hit)
+2026-04-23 14:37:51.402 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (5ms)
+2026-04-23 14:37:51.602 api-01 http[4521]: INFO: GET /v1/health -> 200 (31ms)
+2026-04-23 14:37:53.657 api-01 auth[4521]: INFO: session validated user_id=52115 (cache hit)
+2026-04-23 14:37:55.688 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (11ms)
+2026-04-23 14:37:57.115 api-01 cache[4521]: DEBUG: hit user:90071:profile (ttl=287s)
+2026-04-23 14:37:58.562 api-01 worker[4521]: INFO: polled queue events (pending=3)
+2026-04-23 14:38:00.172 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:38:00.405 api-01 cache[4521]: DEBUG: hit user:67902:profile (ttl=287s)
+2026-04-23 14:38:02.260 api-01 metrics[4521]: INFO: http.rps=115 db.conn.in_use=4/50 mem=609MB
+2026-04-23 14:38:04.708 api-01 worker[4521]: INFO: polled queue events (pending=0)
+2026-04-23 14:38:07.201 api-01 metrics[4521]: INFO: http.rps=131 db.conn.in_use=6/50 mem=564MB
+2026-04-23 14:38:07.528 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (13ms)
+2026-04-23 14:38:09.031 api-01 http[4521]: INFO: GET /v1/catalog/SKU-60012 -> 200 (67ms)
+2026-04-23 14:38:11.463 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (6ms)
+2026-04-23 14:38:13.608 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:38:15.383 api-01 metrics[4521]: INFO: http.rps=132 db.conn.in_use=16/50 mem=498MB
+2026-04-23 14:38:16.764 api-01 worker[4521]: INFO: polled queue events (pending=5)
+2026-04-23 14:38:17.478 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (3ms)
+2026-04-23 14:38:17.742 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (16ms)
+2026-04-23 14:38:19.730 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:38:20.276 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:38:22.343 api-01 metrics[4521]: INFO: http.rps=148 db.conn.in_use=8/50 mem=652MB
+2026-04-23 14:38:24.629 api-01 http[4521]: INFO: POST /v1/catalog/SKU-56570 -> 200 (115ms)
+2026-04-23 14:38:26.568 api-01 cache[4521]: DEBUG: hit user:76751:profile (ttl=287s)
+2026-04-23 14:38:28.808 api-01 metrics[4521]: INFO: http.rps=100 db.conn.in_use=11/50 mem=630MB
+2026-04-23 14:38:31.245 api-01 cache[4521]: DEBUG: hit user:5385:profile (ttl=287s)
+2026-04-23 14:38:31.600 api-01 cache[4521]: DEBUG: hit user:93390:profile (ttl=287s)
+2026-04-23 14:38:33.309 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (16ms)
+2026-04-23 14:38:33.836 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (17ms)
+2026-04-23 14:38:35.180 api-01 auth[4521]: INFO: session validated user_id=11254 (cache hit)
+2026-04-23 14:38:37.523 api-01 metrics[4521]: INFO: http.rps=62 db.conn.in_use=10/50 mem=661MB
+2026-04-23 14:38:38.042 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (114ms)
+2026-04-23 14:38:39.521 api-01 cache[4521]: DEBUG: hit user:46029:profile (ttl=287s)
+2026-04-23 14:38:41.912 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (70ms)
+2026-04-23 14:38:44.211 api-01 worker[4521]: INFO: polled queue events (pending=4)
+2026-04-23 14:38:45.768 api-01 http[4521]: INFO: POST /v1/orders/22955 -> 200 (175ms)
+2026-04-23 14:38:47.034 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-72018 duration=1384ms
+2026-04-23 14:38:47.926 api-01 cache[4521]: DEBUG: hit user:87025:profile (ttl=287s)
+2026-04-23 14:38:49.321 api-01 metrics[4521]: INFO: http.rps=46 db.conn.in_use=12/50 mem=668MB
+2026-04-23 14:38:49.858 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (3ms)
+2026-04-23 14:38:51.196 api-01 http[4521]: INFO: PUT /v1/orders/37073 -> 200 (27ms)
+2026-04-23 14:38:51.852 api-01 cache[4521]: DEBUG: hit user:78564:profile (ttl=287s)
+2026-04-23 14:38:52.671 api-01 http[4521]: INFO: GET /v1/orders/23989/items -> 200 (45ms)
+2026-04-23 14:38:53.838 api-01 auth[4521]: INFO: session validated user_id=70125 (cache hit)
+2026-04-23 14:38:54.173 api-01 http[4521]: INFO: GET /v1/search?q=tent -> 200 (273ms)
+2026-04-23 14:38:56.064 api-01 http[4521]: INFO: GET /v1/orders -> 200 (96ms)
+2026-04-23 14:38:58.066 api-01 http[4521]: INFO: GET /v1/search?q=linen+shirt -> 200 (85ms)
+2026-04-23 14:38:59.679 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-44654 duration=437ms
+2026-04-23 14:39:00.094 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (13ms)
+2026-04-23 14:39:02.244 api-01 http[4521]: INFO: PUT /v1/auth/refresh -> 200 (214ms)
+2026-04-23 14:39:04.041 api-01 auth[4521]: INFO: session validated user_id=20025 (cache hit)
+2026-04-23 14:39:06.413 api-01 metrics[4521]: INFO: http.rps=43 db.conn.in_use=12/50 mem=649MB
+2026-04-23 14:39:08.177 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (99ms)
+2026-04-23 14:39:08.545 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:39:10.194 api-01 worker[4521]: INFO: polled queue events (pending=3)
+2026-04-23 14:39:11.510 api-01 http[4521]: INFO: POST /v1/users/34468/profile -> 304 (220ms)
+2026-04-23 14:39:13.598 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (42ms)
+2026-04-23 14:39:14.596 api-01 auth[4521]: INFO: session validated user_id=89829 (cache hit)
+2026-04-23 14:39:15.532 api-01 http[4521]: INFO: GET /v1/health -> 200 (54ms)
+2026-04-23 14:39:15.780 api-01 http[4521]: INFO: PUT /v1/users/90849/profile -> 201 (199ms)
+2026-04-23 14:39:16.878 api-01 http[4521]: INFO: GET /v1/orders/26307 -> 200 (16ms)
+2026-04-23 14:39:17.175 api-01 cache[4521]: DEBUG: hit user:8455:profile (ttl=287s)
+2026-04-23 14:39:18.263 api-01 worker[4521]: INFO: polled queue events (pending=5)
+2026-04-23 14:39:18.961 api-01 http[4521]: INFO: GET /v1/users/12322/profile -> 200 (89ms)
+2026-04-23 14:39:19.693 api-01 http[4521]: INFO: PUT /v1/notifications -> 200 (76ms)
+2026-04-23 14:39:20.647 api-01 http[4521]: INFO: POST /v1/health -> 200 (252ms)
+2026-04-23 14:39:21.979 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (97ms)
+2026-04-23 14:39:23.503 api-01 http[4521]: INFO: GET /v1/orders/9177 -> 201 (218ms)
+2026-04-23 14:39:25.065 api-01 worker[4521]: INFO: polled queue events (pending=2)
+2026-04-23 14:39:26.349 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (3ms)
+2026-04-23 14:39:28.563 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:39:30.371 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (16ms)
+2026-04-23 14:39:31.015 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:39:32.109 api-01 cache[4521]: DEBUG: hit user:14926:profile (ttl=287s)
+2026-04-23 14:39:34.117 api-01 http[4521]: INFO: GET /v1/users/5569/profile -> 200 (21ms)
+2026-04-23 14:39:34.605 api-01 cache[4521]: DEBUG: hit user:33846:profile (ttl=287s)
+2026-04-23 14:39:36.631 api-01 cache[4521]: WARN: key evicted: user:66234:session (lru)
+2026-04-23 14:39:37.440 api-01 http[4521]: INFO: GET /v1/users/5959 -> 200 (97ms)
+2026-04-23 14:39:39.239 api-01 http[4521]: INFO: PUT /v1/orders/52292/items -> 204 (21ms)
+2026-04-23 14:39:41.550 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (73ms)
+2026-04-23 14:39:43.536 api-01 http[4521]: INFO: PUT /v1/users/71795/profile -> 200 (21ms)
+2026-04-23 14:39:45.310 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:39:47.484 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:39:49.154 api-01 http[4521]: INFO: POST /v1/catalog/SKU-17234 -> 304 (66ms)
+2026-04-23 14:39:50.850 api-01 auth[4521]: INFO: session validated user_id=45572 (cache hit)
+2026-04-23 14:39:51.379 api-01 metrics[4521]: INFO: http.rps=114 db.conn.in_use=9/50 mem=510MB
+2026-04-23 14:39:53.850 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-60353 duration=591ms
+2026-04-23 14:39:55.274 api-01 http[4521]: INFO: GET /v1/users/83656/profile -> 200 (100ms)
+2026-04-23 14:39:56.945 api-01 auth[4521]: INFO: session validated user_id=83941 (cache hit)
+2026-04-23 14:39:58.938 api-01 http[4521]: INFO: GET /v1/search?q=sneakers -> 200 (36ms)
+2026-04-23 14:39:59.241 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (42ms)
+2026-04-23 14:40:01.444 api-01 http[4521]: INFO: PUT /v1/health -> 200 (275ms)
+2026-04-23 14:40:03.831 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:40:05.871 api-01 worker[4521]: INFO: polled queue events (pending=0)
+2026-04-23 14:40:06.222 api-01 http[4521]: INFO: POST /v1/metrics -> 200 (227ms)
+2026-04-23 14:40:06.906 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (17ms)
+2026-04-23 14:40:08.983 api-01 worker[4521]: INFO: polled queue events (pending=6)
+2026-04-23 14:40:11.380 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (8ms)
+2026-04-23 14:40:11.875 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-28558 duration=1201ms
+2026-04-23 14:40:12.153 api-01 auth[4521]: INFO: session validated user_id=82051 (cache hit)
+2026-04-23 14:40:12.540 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (5ms)
+2026-04-23 14:40:12.798 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (2ms)
+2026-04-23 14:40:14.256 api-01 metrics[4521]: INFO: http.rps=64 db.conn.in_use=17/50 mem=732MB
+2026-04-23 14:40:15.155 api-01 metrics[4521]: INFO: http.rps=56 db.conn.in_use=6/50 mem=478MB
+2026-04-23 14:40:17.391 api-01 cache[4521]: DEBUG: hit user:81691:profile (ttl=287s)
+2026-04-23 14:40:18.494 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-36560 duration=1072ms
+2026-04-23 14:40:20.075 api-01 metrics[4521]: INFO: http.rps=142 db.conn.in_use=13/50 mem=481MB
+2026-04-23 14:40:22.510 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (7ms)
+2026-04-23 14:40:22.896 api-01 cache[4521]: DEBUG: hit user:44975:profile (ttl=287s)
+2026-04-23 14:40:23.354 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (5ms)
+2026-04-23 14:40:25.254 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (12ms)
+2026-04-23 14:40:27.720 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (8ms)
+2026-04-23 14:40:28.086 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (13ms)
+2026-04-23 14:40:28.932 api-01 cache[4521]: WARN: key evicted: user:64827:session (lru)
+2026-04-23 14:40:29.462 api-01 cache[4521]: WARN: key evicted: user:24516:session (lru)
+2026-04-23 14:40:30.027 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (48ms)
+2026-04-23 14:40:31.931 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (100ms)
+2026-04-23 14:40:32.650 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (9ms)
+2026-04-23 14:40:34.992 api-01 auth[4521]: INFO: session validated user_id=32359 (cache hit)
+2026-04-23 14:40:35.906 api-01 cache[4521]: DEBUG: hit user:5931:profile (ttl=287s)
+2026-04-23 14:40:36.843 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (23ms)
+2026-04-23 14:40:38.276 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (118ms)
+2026-04-23 14:40:38.957 api-01 worker[4521]: INFO: polled queue events (pending=0)
+2026-04-23 14:40:40.639 api-01 metrics[4521]: INFO: http.rps=178 db.conn.in_use=10/50 mem=657MB
+2026-04-23 14:40:41.691 api-01 http[4521]: INFO: GET /v1/users/20558/profile -> 304 (262ms)
+2026-04-23 14:40:43.928 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (2ms)
+2026-04-23 14:40:44.349 api-01 cache[4521]: DEBUG: hit user:38363:profile (ttl=287s)
+2026-04-23 14:40:45.407 api-01 http[4521]: INFO: POST /v1/notifications -> 201 (42ms)
+2026-04-23 14:40:46.034 api-01 http[4521]: INFO: GET /v1/auth/refresh -> 200 (34ms)
+2026-04-23 14:40:46.881 api-01 http[4521]: INFO: GET /v1/auth/session -> 200 (77ms)
+2026-04-23 14:40:47.556 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-40841 duration=1110ms
+2026-04-23 14:40:49.091 api-01 http[4521]: INFO: PUT /v1/health -> 200 (137ms)
+2026-04-23 14:40:49.742 api-01 http[4521]: INFO: GET /v1/orders -> 304 (231ms)
+2026-04-23 14:40:50.761 api-01 http[4521]: INFO: GET /v1/users/62733/profile -> 204 (268ms)
+2026-04-23 14:40:51.183 api-01 metrics[4521]: INFO: http.rps=77 db.conn.in_use=9/50 mem=732MB
+2026-04-23 14:40:53.246 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (12ms)
+2026-04-23 14:40:54.004 api-01 auth[4521]: INFO: session validated user_id=26448 (cache hit)
+2026-04-23 14:40:55.672 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:40:57.247 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (2ms)
+2026-04-23 14:40:58.596 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (15ms)
+2026-04-23 14:41:00.674 api-01 http[4521]: INFO: POST /v1/orders -> 200 (100ms)
+2026-04-23 14:41:01.570 api-01 cache[4521]: DEBUG: hit user:73450:profile (ttl=287s)
+2026-04-23 14:41:02.710 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (17ms)
+2026-04-23 14:41:04.913 api-01 metrics[4521]: INFO: http.rps=95 db.conn.in_use=18/50 mem=656MB
+2026-04-23 14:41:06.256 api-01 cache[4521]: WARN: key evicted: user:57113:session (lru)
+2026-04-23 14:41:07.466 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (14ms)
+2026-04-23 14:41:08.576 api-01 metrics[4521]: INFO: http.rps=78 db.conn.in_use=3/50 mem=633MB
+2026-04-23 14:41:08.957 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-71689 duration=1232ms
+2026-04-23 14:41:09.294 api-01 http[4521]: INFO: POST /v1/auth/session -> 304 (70ms)
+2026-04-23 14:41:11.347 api-01 auth[4521]: INFO: session validated user_id=11890 (cache hit)
+2026-04-23 14:41:13.834 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (105ms)
+2026-04-23 14:41:15.699 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:41:17.367 api-01 http[4521]: INFO: PUT /v1/users/3087/profile -> 201 (176ms)
+2026-04-23 14:41:18.229 api-01 http[4521]: INFO: GET /v1/notifications -> 200 (107ms)
+2026-04-23 14:41:18.528 api-01 worker[4521]: INFO: polled queue events (pending=3)
+2026-04-23 14:41:19.295 api-01 metrics[4521]: INFO: http.rps=143 db.conn.in_use=8/50 mem=609MB
+2026-04-23 14:41:21.396 api-01 http[4521]: INFO: GET /v1/users/83222 -> 200 (21ms)
+2026-04-23 14:41:23.172 api-01 metrics[4521]: INFO: http.rps=125 db.conn.in_use=4/50 mem=571MB
+2026-04-23 14:41:25.116 api-01 http[4521]: INFO: GET /v1/metrics -> 200 (90ms)
+2026-04-23 14:41:27.537 api-01 cache[4521]: DEBUG: hit user:28151:profile (ttl=287s)
+2026-04-23 14:41:28.068 api-01 cache[4521]: DEBUG: hit user:45000:profile (ttl=287s)
+2026-04-23 14:41:28.492 api-01 auth[4521]: INFO: session validated user_id=89428 (cache hit)
+2026-04-23 14:41:30.182 api-01 metrics[4521]: INFO: http.rps=68 db.conn.in_use=15/50 mem=607MB
+2026-04-23 14:41:32.288 api-01 cache[4521]: DEBUG: hit user:48916:profile (ttl=287s)
+2026-04-23 14:41:33.988 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (18ms)
+2026-04-23 14:41:34.462 api-01 cache[4521]: DEBUG: hit user:27832:profile (ttl=287s)
+2026-04-23 14:41:35.228 api-01 worker[4521]: INFO: polled queue events (pending=1)
+2026-04-23 14:41:37.638 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (16ms)
+2026-04-23 14:41:38.697 api-01 http[4521]: INFO: GET /v1/orders -> 200 (53ms)
+2026-04-23 14:41:40.341 api-01 metrics[4521]: INFO: http.rps=168 db.conn.in_use=16/50 mem=561MB
+2026-04-23 14:41:40.764 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-55249 duration=1126ms
+2026-04-23 14:41:42.955 api-01 auth[4521]: INFO: session validated user_id=17083 (cache hit)
+2026-04-23 14:41:45.080 api-01 http[4521]: INFO: GET /v1/health -> 200 (117ms)
+2026-04-23 14:41:47.462 api-01 metrics[4521]: INFO: http.rps=155 db.conn.in_use=14/50 mem=764MB
+2026-04-23 14:41:47.930 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (15ms)
+2026-04-23 14:41:48.487 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (6ms)
+2026-04-23 14:41:49.868 api-01 worker[4521]: INFO: polled queue events (pending=0)
+2026-04-23 14:41:50.515 api-01 db[4521]: DEBUG: query SELECT * FROM users WHERE id=$1 (4ms)
+2026-04-23 14:41:51.321 api-01 auth[4521]: INFO: session validated user_id=27772 (cache hit)
+2026-04-23 14:41:53.653 api-01 worker[4521]: INFO: polled queue events (pending=0)
+2026-04-23 14:41:55.053 api-01 http[4521]: INFO: PUT /v1/auth/refresh -> 200 (262ms)
+2026-04-23 14:41:56.673 api-01 http[4521]: INFO: PUT /v1/health -> 200 (169ms)
+2026-04-23 14:41:57.647 api-01 worker[4521]: NOTICE: completed job send_welcome_email id=job-40451 duration=1264ms
+2026-04-23 14:41:59.222 api-01 http[4521]: INFO: POST /v1/health -> 304 (187ms)
