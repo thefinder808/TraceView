@@ -64,6 +64,9 @@ struct ContentView: View {
         .sheet(isPresented: $appState.showGoToLine) {
             GoToLineSheet()
         }
+        .sheet(isPresented: $appState.showCreateMergedView) {
+            CreateMergedViewSheet()
+        }
     }
 
     // MARK: - Pane columns
@@ -123,26 +126,75 @@ struct ContentView: View {
                 .fill(synced ? theme.accentColor : theme.border)
                 .frame(width: synced ? 3 : 1)
 
-            Button {
-                appState.togglePaneScrollSync()
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(synced ? theme.accentColor : theme.tableBackground)
-                    Circle()
-                        .stroke(synced ? theme.accentColor : theme.border, lineWidth: 1)
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(synced ? .white : theme.secondaryText)
+            // Stack the two buttons vertically with a small gap. Sync sits
+            // above merge — sync is the more frequent action, merge is a
+            // commit-this-investigation moment.
+            VStack(spacing: 8) {
+                Button {
+                    appState.togglePaneScrollSync()
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(synced ? theme.accentColor : theme.tableBackground)
+                        Circle()
+                            .stroke(synced ? theme.accentColor : theme.border, lineWidth: 1)
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(synced ? .white : theme.secondaryText)
+                    }
+                    .frame(width: 26, height: 26)
                 }
-                .frame(width: 26, height: 26)
+                .buttonStyle(.plain)
+                .hoverTooltip(synced
+                              ? "Disable Pane Scroll Sync (⇧⌘S)"
+                              : "Sync Pane Scrolling (⇧⌘S)")
+
+                mergePanesButton(theme: theme)
             }
-            .buttonStyle(.plain)
-            .hoverTooltip(synced
-                          ? "Disable Pane Scroll Sync (⇧⌘S)"
-                          : "Sync Pane Scrolling (⇧⌘S)")
         }
         .frame(width: 26)
+    }
+
+    /// One-click merge of the two visible pane docs into a combined view.
+    /// Disabled when either pane is empty or both visible docs are merged
+    /// (merging a merged-of-A+B with C is unsupported in v1).
+    @ViewBuilder
+    private func mergePanesButton(theme: any AppTheme) -> some View {
+        let canMerge = canMergeVisiblePanes
+        Button {
+            mergeVisiblePanes()
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(theme.tableBackground)
+                Circle()
+                    .stroke(canMerge ? theme.border : theme.borderSubtle, lineWidth: 1)
+                Image(systemName: "arrow.triangle.merge")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(canMerge ? theme.secondaryText : theme.tertiaryText)
+            }
+            .frame(width: 26, height: 26)
+        }
+        .buttonStyle(.plain)
+        .disabled(!canMerge)
+        .hoverTooltip("Merge Both Panes into a Combined View")
+    }
+
+    private var canMergeVisiblePanes: Bool {
+        guard let primary = appState.selectedDocument,
+              let secondary = appState.secondaryDocument,
+              primary.id != secondary.id else { return false }
+        // Merging-of-merged is out of scope for v1 — disable when EITHER
+        // pane already holds a merged view. Matches CreateMergedViewSheet's
+        // eligibility filter (which excludes merged docs from the picker).
+        return !primary.isMerged && !secondary.isMerged
+    }
+
+    private func mergeVisiblePanes() {
+        guard let primary = appState.selectedDocument,
+              let secondary = appState.secondaryDocument,
+              primary.id != secondary.id else { return }
+        appState.createMergedView(from: [primary, secondary])
     }
 
     // MARK: - File drop

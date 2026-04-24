@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FilterBarView: View {
     @ObservedObject var viewModel: LogDocumentViewModel
+    let pane: Pane
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var appState: AppState
     @FocusState private var isSearchFocused: Bool
@@ -97,6 +98,16 @@ struct FilterBarView: View {
             // Saved filter presets
             FilterPresetsView(viewModel: viewModel)
 
+            // Per-source toggles for merged-view docs.
+            if viewModel.document.isMerged {
+                Rectangle()
+                    .fill(theme.border)
+                    .frame(width: 1, height: 18)
+                ForEach(mergedSourceList(), id: \.id) { src in
+                    sourceChip(id: src.id, name: src.name, theme: theme)
+                }
+            }
+
             Spacer()
 
             if viewModel.findMode == .find && !viewModel.filter.searchText.isEmpty {
@@ -157,9 +168,45 @@ struct FilterBarView: View {
     }
 
     private func routeTo(_ line: Int) {
-        // Menu/button both pipe through pendingGoToLine so scroll +
-        // selection land the same way as the ⌘L sheet.
-        appState.pendingGoToLine = line
+        // Menu/button both pipe through the pane's go-to-line channel so
+        // scroll + selection land the same way as the ⌘L sheet.
+        appState.goToLine(line, in: pane)
+    }
+
+    /// Stable-ordered list of (id, displayName) for the merged sources of
+    /// the current doc. Sorted by display name so chip order doesn't
+    /// shuffle around as the dictionary's iteration order would.
+    private func mergedSourceList() -> [(id: UUID, name: String)] {
+        viewModel.document.mergedSourceNames
+            .map { (id: $0.key, name: $0.value) }
+            .sorted { $0.name < $1.name }
+    }
+
+    private func sourceChip(id: UUID, name: String, theme: any AppTheme) -> some View {
+        // hidden = "this source is filtered OUT". Active chip = visible.
+        let isVisible = !viewModel.filter.hiddenSourceIDs.contains(id)
+        return Button {
+            if isVisible {
+                viewModel.filter.hiddenSourceIDs.insert(id)
+            } else {
+                viewModel.filter.hiddenSourceIDs.remove(id)
+            }
+        } label: {
+            Text(name)
+                .font(.system(size: 10, weight: .medium))
+                .lineLimit(1)
+                .foregroundStyle(isVisible ? .white : theme.tertiaryText)
+                .padding(.horizontal, 8)
+                .frame(height: 22)
+                .background(isVisible ? theme.accentColor : .clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(isVisible ? theme.accentColor : theme.border, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+        }
+        .buttonStyle(.plain)
+        .help(isVisible ? "Hide rows from \(name)" : "Show rows from \(name)")
     }
 
     private func filterToggle(label: String, isActive: Bool, theme: any AppTheme, action: @escaping () -> Void) -> some View {

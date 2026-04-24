@@ -7,6 +7,11 @@ struct LogFilter: Equatable {
     var minimumLevel: LogLevel = .debug
     var enabledLevels: Set<LogLevel> = Set(LogLevel.allCases)
     var component: String? = nil
+    /// Sources hidden in a merged-view filter. nil = no source filtering;
+    /// non-nil = entry passes only if its `sourceDocumentID` is NOT in the
+    /// set (or if it has no sourceDocumentID, which means non-merged docs
+    /// are unaffected). Empty set = "all sources visible" (no filtering).
+    var hiddenSourceIDs: Set<UUID> = []
 
     // Cached compiled regex — rebuilt when searchText/isRegex/caseSensitive changes
     private var _cachedRegex: NSRegularExpression?
@@ -16,6 +21,7 @@ struct LogFilter: Equatable {
         !searchText.isEmpty
             || enabledLevels.count != LogLevel.allCases.count
             || component != nil
+            || !hiddenSourceIDs.isEmpty
     }
 
     mutating func matches(_ entry: LogEntry) -> Bool {
@@ -23,12 +29,14 @@ struct LogFilter: Equatable {
         return matchesSearchText(entry)
     }
 
-    // Level + component only. Used by find mode, where searchText marks
-    // match positions rather than hiding rows.
+    // Level + component + source only. Used by find mode, where searchText
+    // marks match positions rather than hiding rows.
     func matchesLevelAndComponent(_ entry: LogEntry) -> Bool {
         guard enabledLevels.contains(entry.level) else { return false }
         guard entry.level >= minimumLevel else { return false }
         if let component, entry.component != component { return false }
+        if let sourceID = entry.sourceDocumentID,
+           hiddenSourceIDs.contains(sourceID) { return false }
         return true
     }
 

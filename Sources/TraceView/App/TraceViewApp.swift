@@ -131,6 +131,11 @@ struct TraceViewApp: App {
                 .keyboardShortcut("s", modifiers: [.command, .shift])
                 .disabled(!appState.isSplitView)
 
+                Button("Create Merged View...") {
+                    appState.showCreateMergedView = true
+                }
+                .disabled(appState.documents.count < 2)
+
                 Divider()
 
                 Button("Toggle Bookmark on Selected Line") { appState.toggleBookmarkOnSelection() }

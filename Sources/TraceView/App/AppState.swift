@@ -51,9 +51,25 @@ final class AppState: ObservableObject {
     // by ErrorLookupPanel which clears it after populating the search.
     @Published var pendingErrorLookupCode: String? = nil
 
-    // Set by the Go-To-Line sheet; NSLogTableView observes this and scrolls
-    // to the matching row, then clears it.
-    @Published var pendingGoToLine: Int? = nil
+    // Per-pane "scroll to this lineNumber" signals. Set by Go-To-Line,
+    // sidebar bookmarks, find-step, histogram-click, and the merged-view's
+    // "Open in Source Log" jump. NSLogTableView in each pane observes its
+    // own and scrolls when set, then clears.
+    //
+    // Pane-scoped because merged docs use sequential lineNumbers that can
+    // collide with their source docs' lineNumbers — a global binding would
+    // make the merged view mis-scroll any time we navigated the source.
+    @Published var pendingPrimaryGoToLine: Int? = nil
+    @Published var pendingSecondaryGoToLine: Int? = nil
+
+    /// Route a go-to-line to a specific pane. Use this from any code path
+    /// that knows which pane it's acting in.
+    func goToLine(_ line: Int, in pane: Pane) {
+        switch pane {
+        case .primary: pendingPrimaryGoToLine = line
+        case .secondary: pendingSecondaryGoToLine = line
+        }
+    }
 
     let logBrowser = LogBrowserService()
     private var documentSubscriptions: [UUID: AnyCancellable] = [:]
@@ -73,6 +89,19 @@ final class AppState: ObservableObject {
 
     var primaryDocuments: [LogDocument] {
         primaryTabOrder.compactMap { id in documents.first { $0.id == id } }
+    }
+
+    /// Docs the sidebar shows under "Open Files". Hides source docs that
+    /// are only alive because a merged view holds them — those are
+    /// considered "internal" to the merged view and surface via the
+    /// merged row's right-click "Open in <source>" instead of as a
+    /// top-level Open Files entry.
+    var visibleDocuments: [LogDocument] {
+        documents.filter { doc in
+            primaryTabOrder.contains(doc.id)
+                || secondaryTabOrder.contains(doc.id)
+                || !isReferencedByMergedView(documentID: doc.id)
+        }
     }
 
     var secondaryDocuments: [LogDocument] {
@@ -257,10 +286,46 @@ final class AppState: ObservableObject {
             }
         }
 
-        // If nothing references this doc anymore, tear it down fully.
-        if !primaryTabOrder.contains(documentID) && !secondaryTabOrder.contains(documentID) {
-            documentSubscriptions.removeValue(forKey: documentID)
-            documents.removeAll { $0.id == documentID }
+        // Tear down anything that's now unreachable. The sweep, not just an
+        // inline check on `documentID`, is what handles the merged-view
+        // close case: closing a merged doc orphans its sources (now in no
+        // tab order, no longer referenced by any merged view), and the
+        // sweep collects them in the same pass.
+        reapOrphanedDocuments()
+    }
+
+    private func isReferencedByMergedView(documentID: UUID) -> Bool {
+        documents.contains { doc in
+            if case .merged(let ids) = doc.source {
+                return ids.contains(documentID)
+            }
+            return false
+        }
+    }
+
+    /// Removes any docs that are no longer reachable: not in either pane's
+    /// tab order, and not held as a source by any still-open merged doc.
+    /// Runs after a tab close so a merged-view teardown also cleans up any
+    /// sources it was the last reference to.
+    ///
+    /// Iterative because removing a merged doc can orphan its sources,
+    /// which a single-pass filter wouldn't see (the merged doc was still
+    /// `present` at filter time, so its sources were marked referenced).
+    /// Each iteration removes at least one doc; loop terminates in at
+    /// most documents.count rounds.
+    private func reapOrphanedDocuments() {
+        while true {
+            let orphans = documents.filter { doc in
+                !primaryTabOrder.contains(doc.id)
+                    && !secondaryTabOrder.contains(doc.id)
+                    && !isReferencedByMergedView(documentID: doc.id)
+            }
+            if orphans.isEmpty { return }
+            for orphan in orphans {
+                documentSubscriptions.removeValue(forKey: orphan.id)
+            }
+            let orphanIDs = Set(orphans.map(\.id))
+            documents.removeAll { orphanIDs.contains($0.id) }
         }
     }
 
@@ -429,6 +494,61 @@ final class AppState: ObservableObject {
 
     func togglePaneScrollSync() {
         paneScrollSyncEnabled.toggle()
+    }
+
+    // MARK: - Merged views
+
+    /// Tracks which merged view should show its create-sheet next time it's
+    /// visible. Boolean toggle that the Tools menu sets and the sheet
+    /// observes. Kept here (not as @State on a view) because the trigger is
+    /// menu-driven and the sheet attaches to ContentView.
+    @Published var showCreateMergedView: Bool = false
+
+    /// Build a merged-view document over `sources` and open it in the
+    /// primary pane. Display name is "a + b" (or "a + b + 2 more" when
+    /// there are 4+ sources). Caller is responsible for ensuring at least
+    /// 2 sources are passed.
+    ///
+    /// Source tabs are closed in BOTH panes after the merged view opens.
+    /// The source LogDocuments are NOT torn down — closeTab now skips
+    /// teardown when a merged doc holds the source — so source content
+    /// stays alive, the sidebar still lists them under Open Files, and
+    /// "Open in Source Log" can re-tab them on demand.
+    func createMergedView(from sources: [LogDocument]) {
+        guard sources.count >= 2 else { return }
+        let displayName = mergedDisplayName(for: sources)
+        let merged = LogDocument(mergedSources: sources, displayName: displayName)
+        addDocument(merged, to: .primary)
+        for src in sources {
+            if primaryTabOrder.contains(src.id) {
+                closeTab(documentID: src.id, in: .primary)
+            }
+            if secondaryTabOrder.contains(src.id) {
+                closeTab(documentID: src.id, in: .secondary)
+            }
+        }
+    }
+
+    private func mergedDisplayName(for sources: [LogDocument]) -> String {
+        let names = sources.map(\.displayName)
+        if names.count <= 3 {
+            return names.joined(separator: " + ")
+        }
+        let head = names.prefix(2).joined(separator: " + ")
+        return "\(head) + \(names.count - 2) more"
+    }
+
+    /// "Open in Source Log" from a merged-view row. Opens the source doc
+    /// in the secondary pane (entering split if needed) and queues a
+    /// scroll to the source's original lineNumber via the secondary
+    /// pane's go-to-line channel.
+    func openInSourceLog(documentID: UUID, lineNumber: Int) {
+        guard let doc = documents.first(where: { $0.id == documentID }) else { return }
+        addTab(documentID: doc.id, to: .secondary)
+        // Set after addTab so the new (or focused) secondary view picks
+        // it up on its next render. The Published binding on the
+        // secondary's NSLogTableView will fire and scroll into place.
+        pendingSecondaryGoToLine = lineNumber
     }
 
     /// Set the follow state for a pane's active document. When sync is on
