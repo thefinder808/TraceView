@@ -30,6 +30,16 @@ struct NSLogTableView: NSViewRepresentable {
     /// whether anything actually fires here, so passing the publisher even
     /// when sync is off is harmless — no Dates arrive.
     var scrollToTimestampSignal: AnyPublisher<Date, Never> = Empty().eraseToAnyPublisher()
+    /// Visible only for merged-view docs. Renders the source doc's display
+    /// name in the new "Source" column.
+    var showSource: Bool = false
+    /// Returns the display name for a source doc UUID. Only consulted for
+    /// merged-view rendering; for non-merged docs the column is hidden so
+    /// this never fires.
+    var sourceNameForID: (UUID) -> String? = { _ in nil }
+    /// Right-click → "Open in Source Log" handler. Only invoked for entries
+    /// that have `sourceDocumentID` populated (merged-view rows).
+    var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
 
     static let baseRowHeight: CGFloat = 24
     static let drawerHeight: CGFloat = 160
@@ -66,16 +76,11 @@ struct NSLogTableView: NSViewRepresentable {
         tableView.action = #selector(Coordinator.rowClicked(_:))
         tableView.doubleAction = nil
 
-        // Right-click → "Toggle Bookmark" on the clicked row.
+        // Right-click context menu — items are rebuilt by the coordinator
+        // (NSMenuDelegate) before each appearance so "Open in Source Log"
+        // can show only when the clicked row is a merged-view entry.
         let menu = NSMenu()
-        let bookmarkItem = NSMenuItem(
-            title: "Toggle Bookmark",
-            action: #selector(Coordinator.toggleBookmarkMenuAction(_:)),
-            keyEquivalent: "d"
-        )
-        bookmarkItem.keyEquivalentModifierMask = .command
-        bookmarkItem.target = context.coordinator
-        menu.addItem(bookmarkItem)
+        menu.delegate = context.coordinator
         tableView.menu = menu
 
         // Create columns. Max widths relaxed from earlier (timestamp was
@@ -108,6 +113,17 @@ struct NSLogTableView: NSViewRepresentable {
         compCol.minWidth = 60
         compCol.maxWidth = 320
         tableView.addTableColumn(compCol)
+
+        // Source column — visible only on merged-view docs (toggled in
+        // updateNSView). Sits between component and message because that's
+        // the natural read order: timestamp, level, component, source, message.
+        let srcCol = NSTableColumn(identifier: .sourceLabel)
+        srcCol.title = "Source"
+        srcCol.width = 130
+        srcCol.minWidth = 80
+        srcCol.maxWidth = 240
+        srcCol.isHidden = !showSource
+        tableView.addTableColumn(srcCol)
 
         let msgCol = NSTableColumn(identifier: .message)
         msgCol.title = "Message"
@@ -210,6 +226,12 @@ struct NSLogTableView: NSViewRepresentable {
         tableView.tableColumn(withIdentifier: .lineNumber)?.isHidden = !showLineNumbers
         tableView.tableColumn(withIdentifier: .timestamp)?.isHidden = !showTimestamp
         tableView.tableColumn(withIdentifier: .component)?.isHidden = !showComponent
+        tableView.tableColumn(withIdentifier: .sourceLabel)?.isHidden = !showSource
+
+        // Forward callbacks the coordinator needs at notification time
+        // (NSMenu rebuilds, etc).
+        coordinator.sourceNameForID = sourceNameForID
+        coordinator.onOpenInSourceLog = onOpenInSourceLog
 
         // Update rows
         let oldCount = coordinator.previousEntryCount
@@ -287,7 +309,7 @@ struct NSLogTableView: NSViewRepresentable {
 
     // MARK: - Coordinator
 
-    class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate {
+    class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate {
         var parent: NSLogTableView
         var entries: [LogEntry] = []
         var theme: any AppTheme
@@ -302,6 +324,8 @@ struct NSLogTableView: NSViewRepresentable {
         var onFilterToComponent: (LogEntry) -> Void = { _ in }
         var onLookupErrorCode: (String) -> Void = { _ in }
         var onToggleBookmark: (LogEntry) -> Void = { _ in }
+        var sourceNameForID: (UUID) -> String? = { _ in nil }
+        var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
         var bookmarkedLines: Set<Int> = []
         var highlightRules: [HighlightRule] = []
         // Compiled regex per enabled rule, in the same display order as
@@ -496,6 +520,17 @@ struct NSLogTableView: NSViewRepresentable {
                 cell.textColor = NSColor(theme.componentText)
                 cell.alignment = .left
 
+            case .sourceLabel:
+                if let id = entry.sourceDocumentID,
+                   let name = sourceNameForID(id) {
+                    cell.stringValue = name
+                } else {
+                    cell.stringValue = "—"
+                }
+                cell.font = smallFont
+                cell.textColor = NSColor(theme.componentText)
+                cell.alignment = .left
+
             case .message:
                 cell.stringValue = entry.message
                 cell.font = monoFont
@@ -607,6 +642,51 @@ struct NSLogTableView: NSViewRepresentable {
             let row = tableView.clickedRow >= 0 ? tableView.clickedRow : tableView.selectedRow
             guard row >= 0, row < entries.count else { return }
             onToggleBookmark(entries[row])
+        }
+
+        @objc func openInSourceLogMenuAction(_ sender: Any?) {
+            guard let tableView else { return }
+            let row = tableView.clickedRow >= 0 ? tableView.clickedRow : tableView.selectedRow
+            guard row >= 0, row < entries.count else { return }
+            onOpenInSourceLog(entries[row])
+        }
+
+        // MARK: - NSMenuDelegate
+
+        // Rebuild the right-click menu items right before each appearance.
+        // Lets us conditionally include "Open in Source Log" only when the
+        // clicked row is a merged-view entry (has a sourceDocumentID).
+        func menuNeedsUpdate(_ menu: NSMenu) {
+            menu.removeAllItems()
+            guard let tableView else { return }
+            let row = tableView.clickedRow
+            let entry: LogEntry? = (row >= 0 && row < entries.count) ? entries[row] : nil
+
+            let bookmarkItem = NSMenuItem(
+                title: "Toggle Bookmark",
+                action: #selector(toggleBookmarkMenuAction(_:)),
+                keyEquivalent: "d"
+            )
+            bookmarkItem.keyEquivalentModifierMask = .command
+            bookmarkItem.target = self
+            menu.addItem(bookmarkItem)
+
+            if let entry, entry.sourceDocumentID != nil {
+                menu.addItem(NSMenuItem.separator())
+                let sourceLabel: String
+                if let id = entry.sourceDocumentID, let name = sourceNameForID(id) {
+                    sourceLabel = "Open in \(name)"
+                } else {
+                    sourceLabel = "Open in Source Log"
+                }
+                let sourceItem = NSMenuItem(
+                    title: sourceLabel,
+                    action: #selector(openInSourceLogMenuAction(_:)),
+                    keyEquivalent: ""
+                )
+                sourceItem.target = self
+                menu.addItem(sourceItem)
+            }
         }
 
         @objc func rowClicked(_ sender: Any?) {
@@ -767,5 +847,6 @@ extension NSUserInterfaceItemIdentifier {
     static let timestamp = NSUserInterfaceItemIdentifier("timestamp")
     static let level = NSUserInterfaceItemIdentifier("level")
     static let component = NSUserInterfaceItemIdentifier("component")
+    static let sourceLabel = NSUserInterfaceItemIdentifier("sourceLabel")
     static let message = NSUserInterfaceItemIdentifier("message")
 }

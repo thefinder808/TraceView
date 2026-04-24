@@ -13,11 +13,14 @@ struct SidebarView: View {
 
         ScrollView {
             VStack(spacing: 0) {
-                // Open Files section
-                if !appState.documents.isEmpty {
+                // Open Files section. Uses visibleDocuments so merged-view
+                // source docs (held internally by the merged doc) don't
+                // show up as separate entries.
+                let visible = appState.visibleDocuments
+                if !visible.isEmpty {
                     sectionHeader("Open Files", theme: theme)
 
-                    ForEach(appState.documents) { doc in
+                    ForEach(visible) { doc in
                         SidebarDocumentRow(document: doc)
                     }
                 }
@@ -250,7 +253,7 @@ private struct BookmarkRow: View {
         .padding(.horizontal, 6)
         .contentShape(Rectangle())
         .onTapGesture {
-            appState.pendingGoToLine = line
+            appState.goToLine(line, in: .primary)
         }
         .onHover { isHovered = $0 }
         .contextMenu {

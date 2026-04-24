@@ -30,7 +30,7 @@ struct LogDocumentView: View {
             })
 
             // Filter bar
-            FilterBarView(viewModel: viewModel)
+            FilterBarView(viewModel: viewModel, pane: pane)
 
             Divider().background(theme.border)
 
@@ -47,7 +47,7 @@ struct LogDocumentView: View {
                         isFollowing: document.isFollowing,
                         selectedEntry: $selectedEntry,
                         expandedEntryID: $expandedEntryID,
-                        pendingGoToLine: $appState.pendingGoToLine,
+                        pendingGoToLine: paneGoToLineBinding,
                         bookmarkedLines: document.bookmarks,
                         highlightRules: settingsManager.highlightRules,
                         inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
@@ -73,7 +73,16 @@ struct LogDocumentView: View {
                         onVisibleTopChanged: { entry in
                             appState.reportPaneScroll(pane: pane, entry: entry)
                         },
-                        scrollToTimestampSignal: scrollSyncSignal
+                        scrollToTimestampSignal: scrollSyncSignal,
+                        showSource: document.isMerged,
+                        sourceNameForID: { id in
+                            document.mergedSourceNames[id]
+                        },
+                        onOpenInSourceLog: { entry in
+                            guard let id = entry.sourceDocumentID,
+                                  let line = entry.sourceLineNumber else { return }
+                            appState.openInSourceLog(documentID: id, lineNumber: line)
+                        }
                     )
 
                     // Jump to bottom button
@@ -123,8 +132,14 @@ struct LogDocumentView: View {
             appState.toggleBookmark(lineNumber: entry.lineNumber)
         }
         .onChange(of: appState.pendingFindStepTick) { _, _ in
+            // Gated to primary so the menu's ⌘G doesn't fire in BOTH panes
+            // when split is open (each pane's onChange would otherwise
+            // advance its own match cursor and self-scroll). Secondary-pane
+            // search-step support depends on tracking which pane has focus
+            // — queued for v1.0.3.
+            guard pane == .primary else { return }
             guard let line = viewModel.advanceMatch(by: appState.pendingFindStepDirection) else { return }
-            appState.pendingGoToLine = line
+            appState.goToLine(line, in: pane)
         }
         .sheet(isPresented: $appState.showExport) {
             ExportSheet(
@@ -170,7 +185,17 @@ struct LogDocumentView: View {
             return ts >= range.start
         }
         guard let entry = target else { return }
-        appState.pendingGoToLine = entry.lineNumber
+        appState.goToLine(entry.lineNumber, in: pane)
+    }
+
+    /// Per-pane go-to-line binding so each pane only consumes its own
+    /// pending scroll. Required for the merged-view "Open in Source Log"
+    /// flow which needs to scroll one pane without affecting the other.
+    private var paneGoToLineBinding: Binding<Int?> {
+        switch pane {
+        case .primary:   return $appState.pendingPrimaryGoToLine
+        case .secondary: return $appState.pendingSecondaryGoToLine
+        }
     }
 }
 
