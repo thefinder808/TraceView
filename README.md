@@ -23,10 +23,31 @@ Real-time file following, severity-aware highlighting, built-in error-code looku
 - **Saved filter presets** — snapshot the current filter to a named pill in the filter bar. Persisted.
 - **Tabs** — multiple logs open in tabs with live-stream pulse dot.
 - **Console-style sidebar** — browse `/var/log`, `~/Library/Logs`, `/Library/Logs`, plus `.ips` reports split into Crash / Diagnostic / Spin buckets by filename classification (same rule Console.app uses).
-- **Live unified log** — wraps `log stream --style json` for real-time system log capture with optional predicate filtering.
-- **Multiple parsers** — PlainText, UnifiedLog (`log show/stream` JSON), JSONLines, CSV, SCCM. Auto-detected by scoring the first ~50 lines of each file.
+- **Live unified log** — wraps `log stream --style ndjson` for real-time system log capture with optional predicate filtering.
+- **Multiple parsers** — PlainText, UnifiedLog (`log show/stream` JSON), JSONLines (including whole-file arrays), CSV, SCCM, IPS crash reports, and `.diag` diagnostic reports. Auto-detected by scoring the first ~50 lines of each file.
 - **Themes** — Console (default), Light, Dark, Neon.
 - **Keyboard shortcuts** — `Cmd+O` open · `Cmd+F` search · `Cmd+E` next error · `Cmd+Shift+L` error lookup · `Cmd+K` command palette · `Cmd+T` cycle theme. Full list in [spec.md](spec.md#keyboard-shortcuts).
+
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/split-dual-filter.png" alt="Split view with independent filters in each pane"/></td>
+    <td><img src="docs/screenshots/split-err-filter.png" alt="Split view with an ERROR-level filter applied to both panes"/></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Split view with independent filters per pane</sub></td>
+    <td align="center"><sub>Filtered to errors — histogram shows the cluster</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/dark-theme.png" alt="TraceView in the Dark theme"/></td>
+    <td><img src="docs/screenshots/single-err-filter.png" alt="Single pane with histogram and error filter"/></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Dark theme</sub></td>
+    <td align="center"><sub>Single pane — histogram and severity chips up close</sub></td>
+  </tr>
+</table>
 
 ## Requirements
 
@@ -51,7 +72,7 @@ Real-time file following, severity-aware highlighting, built-in error-code looku
 Sources/TraceView/
   App/               @main, scenes, commands, AppState, SettingsManager
   Models/            LogEntry, LogLevel, LogDocument, LogFilter, LogFilterPreset
-  Parsing/           LogParser protocol + five built-in parsers + auto-detect
+  Parsing/           LogParser protocol + seven built-in parsers + auto-detect
   Services/          FileWatcher, UnifiedLogStream, ErrorCodeLookup,
                      LogBrowserService, ExportService
   ViewModels/        LogDocumentViewModel, ErrorLookupViewModel
