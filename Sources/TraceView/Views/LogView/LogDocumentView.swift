@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct LogDocumentView: View {
     @ObservedObject var document: LogDocument
@@ -8,9 +9,11 @@ struct LogDocumentView: View {
     @EnvironmentObject var settingsManager: SettingsManager
     @State private var selectedEntry: LogEntry?
     @State private var expandedEntryID: Int?
+    let pane: Pane
 
-    init(document: LogDocument) {
+    init(document: LogDocument, pane: Pane = .primary) {
         self.document = document
+        self.pane = pane
         self._viewModel = StateObject(wrappedValue: LogDocumentViewModel(document: document))
     }
 
@@ -63,14 +66,18 @@ struct LogDocumentView: View {
                             appState.toggleBookmark(lineNumber: entry.lineNumber)
                         },
                         onScrollUp: {
-                            document.isFollowing = false
-                        }
+                            appState.setFollowing(pane: pane, following: false)
+                        },
+                        onVisibleTopChanged: { entry in
+                            appState.reportPaneScroll(pane: pane, entry: entry)
+                        },
+                        scrollToTimestampSignal: scrollSyncSignal
                     )
 
                     // Jump to bottom button
                     if !document.isFollowing {
                         Button {
-                            document.isFollowing = true
+                            appState.setFollowing(pane: pane, following: true)
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.down.to.line")
@@ -123,6 +130,17 @@ struct LogDocumentView: View {
                 documentName: document.displayName
             )
             .environmentObject(themeManager)
+        }
+    }
+
+    /// Publisher fed to NSLogTableView so the table self-subscribes once at
+    /// makeNSView. Always returned (regardless of sync toggle) — the sender
+    /// side, AppState.reportPaneScroll, gates whether anything actually
+    /// fires, so a disabled sync just means no Dates ever arrive.
+    private var scrollSyncSignal: AnyPublisher<Date, Never> {
+        switch pane {
+        case .primary:   return appState.primaryScrollSyncSignal.eraseToAnyPublisher()
+        case .secondary: return appState.secondaryScrollSyncSignal.eraseToAnyPublisher()
         }
     }
 }

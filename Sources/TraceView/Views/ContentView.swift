@@ -19,7 +19,8 @@ struct ContentView: View {
                 HStack(spacing: 0) {
                     primaryColumn
                     if appState.isSplitView {
-                        Divider().background(themeManager.current.border)
+                        paneSyncDivider
+                            .zIndex(1)
                         secondaryColumn
                     }
                     if appState.showErrorLookup {
@@ -42,13 +43,22 @@ struct ContentView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
+                    appState.openFile(into: .secondary)
+                } label: {
+                    Image(systemName: "rectangle.righthalf.inset.filled")
+                }
+                .hoverTooltip("Open Log File in Right Pane (⇧⌘O)")
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
                     appState.showErrorLookup.toggle()
                 } label: {
                     Image(systemName: appState.showErrorLookup
                           ? "sidebar.right"
                           : "exclamationmark.magnifyingglass")
                 }
-                .help(appState.showErrorLookup ? "Hide Error Lookup" : "Show Error Lookup (⇧⌘L)")
+                .hoverTooltip(appState.showErrorLookup ? "Hide Error Lookup" : "Show Error Lookup (⇧⌘L)")
             }
         }
         .sheet(isPresented: $appState.showGoToLine) {
@@ -67,7 +77,7 @@ struct ContentView: View {
                 TabBarView(pane: .primary)
             }
             if let doc = appState.selectedDocument {
-                LogDocumentView(document: doc)
+                LogDocumentView(document: doc, pane: .primary)
                     .id(doc.id)
                     .frame(maxWidth: .infinity)
             } else {
@@ -85,7 +95,7 @@ struct ContentView: View {
         VStack(spacing: 0) {
             TabBarView(pane: .secondary)
             if let doc = appState.secondaryDocument {
-                LogDocumentView(document: doc)
+                LogDocumentView(document: doc, pane: .secondary)
                     .id("secondary-\(doc.id)")
                     .frame(maxWidth: .infinity)
             } else {
@@ -96,6 +106,43 @@ struct ContentView: View {
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             handleFileDrop(providers: providers, into: .secondary)
         }
+    }
+
+    // MARK: - Pane sync divider
+
+    /// Divider between primary and secondary panes, with a sync-toggle
+    /// button sitting over it. When sync is on the line goes accent-colored
+    /// and thicker, giving a hard-to-miss "these panes are linked" cue.
+    @ViewBuilder
+    private var paneSyncDivider: some View {
+        let theme = themeManager.current
+        let synced = appState.paneScrollSyncEnabled
+
+        ZStack {
+            Rectangle()
+                .fill(synced ? theme.accentColor : theme.border)
+                .frame(width: synced ? 3 : 1)
+
+            Button {
+                appState.togglePaneScrollSync()
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(synced ? theme.accentColor : theme.tableBackground)
+                    Circle()
+                        .stroke(synced ? theme.accentColor : theme.border, lineWidth: 1)
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(synced ? .white : theme.secondaryText)
+                }
+                .frame(width: 26, height: 26)
+            }
+            .buttonStyle(.plain)
+            .hoverTooltip(synced
+                          ? "Disable Pane Scroll Sync (⇧⌘S)"
+                          : "Sync Pane Scrolling (⇧⌘S)")
+        }
+        .frame(width: 26)
     }
 
     // MARK: - File drop

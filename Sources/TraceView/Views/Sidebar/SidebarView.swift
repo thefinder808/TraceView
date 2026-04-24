@@ -383,6 +383,9 @@ struct SidebarDocumentRow: View {
             appState.selectedDocumentID = document.id
         }
         .onHover { isHovered = $0 }
+        .contextMenu {
+            SidebarDocumentContextMenu(document: document)
+        }
     }
 
     private func formatCount(_ count: Int) -> String {
@@ -390,6 +393,44 @@ struct SidebarDocumentRow: View {
             return String(format: "%.1fK", Double(count) / 1000)
         }
         return "\(count)"
+    }
+}
+
+// MARK: - Sidebar Document Context Menu
+
+// Right-click on an Open Files row. Mirrors the tab bar context menu but
+// is pane-agnostic — the sidebar represents the doc globally, not from a
+// specific pane's point of view. Offered actions depend on which panes
+// already have the doc.
+private struct SidebarDocumentContextMenu: View {
+    let document: LogDocument
+    @EnvironmentObject var appState: AppState
+
+    var body: some View {
+        let inPrimary = appState.primaryTabOrder.contains(document.id)
+        let inSecondary = appState.secondaryTabOrder.contains(document.id)
+
+        if inPrimary && !inSecondary {
+            Button("Move to Right Pane") {
+                appState.moveTabToOtherPane(documentID: document.id, from: .primary)
+            }
+            Button("Open in Right Pane") {
+                appState.addTab(documentID: document.id, to: .secondary)
+            }
+            Divider()
+        } else if inSecondary && !inPrimary {
+            Button("Move to Left Pane") {
+                appState.moveTabToOtherPane(documentID: document.id, from: .secondary)
+            }
+            Button("Open in Left Pane") {
+                appState.addTab(documentID: document.id, to: .primary)
+            }
+            Divider()
+        }
+
+        Button("Close", role: .destructive) {
+            appState.closeDocumentEverywhere(document)
+        }
     }
 }
 
