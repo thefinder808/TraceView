@@ -56,10 +56,20 @@ struct SCCMLogParser: LogParser {
         )
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        return f
+    // Immutable prebuilt formatters — safe to read concurrently (each
+    // formatter's `dateFormat` is set once at init). Previously this code
+    // mutated `dateFormat` on a shared static, which races under concurrent
+    // SCCM-log opens.
+    private static let dateFormatters: [DateFormatter] = {
+        [
+            "MM-dd-yyyy HH:mm:ss.SSS",
+            "MM-dd-yyyy HH:mm:ss",
+        ].map { format in
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US_POSIX")
+            f.dateFormat = format
+            return f
+        }
     }()
 
     private func parseDateTime(date: String, time: String) -> Date? {
@@ -74,13 +84,7 @@ struct SCCMLogParser: LogParser {
         }
 
         let combined = "\(date) \(cleanTime)"
-        let f = Self.dateFormatter
-
-        for format in [
-            "MM-dd-yyyy HH:mm:ss.SSS",
-            "MM-dd-yyyy HH:mm:ss"
-        ] {
-            f.dateFormat = format
+        for f in Self.dateFormatters {
             if let date = f.date(from: combined) { return date }
         }
         return nil

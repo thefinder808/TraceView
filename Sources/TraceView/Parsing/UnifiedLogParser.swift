@@ -29,7 +29,6 @@ struct UnifiedLogParser: LogParser {
 
         guard let data = trimmed.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            // Fallback: treat as plain text
             return LogEntry(
                 id: entryID, lineNumber: lineNumber,
                 timestamp: nil, level: .info,
@@ -37,7 +36,32 @@ struct UnifiedLogParser: LogParser {
                 threadID: nil, source: nil, rawLine: line
             )
         }
+        return parseUnifiedEntry(json, lineNumber: lineNumber, entryID: entryID, rawLine: line)
+    }
 
+    /// Handles pretty-printed `log show --style json` exports, which are
+    /// one big JSON array that can't be parsed line-by-line. Returns nil
+    /// for NDJSON-per-line (handled by `parse(line:)`).
+    func parseFile(lines: [String], startingEntryID: Int) -> (entries: [LogEntry], nextID: Int)? {
+        let joined = lines.joined(separator: "\n")
+        guard let data = joined.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data),
+              let array = object as? [[String: Any]] else {
+            return nil
+        }
+
+        var entries: [LogEntry] = []
+        entries.reserveCapacity(array.count)
+        var nextID = startingEntryID
+        for (i, obj) in array.enumerated() {
+            let raw = (try? String(data: JSONSerialization.data(withJSONObject: obj, options: []), encoding: .utf8)) ?? ""
+            entries.append(parseUnifiedEntry(obj, lineNumber: i + 1, entryID: nextID, rawLine: raw))
+            nextID += 1
+        }
+        return (entries, nextID)
+    }
+
+    private func parseUnifiedEntry(_ json: [String: Any], lineNumber: Int, entryID: Int, rawLine: String) -> LogEntry {
         let timestamp = parseTimestamp(json["timestamp"] as? String)
         let level = parseMessageType(json["messageType"] as? String)
         let message = (json["eventMessage"] as? String) ?? ""
@@ -47,7 +71,7 @@ struct UnifiedLogParser: LogParser {
         let category = json["category"] as? String
         let threadID = (json["threadID"] as? Int).map { String($0) }
 
-        // Use subsystem:category as component if available, otherwise process
+        // subsystem:category when present, else process name
         let component: String?
         if let sub = subsystem, !sub.isEmpty {
             if let cat = category, !cat.isEmpty {
@@ -63,7 +87,7 @@ struct UnifiedLogParser: LogParser {
             id: entryID, lineNumber: lineNumber,
             timestamp: timestamp, level: level,
             message: message, component: component,
-            threadID: threadID, source: nil, rawLine: line
+            threadID: threadID, source: nil, rawLine: rawLine
         )
     }
 

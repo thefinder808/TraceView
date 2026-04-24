@@ -93,10 +93,24 @@ struct PlainTextParser: LogParser {
         pattern: #"^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\s+(.*)"#
     )
 
+    // Captures three groups: level, optional component, message. Component
+    // token is constrained to letter-initial alphanumeric/dot/underscore/
+    // dash up to 30 chars to avoid swallowing paths (/path/to/file) or URLs
+    // pre-`://`. The URL-scheme guard in `parseLevelAndComponent` backs
+    // this up for `http`/`https`/`ftp` etc. cases that do match the token
+    // regex but would produce a misleading component.
     private static let bracketLevelPattern: NSRegularExpression? = try? NSRegularExpression(
-        pattern: #"^\[?(DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|CRITICAL|FATAL)\]?\s*:?\s*(.*)"#,
+        pattern: #"^\[?(DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|ERR|CRITICAL|FATAL|CRIT)\]?\s*:?\s*(?:([A-Za-z][A-Za-z0-9._-]{0,30}):\s+)?(.*)"#,
         options: .caseInsensitive
     )
+
+    // Tokens that would match the component regex above but are almost
+    // certainly a URL scheme introducing a URL in the message. If the
+    // captured "component" matches one of these AND the remaining message
+    // starts with `//`, we discard the component capture.
+    private static let urlSchemeTokens: Set<String> = [
+        "http", "https", "ftp", "file", "mailto", "data", "ws", "wss", "s3", "gs"
+    ]
 
     private static let isoFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
@@ -153,6 +167,35 @@ struct PlainTextParser: LogParser {
         return f
     }()
 
+    /// Formats without a year in the pattern (`MMM dd HH:mm:ss`, `EEE MMM d
+    /// HH:mm:ss.SSS`) cause DateFormatter to fall back to year 2000. Real
+    /// macOS logs use these formats heavily, so without this fixup every
+    /// BSD-syslog and Apple-daemon entry would render decades old.
+    ///
+    /// Fix: if the parsed year looks like a default (< 2020), rebuild the
+    /// date in the current calendar year. Rollover heuristic: if that puts
+    /// the result >1 day in the future, subtract a year (handles parsing
+    /// a December-dated log on January 1).
+    static func injectYearIfMissing(_ date: Date?, now: Date = Date()) -> Date? {
+        guard let date else { return nil }
+        let cal = Calendar(identifier: .gregorian)
+        let year = cal.component(.year, from: date)
+        guard year < 2020 else { return date }
+
+        let currentYear = cal.component(.year, from: now)
+        var comps = cal.dateComponents([.month, .day, .hour, .minute, .second, .nanosecond], from: date)
+        comps.year = currentYear
+        guard var candidate = cal.date(from: comps) else { return date }
+
+        // 1-day tolerance handles timezone skew without accidentally
+        // kicking a legitimately-recent log back a year.
+        if candidate.timeIntervalSince(now) > 86_400 {
+            comps.year = currentYear - 1
+            candidate = cal.date(from: comps) ?? candidate
+        }
+        return candidate
+    }
+
     private static func parseDatedSyslog(_ s: String) -> Date? {
         // Try both ISO8601DateFormatter variants first (fast and lenient
         // for well-formed ISO strings). Fall back to per-format
@@ -193,7 +236,7 @@ struct PlainTextParser: LogParser {
                 level = l
                 message = m
             }
-            let timestamp = Self.syslogFormatter.date(from: timeStr)
+            let timestamp = Self.injectYearIfMissing(Self.syslogFormatter.date(from: timeStr))
             return LogEntry(
                 id: entryID, lineNumber: lineNumber,
                 timestamp: timestamp, level: level,
@@ -209,7 +252,7 @@ struct PlainTextParser: LogParser {
             let timeStr = nsLine.substring(with: match.range(at: 1))
             let component = nsLine.substring(with: match.range(at: 2))
             let message = nsLine.substring(with: match.range(at: 3))
-            let timestamp = Self.appleDaemonFormatter.date(from: timeStr)
+            let timestamp = Self.injectYearIfMissing(Self.appleDaemonFormatter.date(from: timeStr))
             let level = LevelDetector.detect(in: message)
             return LogEntry(
                 id: entryID, lineNumber: lineNumber,
@@ -344,16 +387,17 @@ struct PlainTextParser: LogParser {
             )
         }
 
-        // 9. Bracketed level prefix only (no timestamp)
+        // 9. Bracketed level prefix only (no timestamp). Uses the same
+        //    parseLevelAndComponent path as the timestamped branches so
+        //    the optional `component:` and URL-scheme guard behave
+        //    consistently.
         if let regex = Self.bracketLevelPattern,
-           let match = regex.firstMatch(in: trimmed, range: fullRange),
-           match.numberOfRanges >= 3 {
-            let levelStr = nsLine.substring(with: match.range(at: 1))
-            let message = nsLine.substring(with: match.range(at: 2))
+           regex.firstMatch(in: trimmed, range: fullRange) != nil {
+            let (level, message, component) = parseLevelAndComponent(from: trimmed)
             return LogEntry(
                 id: entryID, lineNumber: lineNumber,
-                timestamp: nil, level: parseLevel(levelStr),
-                message: message, component: nil,
+                timestamp: nil, level: level,
+                message: message, component: component,
                 threadID: nil, source: nil, rawLine: line
             )
         }
@@ -410,10 +454,25 @@ struct PlainTextParser: LogParser {
 
         if let regex = Self.bracketLevelPattern,
            let match = regex.firstMatch(in: text, range: fullRange),
-           match.numberOfRanges >= 3 {
+           match.numberOfRanges >= 4 {
             let levelStr = nsText.substring(with: match.range(at: 1))
-            let message = nsText.substring(with: match.range(at: 2))
-            return (parseLevel(levelStr), message, nil)
+            let compRange = match.range(at: 2)
+            var component: String? = compRange.location != NSNotFound
+                ? nsText.substring(with: compRange)
+                : nil
+            let message = nsText.substring(with: match.range(at: 3))
+
+            // URL-scheme guard: "[INFO] http://example.com failed" should
+            // not produce component="http". If the extracted component is a
+            // known URL scheme and the message begins with "//", reconstitute
+            // the full URL as the message.
+            if let c = component, Self.urlSchemeTokens.contains(c.lowercased()),
+               message.hasPrefix("//") {
+                component = nil
+                return (parseLevel(levelStr), "\(c)://\(message.dropFirst(2))", nil)
+            }
+
+            return (parseLevel(levelStr), message, component)
         }
         return (LevelDetector.detect(in: text), text, nil)
     }
