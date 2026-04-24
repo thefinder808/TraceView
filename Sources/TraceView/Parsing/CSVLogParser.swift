@@ -122,22 +122,27 @@ struct CSVLogParser: LogParser {
         return ["debug", "trace", "info", "notice", "warn", "warning", "error", "fatal", "critical"].contains(lower)
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        return f
-    }()
-
-    private func parseDate(_ str: String) -> Date? {
-        let f = Self.dateFormatter
-        for format in [
+    // Immutable prebuilt formatters — safe to read concurrently (each
+    // formatter's `dateFormat` is set once at init). Previously this code
+    // mutated `dateFormat` on a shared static, which races when multiple
+    // CSV files are parsed in parallel.
+    private static let dateFormatters: [DateFormatter] = {
+        [
             "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
             "yyyy-MM-dd'T'HH:mm:ssZ",
             "yyyy-MM-dd HH:mm:ss.SSS",
             "yyyy-MM-dd HH:mm:ss",
-            "MM/dd/yyyy HH:mm:ss"
-        ] {
+            "MM/dd/yyyy HH:mm:ss",
+        ].map { format in
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US_POSIX")
             f.dateFormat = format
+            return f
+        }
+    }()
+
+    private func parseDate(_ str: String) -> Date? {
+        for f in Self.dateFormatters {
             if let date = f.date(from: str) { return date }
         }
         return nil
