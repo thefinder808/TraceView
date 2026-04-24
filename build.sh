@@ -156,23 +156,33 @@ build_and_notarize() {
   codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
   codesign --display --verbose=2 "$APP_BUNDLE" 2>&1 | grep -E "Authority|TeamIdentifier|flags" || true
 
-  # 4. Build the DMG via hdiutil. Layout: staging folder holds the .app
-  #    plus a symlink to /Applications so the user drags to install.
-  echo "→ Building DMG…"
+  # 4. Build the DMG via create-dmg — positioned icons, sized window,
+  #    hidden .app extension, drag-to-/Applications UX. Much nicer than
+  #    raw hdiutil (which gives you a plain file list). Requires:
+  #      brew install create-dmg
+  #    create-dmg uses AppleScript under the hood to set the Finder view,
+  #    which may prompt for "System Events" / "Finder" automation the
+  #    first time — allow it in System Settings → Privacy & Security →
+  #    Automation if you hit that dialog.
+  echo "→ Building DMG with create-dmg…"
   rm -rf "$dmg_staging"
   mkdir -p "$dmg_staging" "$dist_dir"
   cp -R "$APP_BUNDLE" "$dmg_staging/"
-  ln -s /Applications "$dmg_staging/Applications"
   rm -f "$dmg_path"
-  hdiutil create \
-    -volname "$APP_NAME" \
-    -srcfolder "$dmg_staging" \
-    -ov \
-    -format UDZO \
-    "$dmg_path" >/dev/null
+  create-dmg \
+    --volname "$APP_NAME" \
+    --window-size 540 380 \
+    --icon-size 128 \
+    --icon "${APP_NAME}.app" 140 190 \
+    --hide-extension "${APP_NAME}.app" \
+    --app-drop-link 400 190 \
+    --no-internet-enable \
+    "$dmg_path" \
+    "$dmg_staging"
 
   # 5. Sign the DMG itself so Gatekeeper treats the container as first-
   #    class (no "downloaded from the internet" scan on end-user machines).
+  #    Timestamped so notarization accepts it.
   echo "→ Signing DMG…"
   codesign --force --sign "$DEVELOPER_ID" --timestamp "$dmg_path"
 
