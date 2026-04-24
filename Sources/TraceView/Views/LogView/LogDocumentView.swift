@@ -25,7 +25,9 @@ struct LogDocumentView: View {
             SeveritySummaryBar(document: document, viewModel: viewModel)
 
             // Event density histogram (hidden if timestamps unavailable)
-            HistogramView(document: document)
+            HistogramView(document: document, onBucketClick: { bucketIndex in
+                jumpToBucket(bucketIndex)
+            })
 
             // Filter bar
             FilterBarView(viewModel: viewModel)
@@ -142,6 +144,33 @@ struct LogDocumentView: View {
         case .primary:   return appState.primaryScrollSyncSignal.eraseToAnyPublisher()
         case .secondary: return appState.secondaryScrollSyncSignal.eraseToAnyPublisher()
         }
+    }
+
+    /// Histogram bucket click → find the first entry in the bucket's time
+    /// range that survives the current filter, then route through the
+    /// standard go-to-line channel so scroll + selection land the same way
+    /// ⌘L does. Respecting the filter matters because the histogram shows
+    /// unfiltered density but the table only renders the filtered slice;
+    /// jumping to a filtered-out line would be a dead-end.
+    ///
+    /// Pausing follow is handled downstream: NSLogTableView's pendingGoToLine
+    /// path invokes onScrollUp() after scrolling, which routes through
+    /// appState.setFollowing and mirrors to the other pane when sync is on.
+    ///
+    /// Lookup walks `filteredEntries` in line order, so for severely out-of-
+    /// order logs (multi-threaded, post-merged) the landing entry is the
+    /// first by line whose timestamp falls in the bucket — not necessarily
+    /// the first by timestamp. Defensible: clicking a histogram bucket
+    /// should land on a real, visible row.
+    private func jumpToBucket(_ index: Int) {
+        guard let histogram = document.histogram else { return }
+        let range = histogram.timeRange(forBucket: index)
+        let target = viewModel.filteredEntries.first { entry in
+            guard let ts = entry.timestamp else { return false }
+            return ts >= range.start
+        }
+        guard let entry = target else { return }
+        appState.pendingGoToLine = entry.lineNumber
     }
 }
 

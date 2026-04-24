@@ -434,13 +434,24 @@ final class AppState: ObservableObject {
     /// Set the follow state for a pane's active document. When sync is on
     /// and the split is open, the other pane mirrors the change so a pause
     /// or resume in one pane affects both.
+    ///
+    /// Idempotent on purpose: if isFollowing already equals `following`,
+    /// we skip the write so we don't fire @Published/objectWillChange for
+    /// no reason. Re-entrant callers (pendingGoToLine + onScrollUp pathway,
+    /// scroll observers re-arming after a programmatic scroll) would
+    /// otherwise cascade observer updates that SwiftUI flags as "mutation
+    /// during view update" with expensive backtrace logging.
     func setFollowing(pane: Pane, following: Bool) {
         let target = pane == .primary ? selectedDocument : secondaryDocument
-        target?.isFollowing = following
+        if let target, target.isFollowing != following {
+            target.isFollowing = following
+        }
 
         if paneScrollSyncEnabled, isSplitView {
             let other = pane == .primary ? secondaryDocument : selectedDocument
-            other?.isFollowing = following
+            if let other, other.isFollowing != following {
+                other.isFollowing = following
+            }
         }
     }
 }

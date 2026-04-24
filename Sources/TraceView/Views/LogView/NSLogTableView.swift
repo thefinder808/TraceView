@@ -243,12 +243,18 @@ struct NSLogTableView: NSViewRepresentable {
         // Go-to-line: scroll to the row whose lineNumber matches, then clear
         // the pending binding on the next tick so subsequent updateNSView
         // passes don't keep re-scrolling to the same spot. onScrollUp
-        // signals the parent to pause following so the landing spot sticks.
+        // signals the parent to pause following so the landing spot sticks —
+        // dispatched async so the @Published mutation it performs happens
+        // OUTSIDE this view-update pass. Mutating ObservableObject state
+        // synchronously inside updateNSView triggers SwiftUI's "mutating
+        // during view update" warning, and each warning generates a dyld
+        // backtrace that can hang the main thread for seconds when the
+        // mutation fans out via observer chains.
         if let target = pendingGoToLine {
             if let row = entries.firstIndex(where: { $0.lineNumber == target }) {
                 tableView.scrollRowToVisible(row)
                 tableView.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
-                onScrollUp()
+                DispatchQueue.main.async { [onScrollUp] in onScrollUp() }
             }
             let binding = $pendingGoToLine
             DispatchQueue.main.async { binding.wrappedValue = nil }

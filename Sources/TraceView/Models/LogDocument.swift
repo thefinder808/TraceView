@@ -417,7 +417,9 @@ final class LogDocument: ObservableObject, Identifiable {
             bars: bars,
             maxTotal: maxTotal,
             startLabel: formatter.string(from: first),
-            endLabel: formatter.string(from: last)
+            endLabel: formatter.string(from: last),
+            startTime: first,
+            bucketSize: bucketSize
         )
     }
 
