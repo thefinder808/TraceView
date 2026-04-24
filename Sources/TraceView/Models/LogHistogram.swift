@@ -15,4 +15,14 @@ struct LogHistogram {
     let maxTotal: Int
     let startLabel: String
     let endLabel: String
+    let startTime: Date
+    let bucketSize: TimeInterval
+
+    /// Time range covered by the given bucket — used by histogram
+    /// click-to-navigate to resolve a click position into an entry.
+    func timeRange(forBucket index: Int) -> (start: Date, end: Date) {
+        let start = startTime.addingTimeInterval(Double(index) * bucketSize)
+        let end = start.addingTimeInterval(bucketSize)
+        return (start, end)
+    }
 }
