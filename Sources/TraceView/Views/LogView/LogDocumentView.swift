@@ -65,7 +65,15 @@ struct LogDocumentView: View {
                             appState.lookupErrorCode(code)
                         },
                         onToggleBookmark: { entry in
-                            appState.toggleBookmark(lineNumber: entry.lineNumber)
+                            // Mutate the pane's own document directly —
+                            // not via AppState — so right-clicking in
+                            // secondary doesn't bookmark on primary's
+                            // doc. Same fix shape as the ⌘D observer.
+                            if document.bookmarks.contains(entry.lineNumber) {
+                                document.bookmarks.remove(entry.lineNumber)
+                            } else {
+                                document.bookmarks.insert(entry.lineNumber)
+                            }
                         },
                         onScrollUp: {
                             appState.setFollowing(pane: pane, following: false)
@@ -127,18 +135,45 @@ struct LogDocumentView: View {
             viewModel.findMode = settingsManager.defaultFindMode
             viewModel.load()
         }
+        .onChange(of: selectedEntry?.lineNumber) { _, newValue in
+            // Selecting a row in this pane marks it active. nil transitions
+            // (filter-driven entry-list churn) don't count as user intent.
+            if newValue != nil { appState.activePane = pane }
+        }
         .onChange(of: appState.pendingBookmarkToggleTick) { _, _ in
+            guard pane == appState.activePane else { return }
             guard let entry = selectedEntry else { return }
-            appState.toggleBookmark(lineNumber: entry.lineNumber)
+            if document.bookmarks.contains(entry.lineNumber) {
+                document.bookmarks.remove(entry.lineNumber)
+            } else {
+                document.bookmarks.insert(entry.lineNumber)
+            }
         }
         .onChange(of: appState.pendingFindStepTick) { _, _ in
-            // Gated to primary so the menu's ⌘G doesn't fire in BOTH panes
-            // when split is open (each pane's onChange would otherwise
-            // advance its own match cursor and self-scroll). Secondary-pane
-            // search-step support depends on tracking which pane has focus
-            // — queued for v1.0.3.
-            guard pane == .primary else { return }
-            guard let line = viewModel.advanceMatch(by: appState.pendingFindStepDirection) else { return }
+            guard pane == appState.activePane else { return }
+            let delta = appState.pendingFindStepDirection
+            // ⌘G in filter mode is otherwise a silent no-op — `matches`
+            // is empty by design in filter mode. Auto-flip to find mode
+            // when there's a query so the user gets the universal
+            // "find next" behavior they expect from the shortcut.
+            if viewModel.findMode == .filter && !viewModel.filter.searchText.isEmpty {
+                viewModel.findMode = .find
+                // The $findMode sink fires from willSet, so the applyFilter
+                // it triggers reads the OLD findMode and builds a stale
+                // task. Re-run applyFilter explicitly now that storage has
+                // updated; it cancels the stale task and starts a fresh
+                // one against find-mode logic. awaitPendingFilter then
+                // awaits the correct (find-mode) task.
+                viewModel.applyFilter()
+                Task { @MainActor in
+                    await viewModel.awaitPendingFilter()
+                    if let line = viewModel.advanceMatch(by: delta) {
+                        appState.goToLine(line, in: pane)
+                    }
+                }
+                return
+            }
+            guard let line = viewModel.advanceMatch(by: delta) else { return }
             appState.goToLine(line, in: pane)
         }
         .sheet(isPresented: $appState.showExport) {

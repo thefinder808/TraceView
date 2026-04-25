@@ -67,6 +67,7 @@ struct TabBarView: View {
         case .primary: appState.selectedDocumentID = id
         case .secondary: appState.secondarySelectedDocumentID = id
         }
+        appState.activePane = pane
     }
 }
 
