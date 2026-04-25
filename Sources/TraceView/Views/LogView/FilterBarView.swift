@@ -123,7 +123,17 @@ struct FilterBarView: View {
         .frame(height: 36)
         .background(theme.filterBarBackground)
         .onChange(of: appState.focusSearchTick) { _, _ in
+            // Both panes observe the global tick; only the active pane
+            // should grab focus, otherwise primary always wins the SwiftUI
+            // single-focus race.
+            guard pane == appState.activePane else { return }
             isSearchFocused = true
+        }
+        .onChange(of: isSearchFocused) { _, focused in
+            // Clicking into this pane's search field marks the pane active
+            // so ⌘G / ⇧⌘G / ⌘D land here, even before the user has clicked
+            // a row.
+            if focused { appState.activePane = pane }
         }
     }
 

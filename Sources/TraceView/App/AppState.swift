@@ -22,6 +22,13 @@ final class AppState: ObservableObject {
     @Published var selectedDocumentID: UUID? = nil
     @Published var secondarySelectedDocumentID: UUID? = nil
 
+    /// Pane the user most recently interacted with. Drives where menu
+    /// shortcuts ⌘F / ⌘G / ⇧⌘G / ⌘D land when split is open. Updated on
+    /// row selection, tab tap, and filter-bar focus. Resets to .primary
+    /// when the split closes so a stale .secondary doesn't no-op the
+    /// next shortcut.
+    @Published var activePane: Pane = .primary
+
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
     @Published var showExport: Bool = false
@@ -68,6 +75,37 @@ final class AppState: ObservableObject {
         switch pane {
         case .primary: pendingPrimaryGoToLine = line
         case .secondary: pendingSecondaryGoToLine = line
+        }
+    }
+
+    /// Navigate to a line in a specific document, switching the right
+    /// pane's selected tab to the doc first if needed. Used by sidebar
+    /// bookmark clicks where the doc may not be the currently-selected
+    /// tab in either pane. Routing prefers primary when the doc is in
+    /// both pane orders.
+    func goToLine(_ line: Int, in document: LogDocument) {
+        let docID = document.id
+        let targetPane: Pane
+        if primaryTabOrder.contains(docID) {
+            selectedDocumentID = docID
+            targetPane = .primary
+        } else if secondaryTabOrder.contains(docID) {
+            secondarySelectedDocumentID = docID
+            targetPane = .secondary
+        } else {
+            // Doc has bookmarks but isn't in either pane (e.g. a merged-
+            // source doc that was hidden when its merged view took over).
+            // Reopen it in primary as a defensive fallback.
+            primaryTabOrder.append(docID)
+            selectedDocumentID = docID
+            targetPane = .primary
+        }
+        activePane = targetPane
+        // The tab-swap above may swap out a LogDocumentView, so let the
+        // new view mount before firing the scroll signal — otherwise the
+        // freshly-subscribed NSLogTableView misses the published value.
+        DispatchQueue.main.async { [weak self] in
+            self?.goToLine(line, in: targetPane)
         }
     }
 
@@ -241,6 +279,7 @@ final class AppState: ObservableObject {
         }
         secondaryTabOrder = []
         secondarySelectedDocumentID = nil
+        activePane = .primary
     }
 
     // MARK: - Document management
@@ -284,6 +323,17 @@ final class AppState: ObservableObject {
             if secondarySelectedDocumentID == documentID {
                 secondarySelectedDocumentID = secondaryTabOrder.first
             }
+        }
+
+        // If the secondary pane was closed tab-by-tab, the split is now
+        // gone — clear activePane so subsequent ⌘G/⇧⌘G/⌘D/⌘F don't no-op
+        // against a pane that no longer exists. Guarded against no-op
+        // writes because closeTab is called in a tight loop from
+        // createMergedView (closing source tabs); spurious @Published
+        // fires there cascaded through SwiftUI and broke the freshly-
+        // mounted merged view's first filteredEntries build.
+        if !isSplitView && activePane != .primary {
+            activePane = .primary
         }
 
         // Tear down anything that's now unreachable. The sweep, not just an
@@ -441,16 +491,6 @@ final class AppState: ObservableObject {
     func lookupErrorCode(_ code: String) {
         pendingErrorLookupCode = code
         showErrorLookup = true
-    }
-
-    /// Toggle a bookmark on the given line of the selected document.
-    func toggleBookmark(lineNumber: Int) {
-        guard let doc = selectedDocument else { return }
-        if doc.bookmarks.contains(lineNumber) {
-            doc.bookmarks.remove(lineNumber)
-        } else {
-            doc.bookmarks.insert(lineNumber)
-        }
     }
 
     /// Fires the main-menu ⌘D shortcut. LogDocumentView observes this tick

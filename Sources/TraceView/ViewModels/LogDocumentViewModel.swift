@@ -110,6 +110,14 @@ final class LogDocumentViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    /// Awaits any in-flight `applyFilter` task. Used by ⌘G's auto-flip
+    /// path so the call site can step matches *after* the rebuild from a
+    /// findMode change has populated `matches`.
+    @MainActor
+    func awaitPendingFilter() async {
+        await filterTask?.value
+    }
+
     func applyFilter() {
         filterTask?.cancel()
 

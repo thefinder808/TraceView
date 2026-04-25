@@ -277,9 +277,14 @@ struct NSLogTableView: NSViewRepresentable {
                 tableView.scrollRowToVisible(row)
                 tableView.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
                 DispatchQueue.main.async { [onScrollUp] in onScrollUp() }
+                // Only clear the pending value once we've actually landed
+                // on a row. Sticky on lookup miss so that a goToLine fired
+                // before the new pane's filteredEntries finished its first
+                // async build (e.g. sidebar bookmark click that just
+                // swapped tabs) still lands once entries arrive.
+                let binding = $pendingGoToLine
+                DispatchQueue.main.async { binding.wrappedValue = nil }
             }
-            let binding = $pendingGoToLine
-            DispatchQueue.main.async { binding.wrappedValue = nil }
         }
 
         // Height-only change: refresh affected rows so the drawer opens/closes.

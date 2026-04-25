@@ -25,9 +25,16 @@ struct SidebarView: View {
                     }
                 }
 
-                // Bookmarks for the selected document (if any).
-                if let doc = appState.selectedDocument, !doc.bookmarks.isEmpty {
-                    SidebarBookmarksSection(document: doc)
+                // Bookmarks across all open documents — including merged-
+                // source docs that are hidden from Open Files. The click
+                // handler routes through goToLine(_:in:) which reopens
+                // the source doc as a tab if needed, so the bookmark is
+                // still actionable when its parent has joined a merged
+                // view.
+                let bookmarkedDocs = appState.documents
+                    .filter { !$0.bookmarks.isEmpty }
+                if !bookmarkedDocs.isEmpty {
+                    SidebarBookmarksSection(documents: bookmarkedDocs)
                 }
 
                 // Reports — mirrors Console.app's sidebar grouping
@@ -182,17 +189,18 @@ struct SidebarView: View {
 
 // MARK: - Bookmarks Section
 
-// Lists the selected document's bookmarked line numbers. Clicking an entry
-// routes through AppState.pendingGoToLine → NSLogTableView scroll.
-// Right-click → Remove Bookmark.
+// Single "Bookmarks" header followed by a per-doc subsection (doc name +
+// line list). Aggregates across all open docs so a bookmark in the
+// secondary pane's doc still appears here. Clicking a row routes through
+// AppState.goToLine(_:in:LogDocument) which swaps the right tab in and
+// jumps. Right-click → Remove Bookmark.
 private struct SidebarBookmarksSection: View {
-    @ObservedObject var document: LogDocument
-    @EnvironmentObject var appState: AppState
+    let documents: [LogDocument]
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         let theme = themeManager.current
-        let sorted = document.bookmarks.sorted()
+        let totalCount = documents.reduce(0) { $0 + $1.bookmarks.count }
 
         VStack(spacing: 0) {
             HStack(spacing: 6) {
@@ -208,7 +216,7 @@ private struct SidebarBookmarksSection: View {
 
                 Spacer()
 
-                Text("\(sorted.count)")
+                Text("\(totalCount)")
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(theme.tertiaryText)
                     .monospacedDigit()
@@ -216,6 +224,34 @@ private struct SidebarBookmarksSection: View {
             .padding(.horizontal, 12)
             .padding(.top, 16)
             .padding(.bottom, 6)
+
+            ForEach(documents) { doc in
+                BookmarkDocGroup(document: doc, theme: theme)
+            }
+        }
+    }
+}
+
+// One doc's bookmarks: a small subheading with the doc's display name
+// followed by its sorted line list. Visible only when the doc has at
+// least one bookmark (guarded by SidebarBookmarksSection's filter).
+private struct BookmarkDocGroup: View {
+    @ObservedObject var document: LogDocument
+    let theme: any AppTheme
+
+    var body: some View {
+        let sorted = document.bookmarks.sorted()
+
+        VStack(spacing: 0) {
+            Text(document.displayName)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(theme.tertiaryText)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 18)
+                .padding(.top, 4)
+                .padding(.bottom, 2)
 
             ForEach(sorted, id: \.self) { line in
                 BookmarkRow(document: document, line: line, theme: theme)
@@ -243,6 +279,26 @@ private struct BookmarkRow: View {
                 .monospacedDigit()
 
             Spacer()
+
+            // Close button mirrors SidebarDocumentRow's: visible on hover,
+            // removes this bookmark. Right-click → Remove Bookmark still
+            // works for keyboard-driven users.
+            if isHovered {
+                Button {
+                    document.bookmarks.remove(line)
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(theme.tertiaryText)
+                        .frame(width: 16, height: 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(theme.sidebarHover)
+                        )
+                }
+                .buttonStyle(.plain)
+                .help("Remove bookmark")
+            }
         }
         .padding(.horizontal, 12)
         .frame(height: 26)
@@ -253,7 +309,7 @@ private struct BookmarkRow: View {
         .padding(.horizontal, 6)
         .contentShape(Rectangle())
         .onTapGesture {
-            appState.goToLine(line, in: .primary)
+            appState.goToLine(line, in: document)
         }
         .onHover { isHovered = $0 }
         .contextMenu {
