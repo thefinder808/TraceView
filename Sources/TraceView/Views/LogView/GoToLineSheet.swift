@@ -58,7 +58,8 @@ struct GoToLineSheet: View {
 
     private func submit() {
         guard let line = parsed else { return }
-        appState.pendingGoToLine = line
+        // Sheet always targets the active (primary-pane) doc.
+        appState.goToLine(line, in: .primary)
         dismiss()
     }
 }

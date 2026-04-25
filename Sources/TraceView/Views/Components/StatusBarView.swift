@@ -4,6 +4,7 @@ struct StatusBarView: View {
     @ObservedObject var document: LogDocument
     @ObservedObject var viewModel: LogDocumentViewModel
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var appState: AppState
 
     var body: some View {
         let theme = themeManager.current
@@ -40,6 +41,21 @@ struct StatusBarView: View {
             }
 
             Spacer()
+
+            // SYNCED pill — only visible while the two panes are actively
+            // kept in scroll-lock. Placed next to the Following indicator
+            // so the two "pane-wide mode flags" sit together.
+            if appState.paneScrollSyncEnabled && appState.isSplitView {
+                statusItem(theme: theme) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 10, weight: .semibold))
+                    Text("SYNCED")
+                        .fontWeight(.semibold)
+                }
+                .foregroundStyle(theme.accentColor)
+
+                statusDivider(theme: theme)
+            }
 
             // Following / Paused / Stalled + rolling rate
             statusItem(theme: theme) {

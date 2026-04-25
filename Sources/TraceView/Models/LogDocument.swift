@@ -61,6 +61,15 @@ final class LogDocument: ObservableObject, Identifiable {
     private var histogramTask: Task<Void, Never>?
     private var loadTask: Task<Void, Never>?
 
+    // For .merged sources: held via the dedicated init so we don't need a
+    // global doc lookup. nil for any other source kind. Append-subscriptions
+    // live in mergedAppendCancellables so they can be torn down with the doc.
+    private var mergedSources: [LogDocument] = []
+    private var mergedAppendCancellables = Set<AnyCancellable>()
+    /// Source-displayName cache for the Source column. Rebuilt only when
+    /// the merged sources list changes (rarely / never post-init).
+    private(set) var mergedSourceNames: [UUID: String] = [:]
+
     // Bucket count for the minimap — matches the design handoff.
     private static let histogramBucketCount = 60
 
@@ -90,6 +99,21 @@ final class LogDocument: ObservableObject, Identifiable {
             }
     }
 
+    /// Convenience init for merged-view docs. Holds the source LogDocuments
+    /// directly so loadMerged() can subscribe to their didAppend without
+    /// going through AppState. Display name is conventionally
+    /// "a.log + b.log" — caller decides.
+    convenience init(mergedSources: [LogDocument], displayName: String) {
+        let ids = mergedSources.map { $0.id }
+        self.init(source: .merged(sourceIDs: ids), displayName: displayName)
+        self.mergedSources = mergedSources
+        self.mergedSourceNames = Dictionary(
+            uniqueKeysWithValues: mergedSources.map { ($0.id, $0.displayName) }
+        )
+        // Live by definition: as long as any source ticks, we tick.
+        self.isLive = mergedSources.contains { $0.isLive }
+    }
+
     deinit {
         fileWatcher?.stop()
         logStream?.stop()
@@ -116,6 +140,12 @@ final class LogDocument: ObservableObject, Identifiable {
             startLogStream(predicate: predicate)
         case .stdin:
             break
+        case .merged:
+            guard mergedAppendCancellables.isEmpty else { return }
+            // loadMerged is @MainActor; load() callers (LogDocumentView's
+            // .onAppear chain) are already on main, but the compiler can't
+            // prove it from this nonisolated method, so dispatch explicitly.
+            Task { @MainActor [weak self] in self?.loadMerged() }
         }
     }
 
@@ -216,6 +246,114 @@ final class LogDocument: ObservableObject, Identifiable {
         if !compressed {
             startWatching(url: url)
         }
+    }
+
+    // MARK: - Merged-view loading
+
+    /// Initial merge across all sources, then subscribe to each source's
+    /// didAppend so subsequent source appends extend the merged stream.
+    ///
+    /// **Live append model:** new entries from any source are appended to
+    /// the end of the merged entries array, in arrival order — they are
+    /// NOT inserted at their timestamp position. This keeps lineNumbers
+    /// stable, which matters because pane filteredEntries snapshots and
+    /// scroll positions reference them. The trade-off: if source A is
+    /// historical (old timestamps) and source B is live-tailing now, B's
+    /// new entries still land at the end even though their timestamps
+    /// would sort before some of A's existing entries. For the common
+    /// merged-view use case (correlating two live streams), source
+    /// timestamps stay roughly monotonic together and this is fine.
+    @MainActor
+    private func loadMerged() {
+        guard !mergedSources.isEmpty else { return }
+        isLoading = true
+
+        // 1. Initial merge: pull all current entries from each source,
+        //    tag with source identity, drop untimestamped (no place for
+        //    them in a chronological merge), sort by timestamp.
+        var combined: [LogEntry] = []
+        for source in mergedSources {
+            for entry in source.entries where entry.timestamp != nil {
+                var tagged = entry
+                tagged.sourceDocumentID = source.id
+                tagged.sourceLineNumber = entry.lineNumber
+                combined.append(tagged)
+            }
+        }
+        combined.sort { ($0.timestamp ?? .distantPast) < ($1.timestamp ?? .distantPast) }
+
+        // 2. Reassign sequential lineNumbers + entry IDs. Source-line and
+        //    source-doc references are preserved on the entry for the
+        //    "Open in Source Log" jump.
+        var renumbered: [LogEntry] = []
+        renumbered.reserveCapacity(combined.count)
+        for (i, entry) in combined.enumerated() {
+            renumbered.append(LogEntry(
+                id: nextEntryID,
+                lineNumber: i + 1,
+                timestamp: entry.timestamp,
+                level: entry.level,
+                message: entry.message,
+                component: entry.component,
+                threadID: entry.threadID,
+                source: entry.source,
+                rawLine: entry.rawLine,
+                sourceDocumentID: entry.sourceDocumentID,
+                sourceLineNumber: entry.sourceLineNumber
+            ))
+            nextEntryID += 1
+        }
+
+        entries = renumbered
+        updateColumnFlags(scanning: renumbered)
+        rebuildLevelCounts(from: renumbered)
+        recomputeHistogram(immediate: true)
+        didAppend.send(renumbered)
+        isLoading = false
+
+        // 3. Subscribe to each source for live additions.
+        for source in mergedSources {
+            source.didAppend
+                .sink { [weak self, weak source] newEntries in
+                    guard let self, let source else { return }
+                    self.appendMerged(from: source, newEntries: newEntries)
+                }
+                .store(in: &mergedAppendCancellables)
+        }
+    }
+
+    /// Live source append → tag, drop untimestamped, append at end in
+    /// arrival order. See loadMerged() doc for why we don't insert at
+    /// timestamp position.
+    private func appendMerged(from source: LogDocument, newEntries: [LogEntry]) {
+        var tagged: [LogEntry] = []
+        tagged.reserveCapacity(newEntries.count)
+        let startLine = entries.count + 1
+        var lineCursor = startLine
+        for entry in newEntries where entry.timestamp != nil {
+            tagged.append(LogEntry(
+                id: nextEntryID,
+                lineNumber: lineCursor,
+                timestamp: entry.timestamp,
+                level: entry.level,
+                message: entry.message,
+                component: entry.component,
+                threadID: entry.threadID,
+                source: entry.source,
+                rawLine: entry.rawLine,
+                sourceDocumentID: source.id,
+                sourceLineNumber: entry.lineNumber
+            ))
+            nextEntryID += 1
+            lineCursor += 1
+        }
+        guard !tagged.isEmpty else { return }
+
+        entries.append(contentsOf: tagged)
+        updateColumnFlags(scanning: tagged)
+        incrementLevelCounts(with: tagged)
+        recomputeHistogram(immediate: false)
+        didAppend.send(tagged)
     }
 
     // MARK: - Unified log stream
@@ -417,7 +555,9 @@ final class LogDocument: ObservableObject, Identifiable {
             bars: bars,
             maxTotal: maxTotal,
             startLabel: formatter.string(from: first),
-            endLabel: formatter.string(from: last)
+            endLabel: formatter.string(from: last),
+            startTime: first,
+            bucketSize: bucketSize
         )
     }
 
@@ -429,8 +569,15 @@ final class LogDocument: ObservableObject, Identifiable {
     private static func defaultsKey(for source: LogSource) -> String? {
         switch source {
         case .file(let url): return "traceview.bookmarks.\(url.path)"
-        case .unifiedLog, .stdin: return nil
+        case .unifiedLog, .stdin, .merged: return nil
         }
+    }
+
+    /// True for `.merged` sources — used by views to gate merged-only
+    /// affordances (Source column, Open in Source Log, source-filter chips).
+    var isMerged: Bool {
+        if case .merged = source { return true }
+        return false
     }
 
     private static func loadBookmarks(for source: LogSource) -> Set<Int> {

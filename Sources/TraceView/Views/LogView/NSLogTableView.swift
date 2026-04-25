@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 struct NSLogTableView: NSViewRepresentable {
     let entries: [LogEntry]
@@ -21,6 +22,24 @@ struct NSLogTableView: NSViewRepresentable {
     var onLookupErrorCode: (String) -> Void = { _ in }
     var onToggleBookmark: (LogEntry) -> Void = { _ in }
     var onScrollUp: () -> Void
+    /// Fires (throttled ~100ms) when the top-visible entry changes. Used by
+    /// pane scroll-sync to broadcast this pane's position to the other.
+    var onVisibleTopChanged: (LogEntry?) -> Void = { _ in }
+    /// When this publisher fires a Date, scroll to the row with the largest
+    /// timestamp <= that Date. Used by pane scroll-sync. AppState gates
+    /// whether anything actually fires here, so passing the publisher even
+    /// when sync is off is harmless — no Dates arrive.
+    var scrollToTimestampSignal: AnyPublisher<Date, Never> = Empty().eraseToAnyPublisher()
+    /// Visible only for merged-view docs. Renders the source doc's display
+    /// name in the new "Source" column.
+    var showSource: Bool = false
+    /// Returns the display name for a source doc UUID. Only consulted for
+    /// merged-view rendering; for non-merged docs the column is hidden so
+    /// this never fires.
+    var sourceNameForID: (UUID) -> String? = { _ in nil }
+    /// Right-click → "Open in Source Log" handler. Only invoked for entries
+    /// that have `sourceDocumentID` populated (merged-view rows).
+    var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
 
     static let baseRowHeight: CGFloat = 24
     static let drawerHeight: CGFloat = 160
@@ -57,16 +76,11 @@ struct NSLogTableView: NSViewRepresentable {
         tableView.action = #selector(Coordinator.rowClicked(_:))
         tableView.doubleAction = nil
 
-        // Right-click → "Toggle Bookmark" on the clicked row.
+        // Right-click context menu — items are rebuilt by the coordinator
+        // (NSMenuDelegate) before each appearance so "Open in Source Log"
+        // can show only when the clicked row is a merged-view entry.
         let menu = NSMenu()
-        let bookmarkItem = NSMenuItem(
-            title: "Toggle Bookmark",
-            action: #selector(Coordinator.toggleBookmarkMenuAction(_:)),
-            keyEquivalent: "d"
-        )
-        bookmarkItem.keyEquivalentModifierMask = .command
-        bookmarkItem.target = context.coordinator
-        menu.addItem(bookmarkItem)
+        menu.delegate = context.coordinator
         tableView.menu = menu
 
         // Create columns. Max widths relaxed from earlier (timestamp was
@@ -99,6 +113,17 @@ struct NSLogTableView: NSViewRepresentable {
         compCol.minWidth = 60
         compCol.maxWidth = 320
         tableView.addTableColumn(compCol)
+
+        // Source column — visible only on merged-view docs (toggled in
+        // updateNSView). Sits between component and message because that's
+        // the natural read order: timestamp, level, component, source, message.
+        let srcCol = NSTableColumn(identifier: .sourceLabel)
+        srcCol.title = "Source"
+        srcCol.width = 130
+        srcCol.minWidth = 80
+        srcCol.maxWidth = 240
+        srcCol.isHidden = !showSource
+        tableView.addTableColumn(srcCol)
 
         let msgCol = NSTableColumn(identifier: .message)
         msgCol.title = "Message"
@@ -144,6 +169,15 @@ struct NSLogTableView: NSViewRepresentable {
         // Follow timer
         context.coordinator.startFollowTimer()
 
+        // Subscribe to sync-driven scroll commands. The publisher delivers
+        // a target Date; we find the nearest entry with timestamp <= that
+        // and scroll to it, suppressing our own visible-top reports for a
+        // short window so the inbound scroll doesn't bounce back.
+        context.coordinator.scrollSyncCancellable = scrollToTimestampSignal.sink {
+            [weak coordinator = context.coordinator] target in
+            coordinator?.scrollToTimestamp(target)
+        }
+
         return scrollView
     }
 
@@ -162,6 +196,7 @@ struct NSLogTableView: NSViewRepresentable {
         coordinator.theme = theme
         coordinator.fontSize = fontSize
         coordinator.onScrollUp = onScrollUp
+        coordinator.onVisibleTopChanged = onVisibleTopChanged
         coordinator.isFollowing = isFollowing
         coordinator.selectedEntryBinding = $selectedEntry
         coordinator.expandedEntryIDBinding = $expandedEntryID
@@ -191,6 +226,12 @@ struct NSLogTableView: NSViewRepresentable {
         tableView.tableColumn(withIdentifier: .lineNumber)?.isHidden = !showLineNumbers
         tableView.tableColumn(withIdentifier: .timestamp)?.isHidden = !showTimestamp
         tableView.tableColumn(withIdentifier: .component)?.isHidden = !showComponent
+        tableView.tableColumn(withIdentifier: .sourceLabel)?.isHidden = !showSource
+
+        // Forward callbacks the coordinator needs at notification time
+        // (NSMenu rebuilds, etc).
+        coordinator.sourceNameForID = sourceNameForID
+        coordinator.onOpenInSourceLog = onOpenInSourceLog
 
         // Update rows
         let oldCount = coordinator.previousEntryCount
@@ -224,12 +265,18 @@ struct NSLogTableView: NSViewRepresentable {
         // Go-to-line: scroll to the row whose lineNumber matches, then clear
         // the pending binding on the next tick so subsequent updateNSView
         // passes don't keep re-scrolling to the same spot. onScrollUp
-        // signals the parent to pause following so the landing spot sticks.
+        // signals the parent to pause following so the landing spot sticks —
+        // dispatched async so the @Published mutation it performs happens
+        // OUTSIDE this view-update pass. Mutating ObservableObject state
+        // synchronously inside updateNSView triggers SwiftUI's "mutating
+        // during view update" warning, and each warning generates a dyld
+        // backtrace that can hang the main thread for seconds when the
+        // mutation fans out via observer chains.
         if let target = pendingGoToLine {
             if let row = entries.firstIndex(where: { $0.lineNumber == target }) {
                 tableView.scrollRowToVisible(row)
                 tableView.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
-                onScrollUp()
+                DispatchQueue.main.async { [onScrollUp] in onScrollUp() }
             }
             let binding = $pendingGoToLine
             DispatchQueue.main.async { binding.wrappedValue = nil }
@@ -262,7 +309,7 @@ struct NSLogTableView: NSViewRepresentable {
 
     // MARK: - Coordinator
 
-    class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate {
+    class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate {
         var parent: NSLogTableView
         var entries: [LogEntry] = []
         var theme: any AppTheme
@@ -277,6 +324,8 @@ struct NSLogTableView: NSViewRepresentable {
         var onFilterToComponent: (LogEntry) -> Void = { _ in }
         var onLookupErrorCode: (String) -> Void = { _ in }
         var onToggleBookmark: (LogEntry) -> Void = { _ in }
+        var sourceNameForID: (UUID) -> String? = { _ in nil }
+        var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
         var bookmarkedLines: Set<Int> = []
         var highlightRules: [HighlightRule] = []
         // Compiled regex per enabled rule, in the same display order as
@@ -290,6 +339,15 @@ struct NSLogTableView: NSViewRepresentable {
         weak var scrollView: NSScrollView?
         private var followTimer: Timer?
         private var userScrolling = false
+        var onVisibleTopChanged: (LogEntry?) -> Void = { _ in }
+        var scrollSyncCancellable: AnyCancellable?
+        // Throttle window for outbound visible-top reports. ~10 Hz max.
+        private var lastVisibleTopReport: Date = .distantPast
+        private var lastReportedEntryID: Int?
+        // After a sync-driven scroll lands, suppress outbound reports for
+        // this long so the resulting scrollViewDidScroll doesn't ricochet
+        // a "I just moved!" event back to the pane that drove us here.
+        private var suppressReportsUntil: Date = .distantPast
 
         init(parent: NSLogTableView) {
             self.parent = parent
@@ -345,10 +403,66 @@ struct NSLogTableView: NSViewRepresentable {
 
             let distanceFromBottom = contentHeight - (scrollOffset + visibleHeight)
 
-            // If user scrolled more than 2 rows away from bottom, pause following
-            if distanceFromBottom > 50 && isFollowing {
+            // During the sync-driven-scroll suppression window this scroll
+            // event came from pane sync, not the user — don't pause Following
+            // or fan out a visible-top report. Without this gate, a sync-
+            // driven landing >50pt from the bottom looks like a user scroll
+            // and trips auto-pause on both panes (see PR #33 review #1).
+            let inSyncScroll = Date() < suppressReportsUntil
+
+            if distanceFromBottom > 50 && isFollowing && !inSyncScroll {
                 onScrollUp()
             }
+
+            reportVisibleTopIfChanged()
+        }
+
+        /// Computes the top-visible row's entry and fires onVisibleTopChanged
+        /// if changed, throttled to ~10 Hz. Suppressed for a short window
+        /// after a sync-driven scroll to break the bounce-back loop.
+        private func reportVisibleTopIfChanged() {
+            let now = Date()
+            if now < suppressReportsUntil { return }
+            if now.timeIntervalSince(lastVisibleTopReport) < 0.1 { return }
+            guard let scrollView, let tableView else { return }
+            let visibleRows = tableView.rows(in: scrollView.contentView.documentVisibleRect)
+            guard visibleRows.location >= 0,
+                  visibleRows.location < entries.count else { return }
+            let topEntry = entries[visibleRows.location]
+            if topEntry.id == lastReportedEntryID { return }
+            lastReportedEntryID = topEntry.id
+            lastVisibleTopReport = now
+            onVisibleTopChanged(topEntry)
+        }
+
+        /// Sync-driven scroll: find the row whose timestamp is closest but
+        /// not later than `target`, scroll there, and arm the suppression
+        /// window so the resulting scroll notification doesn't echo back.
+        func scrollToTimestamp(_ target: Date) {
+            guard let tableView else { return }
+            guard let row = nearestRow(forTimestamp: target) else { return }
+            suppressReportsUntil = Date().addingTimeInterval(0.25)
+            tableView.scrollRowToVisible(row)
+        }
+
+        /// Largest index whose entry has `timestamp <= target`. If no entry
+        /// qualifies (target is before any timestamped row), returns the
+        /// first row that has any timestamp. Returns nil if no entry has a
+        /// timestamp at all.
+        private func nearestRow(forTimestamp target: Date) -> Int? {
+            var bestIndex: Int?
+            var bestTimestamp: Date?
+            for (i, entry) in entries.enumerated() {
+                guard let ts = entry.timestamp, ts <= target else { continue }
+                if bestTimestamp == nil || ts > bestTimestamp! {
+                    bestIndex = i
+                    bestTimestamp = ts
+                }
+            }
+            if bestIndex == nil {
+                bestIndex = entries.firstIndex(where: { $0.timestamp != nil })
+            }
+            return bestIndex
         }
 
         // MARK: - NSTableViewDataSource
@@ -403,6 +517,17 @@ struct NSLogTableView: NSViewRepresentable {
             case .component:
                 cell.stringValue = entry.component ?? "—"
                 cell.font = monoFont
+                cell.textColor = NSColor(theme.componentText)
+                cell.alignment = .left
+
+            case .sourceLabel:
+                if let id = entry.sourceDocumentID,
+                   let name = sourceNameForID(id) {
+                    cell.stringValue = name
+                } else {
+                    cell.stringValue = "—"
+                }
+                cell.font = smallFont
                 cell.textColor = NSColor(theme.componentText)
                 cell.alignment = .left
 
@@ -517,6 +642,51 @@ struct NSLogTableView: NSViewRepresentable {
             let row = tableView.clickedRow >= 0 ? tableView.clickedRow : tableView.selectedRow
             guard row >= 0, row < entries.count else { return }
             onToggleBookmark(entries[row])
+        }
+
+        @objc func openInSourceLogMenuAction(_ sender: Any?) {
+            guard let tableView else { return }
+            let row = tableView.clickedRow >= 0 ? tableView.clickedRow : tableView.selectedRow
+            guard row >= 0, row < entries.count else { return }
+            onOpenInSourceLog(entries[row])
+        }
+
+        // MARK: - NSMenuDelegate
+
+        // Rebuild the right-click menu items right before each appearance.
+        // Lets us conditionally include "Open in Source Log" only when the
+        // clicked row is a merged-view entry (has a sourceDocumentID).
+        func menuNeedsUpdate(_ menu: NSMenu) {
+            menu.removeAllItems()
+            guard let tableView else { return }
+            let row = tableView.clickedRow
+            let entry: LogEntry? = (row >= 0 && row < entries.count) ? entries[row] : nil
+
+            let bookmarkItem = NSMenuItem(
+                title: "Toggle Bookmark",
+                action: #selector(toggleBookmarkMenuAction(_:)),
+                keyEquivalent: "d"
+            )
+            bookmarkItem.keyEquivalentModifierMask = .command
+            bookmarkItem.target = self
+            menu.addItem(bookmarkItem)
+
+            if let entry, entry.sourceDocumentID != nil {
+                menu.addItem(NSMenuItem.separator())
+                let sourceLabel: String
+                if let id = entry.sourceDocumentID, let name = sourceNameForID(id) {
+                    sourceLabel = "Open in \(name)"
+                } else {
+                    sourceLabel = "Open in Source Log"
+                }
+                let sourceItem = NSMenuItem(
+                    title: sourceLabel,
+                    action: #selector(openInSourceLogMenuAction(_:)),
+                    keyEquivalent: ""
+                )
+                sourceItem.target = self
+                menu.addItem(sourceItem)
+            }
         }
 
         @objc func rowClicked(_ sender: Any?) {
@@ -677,5 +847,6 @@ extension NSUserInterfaceItemIdentifier {
     static let timestamp = NSUserInterfaceItemIdentifier("timestamp")
     static let level = NSUserInterfaceItemIdentifier("level")
     static let component = NSUserInterfaceItemIdentifier("component")
+    static let sourceLabel = NSUserInterfaceItemIdentifier("sourceLabel")
     static let message = NSUserInterfaceItemIdentifier("message")
 }
