@@ -9,7 +9,7 @@ A native macOS log viewer for admins, developers, and anyone who reads too many 
 Real-time file following, severity-aware highlighting, built-in error-code lookup, and a Console.app-style browser for system reports — all in a SwiftUI interface that feels at home on macOS 14+.
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="TraceView main window showing a log file with severity highlighting, event histogram, and filter bar" width="900"/>
+  <img src="docs/screenshot.png" alt="TraceView main window showing a merged log view with two source logs combined into one timeline, source column, severity highlighting, event histogram, and per-source filter chips" width="900"/>
 </p>
 
 ## Features
@@ -17,20 +17,30 @@ Real-time file following, severity-aware highlighting, built-in error-code looku
 - **Real-time following** — new lines auto-scroll into view. Scroll up to investigate, scroll back down to resume. Kernel-level file watching (`DispatchSource`), no polling.
 - **Severity highlighting** — errors get red row backgrounds, warnings get yellow, critical rows are deeper red. Detected from structured formats (`messageType`, JSON `level`, SCCM `type`) and fallback keyword heuristics for plain text.
 - **Severity summary chips** — live per-level counts (`Critical 4 · Error 127 · Warning 342 · …`). Click to filter.
-- **Event histogram** — 60-bucket density strip above the table, stacked error/warn bars, trailing "now" marker. Auto-hides when timestamps aren't parseable.
+- **Event histogram** — 60-bucket density strip above the table, stacked error/warn bars, trailing "now" marker. **Click any bucket to jump to that moment.** Auto-hides when timestamps aren't parseable.
 - **Expand-in-place drawer** — single-click any row to expand it with metadata, full message, and action pills (`Copy`, `Filter to component`, `Lookup error code`). Switchable to a bottom detail pane in Settings.
 - **Error-code lookup inspector** — built-in database for `errno`, `OSStatus`, `IOReturn`, Mach `kern_return_t`, and HTTP status codes. Accepts decimal, hex, symbolic, or auto-detect input. Inline error codes in log messages are tappable.
 - **Saved filter presets** — snapshot the current filter to a named pill in the filter bar. Persisted.
 - **Tabs** — multiple logs open in tabs with live-stream pulse dot.
+- **Split view with scroll-sync** — open two logs side by side, with optional pane scroll-sync (⇧⌘S) so scrolling one pane drives the other to the closest matching timestamp. Following state mirrors across panes when sync is on.
+- **Merged log view** — combine 2+ open logs into a single timeline sorted by timestamp. Each row tagged with its source; right-click to jump back to the original log. Per-source filter chips, drop-untimestamped, live-append from any source.
 - **Console-style sidebar** — browse `/var/log`, `~/Library/Logs`, `/Library/Logs`, plus `.ips` reports split into Crash / Diagnostic / Spin buckets by filename classification (same rule Console.app uses).
 - **Live unified log** — wraps `log stream --style ndjson` for real-time system log capture with optional predicate filtering.
 - **Multiple parsers** — PlainText, UnifiedLog (`log show/stream` JSON), JSONLines (including whole-file arrays), CSV, SCCM, IPS crash reports, and `.diag` diagnostic reports. Auto-detected by scoring the first ~50 lines of each file.
 - **Themes** — Console (default), Light, Dark, Neon.
-- **Keyboard shortcuts** — `Cmd+O` open · `Cmd+F` search · `Cmd+E` next error · `Cmd+Shift+L` error lookup · `Cmd+K` command palette · `Cmd+T` cycle theme. Full list in [spec.md](spec.md#keyboard-shortcuts).
+- **Keyboard shortcuts** — `Cmd+O` open · `Cmd+Shift+O` open in right pane · `Cmd+F` search · `Cmd+E` next error · `Cmd+Shift+L` error lookup · `Cmd+Shift+S` toggle pane sync · `Cmd+Shift+E` export · `Cmd+K` command palette · `Cmd+T` cycle theme. Full list in [spec.md](spec.md#keyboard-shortcuts).
 
 ## Screenshots
 
 <table>
+  <tr>
+    <td><img src="docs/screenshots/split-sync.png" alt="Split view with scroll-sync enabled"/></td>
+    <td><img src="docs/screenshots/combined-view.png" alt="Merged log view combining two logs into one timeline"/></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Split view with scroll-sync — both panes locked to the same timestamp</sub></td>
+    <td align="center"><sub>Merged log view — two logs combined into a single sorted timeline with per-source filters</sub></td>
+  </tr>
   <tr>
     <td><img src="docs/screenshots/split-dual-filter.png" alt="Split view with independent filters in each pane"/></td>
     <td><img src="docs/screenshots/split-err-filter.png" alt="Split view with an ERROR-level filter applied to both panes"/></td>
