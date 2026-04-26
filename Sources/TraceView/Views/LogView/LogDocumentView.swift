@@ -158,30 +158,13 @@ struct LogDocumentView: View {
             viewModel.filter.isRegex.toggle()
         }
         .onChange(of: appState.pendingFindStepTick) { _, _ in
+            // ⌘G is a no-op in filter mode by design (matches is empty
+            // there) — users switch to Find via the labeled mode toggle
+            // in the filter bar. The earlier auto-flip workaround that
+            // silently changed mode for the user retired with #38's
+            // discoverable mode toggle.
             guard pane == appState.activePane else { return }
-            let delta = appState.pendingFindStepDirection
-            // ⌘G in filter mode is otherwise a silent no-op — `matches`
-            // is empty by design in filter mode. Auto-flip to find mode
-            // when there's a query so the user gets the universal
-            // "find next" behavior they expect from the shortcut.
-            if viewModel.findMode == .filter && !viewModel.filter.searchText.isEmpty {
-                viewModel.findMode = .find
-                // The $findMode sink fires from willSet, so the applyFilter
-                // it triggers reads the OLD findMode and builds a stale
-                // task. Re-run applyFilter explicitly now that storage has
-                // updated; it cancels the stale task and starts a fresh
-                // one against find-mode logic. awaitPendingFilter then
-                // awaits the correct (find-mode) task.
-                viewModel.applyFilter()
-                Task { @MainActor in
-                    await viewModel.awaitPendingFilter()
-                    if let line = viewModel.advanceMatch(by: delta) {
-                        appState.goToLine(line, in: pane)
-                    }
-                }
-                return
-            }
-            guard let line = viewModel.advanceMatch(by: delta) else { return }
+            guard let line = viewModel.advanceMatch(by: appState.pendingFindStepDirection) else { return }
             appState.goToLine(line, in: pane)
         }
         .sheet(isPresented: $appState.showExport) {
