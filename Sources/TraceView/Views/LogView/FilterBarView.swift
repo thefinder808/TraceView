@@ -11,22 +11,7 @@ struct FilterBarView: View {
         let theme = themeManager.current
 
         HStack(spacing: 8) {
-            // Find / Filter mode toggle. Swaps what the search text means
-            // for the log table: filter hides non-matches, find leaves them
-            // visible and enables ⌘G / ⌘⇧G step navigation.
-            Button {
-                viewModel.findMode = (viewModel.findMode == .filter) ? .find : .filter
-            } label: {
-                Image(systemName: viewModel.findMode == .filter
-                      ? "line.3.horizontal.decrease.circle"
-                      : "text.magnifyingglass")
-                    .font(.system(size: 13))
-                    .foregroundStyle(theme.secondaryText)
-            }
-            .buttonStyle(.plain)
-            .help(viewModel.findMode == .filter
-                  ? "Mode: Filter (hides non-matches). Click for Find mode."
-                  : "Mode: Find (step through matches). Click for Filter mode.")
+            modeSegmentedControl(theme: theme)
 
             // Search field
             HStack(spacing: 6) {
@@ -181,6 +166,57 @@ struct FilterBarView: View {
         // Menu/button both pipe through the pane's go-to-line channel so
         // scroll + selection land the same way as the ⌘L sheet.
         appState.goToLine(line, in: pane)
+    }
+
+    /// Two-segment mode picker that replaces the old single-icon button.
+    /// Active segment fills with the theme accent and shows white text;
+    /// inactive segment is a quiet outline. Hover tooltips on each
+    /// segment explain what the mode does, since "Filter" vs "Find" alone
+    /// can be ambiguous to first-time users.
+    private func modeSegmentedControl(theme: any AppTheme) -> some View {
+        HStack(spacing: 0) {
+            modeSegment(
+                label: "Filter",
+                mode: .filter,
+                tooltip: "Filter mode — hides rows that don't match your search.",
+                theme: theme
+            )
+            modeSegment(
+                label: "Find",
+                mode: .find,
+                tooltip: "Find mode — keeps all rows visible; ⌘G / ⇧⌘G step through matches.",
+                theme: theme
+            )
+        }
+        .frame(height: 24)
+        .background(theme.inputBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 5))
+        .overlay(
+            RoundedRectangle(cornerRadius: 5)
+                .stroke(theme.border, lineWidth: 1)
+        )
+    }
+
+    private func modeSegment(
+        label: String,
+        mode: FindMode,
+        tooltip: String,
+        theme: any AppTheme
+    ) -> some View {
+        let isActive = viewModel.findMode == mode
+        return Button {
+            // No-op on click of the already-active segment so we don't fire
+            // a needless @Published mutation through the findMode publisher.
+            if viewModel.findMode != mode { viewModel.findMode = mode }
+        } label: {
+            Text(label)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(isActive ? .white : theme.secondaryText)
+                .frame(width: 44, height: 22)
+                .background(isActive ? theme.accentColor : .clear)
+        }
+        .buttonStyle(.plain)
+        .hoverTooltip(tooltip, edge: .bottom)
     }
 
     /// Stable-ordered list of (id, displayName) for the merged sources of
