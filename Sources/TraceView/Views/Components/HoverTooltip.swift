@@ -8,6 +8,13 @@ struct HoverTooltip: ViewModifier {
     let text: String
     let delay: Duration
     let edge: Edge
+    /// Override for the overlay's anchor. When nil, the alignment is
+    /// derived from `edge` (centered along the perpendicular axis). Use
+    /// to keep a tooltip from extending past a window edge — e.g. a
+    /// button at the leftmost edge of a pane should anchor `.bottomLeading`
+    /// so the tooltip extends rightward only and isn't clipped by the
+    /// sidebar.
+    let alignment: Alignment?
 
     @State private var isShowing = false
     @State private var hoverTask: Task<Void, Never>?
@@ -57,6 +64,7 @@ struct HoverTooltip: ViewModifier {
     }
 
     private var overlayAlignment: Alignment {
+        if let alignment { return alignment }
         switch edge {
         case .top: return .top
         case .bottom: return .bottom
@@ -78,12 +86,15 @@ struct HoverTooltip: ViewModifier {
 extension View {
     /// Faster drop-in for `.help()`. `edge` controls which side of the
     /// view the tooltip lands on — default `.bottom` works for most
-    /// top-of-window buttons.
+    /// top-of-window buttons. Pass `alignment` to override the default
+    /// centered anchor (e.g. `.bottomLeading` for a leftmost button so
+    /// the tooltip extends rightward and doesn't clip past a sidebar).
     func hoverTooltip(
         _ text: String,
         edge: Edge = .bottom,
+        alignment: Alignment? = nil,
         delay: Duration = .milliseconds(400)
     ) -> some View {
-        modifier(HoverTooltip(text: text, delay: delay, edge: edge))
+        modifier(HoverTooltip(text: text, delay: delay, edge: edge, alignment: alignment))
     }
 }

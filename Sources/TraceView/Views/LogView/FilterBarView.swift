@@ -11,7 +11,7 @@ struct FilterBarView: View {
         let theme = themeManager.current
 
         HStack(spacing: 8) {
-            modeSegmentedControl(theme: theme)
+            modeToggleButton(theme: theme)
 
             // Search field
             HStack(spacing: 6) {
@@ -19,7 +19,7 @@ struct FilterBarView: View {
                     .font(.system(size: 11))
                     .foregroundStyle(theme.tertiaryText)
 
-                TextField("Filter log...", text: $viewModel.filter.searchText)
+                TextField(searchPlaceholder, text: $viewModel.filter.searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12, design: .monospaced))
                     .focused($isSearchFocused)
@@ -45,19 +45,13 @@ struct FilterBarView: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .frame(minWidth: 200, maxWidth: 260)
 
-            // Regex toggle
-            filterToggle(
-                label: ".*",
-                isActive: viewModel.filter.isRegex,
-                theme: theme
-            ) {
-                viewModel.filter.isRegex.toggle()
-            }
-
-            // Case sensitive toggle
+            // Case sensitive toggle. Regex now lives in the Filter menu
+            // (⌘⌥R) — case-sensitivity stays inline because users flip it
+            // far more often during log analysis (component vs class names).
             filterToggle(
                 label: "Aa",
                 isActive: viewModel.filter.caseSensitive,
+                tooltip: "Case-sensitive — match exact letter case.",
                 theme: theme
             ) {
                 viewModel.filter.caseSensitive.toggle()
@@ -168,55 +162,47 @@ struct FilterBarView: View {
         appState.goToLine(line, in: pane)
     }
 
-    /// Two-segment mode picker that replaces the old single-icon button.
-    /// Active segment fills with the theme accent and shows white text;
-    /// inactive segment is a quiet outline. Hover tooltips on each
-    /// segment explain what the mode does, since "Filter" vs "Find" alone
-    /// can be ambiguous to first-time users.
-    private func modeSegmentedControl(theme: any AppTheme) -> some View {
-        HStack(spacing: 0) {
-            modeSegment(
-                label: "Filter",
-                mode: .filter,
-                tooltip: "Filter mode — hides rows that don't match your search.",
-                theme: theme
-            )
-            modeSegment(
-                label: "Find",
-                mode: .find,
-                tooltip: "Find mode — keeps all rows visible; ⌘G / ⇧⌘G step through matches.",
-                theme: theme
-            )
-        }
-        .frame(height: 24)
-        .background(theme.inputBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 5))
-        .overlay(
-            RoundedRectangle(cornerRadius: 5)
-                .stroke(theme.border, lineWidth: 1)
-        )
+    /// Search-field placeholder that reflects current mode and regex
+    /// state. Regex hint is the only visible indicator that regex is on
+    /// (the inline `.*` button moved to the Filter menu in ⌘⌥R), so
+    /// keep it visible whenever the field is empty.
+    private var searchPlaceholder: String {
+        let base = viewModel.findMode == .filter ? "Filter log..." : "Find in log..."
+        return viewModel.filter.isRegex ? "\(base) (regex)" : base
     }
 
-    private func modeSegment(
-        label: String,
-        mode: FindMode,
-        tooltip: String,
-        theme: any AppTheme
-    ) -> some View {
-        let isActive = viewModel.findMode == mode
+    /// Single-button mode toggle: shows the current mode's icon AND its
+    /// label, so users see at a glance which mode they're in. Clicking
+    /// flips to the other mode. A full segmented control (both labels
+    /// always visible) was tried but pushed the filter bar wider than
+    /// the left pane could fit when the sidebar is open.
+    private func modeToggleButton(theme: any AppTheme) -> some View {
+        let isFilter = viewModel.findMode == .filter
         return Button {
-            // No-op on click of the already-active segment so we don't fire
-            // a needless @Published mutation through the findMode publisher.
-            if viewModel.findMode != mode { viewModel.findMode = mode }
+            viewModel.findMode = isFilter ? .find : .filter
         } label: {
-            Text(label)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(isActive ? .white : theme.secondaryText)
-                .frame(width: 44, height: 22)
-                .background(isActive ? theme.accentColor : .clear)
+            HStack(spacing: 4) {
+                Image(systemName: isFilter
+                      ? "line.3.horizontal.decrease.circle"
+                      : "text.magnifyingglass")
+                    .font(.system(size: 11))
+                Text(isFilter ? "Filter" : "Find")
+                    .font(.system(size: 10, weight: .semibold))
+            }
+            .foregroundStyle(theme.secondaryText)
+            .padding(.horizontal, 8)
+            .frame(height: 26)
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(theme.border, lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
-        .hoverTooltip(tooltip, edge: .bottom)
+        .hoverTooltip(isFilter
+                      ? "Mode: Filter — hides rows that don't match your search. Click for Find mode."
+                      : "Mode: Find — keeps all rows visible; ⌘G / ⇧⌘G step through matches. Click for Filter mode.",
+                      edge: .bottom,
+                      alignment: .bottomLeading)
     }
 
     /// Stable-ordered list of (id, displayName) for the merged sources of
@@ -255,7 +241,7 @@ struct FilterBarView: View {
         .help(isVisible ? "Hide rows from \(name)" : "Show rows from \(name)")
     }
 
-    private func filterToggle(label: String, isActive: Bool, theme: any AppTheme, action: @escaping () -> Void) -> some View {
+    private func filterToggle(label: String, isActive: Bool, tooltip: String, theme: any AppTheme, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
@@ -269,6 +255,7 @@ struct FilterBarView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 5))
         }
         .buttonStyle(.plain)
+        .hoverTooltip(tooltip, edge: .bottom)
     }
 
     private func levelChip(level: LogLevel, theme: any AppTheme) -> some View {
