@@ -500,6 +500,15 @@ final class AppState: ObservableObject {
         pendingBookmarkToggleTick += 1
     }
 
+    /// Fires ⌘⌥R. Active pane's LogDocumentView observes the tick and
+    /// flips its viewModel.filter.isRegex. Lives on AppState so the Filter
+    /// menu (which is global) can reach the per-pane VM via the same
+    /// active-pane gating used by ⌘D / ⌘G.
+    @Published var pendingRegexToggleTick: Int = 0
+    func toggleRegex() {
+        pendingRegexToggleTick += 1
+    }
+
     /// Fires ⌘G / ⌘⇧G. LogDocumentView observes the tick and asks its VM
     /// to step matches by `pendingFindStepDirection` (+1 / -1), then
     /// routes the landing line through pendingGoToLine.
