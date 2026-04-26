@@ -11,22 +11,7 @@ struct FilterBarView: View {
         let theme = themeManager.current
 
         HStack(spacing: 8) {
-            // Find / Filter mode toggle. Swaps what the search text means
-            // for the log table: filter hides non-matches, find leaves them
-            // visible and enables ⌘G / ⌘⇧G step navigation.
-            Button {
-                viewModel.findMode = (viewModel.findMode == .filter) ? .find : .filter
-            } label: {
-                Image(systemName: viewModel.findMode == .filter
-                      ? "line.3.horizontal.decrease.circle"
-                      : "text.magnifyingglass")
-                    .font(.system(size: 13))
-                    .foregroundStyle(theme.secondaryText)
-            }
-            .buttonStyle(.plain)
-            .help(viewModel.findMode == .filter
-                  ? "Mode: Filter (hides non-matches). Click for Find mode."
-                  : "Mode: Find (step through matches). Click for Filter mode.")
+            modeToggleButton(theme: theme)
 
             // Search field
             HStack(spacing: 6) {
@@ -34,7 +19,7 @@ struct FilterBarView: View {
                     .font(.system(size: 11))
                     .foregroundStyle(theme.tertiaryText)
 
-                TextField("Filter log...", text: $viewModel.filter.searchText)
+                TextField(searchPlaceholder, text: $viewModel.filter.searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12, design: .monospaced))
                     .focused($isSearchFocused)
@@ -60,19 +45,13 @@ struct FilterBarView: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .frame(minWidth: 200, maxWidth: 260)
 
-            // Regex toggle
-            filterToggle(
-                label: ".*",
-                isActive: viewModel.filter.isRegex,
-                theme: theme
-            ) {
-                viewModel.filter.isRegex.toggle()
-            }
-
-            // Case sensitive toggle
+            // Case sensitive toggle. Regex now lives in the Filter menu
+            // (⌘⌥R) — case-sensitivity stays inline because users flip it
+            // far more often during log analysis (component vs class names).
             filterToggle(
                 label: "Aa",
                 isActive: viewModel.filter.caseSensitive,
+                tooltip: "Case-sensitive — match exact letter case.",
                 theme: theme
             ) {
                 viewModel.filter.caseSensitive.toggle()
@@ -183,6 +162,49 @@ struct FilterBarView: View {
         appState.goToLine(line, in: pane)
     }
 
+    /// Search-field placeholder that reflects current mode and regex
+    /// state. Regex hint is the only visible indicator that regex is on
+    /// (the inline `.*` button moved to the Filter menu in ⌘⌥R), so
+    /// keep it visible whenever the field is empty.
+    private var searchPlaceholder: String {
+        let base = viewModel.findMode == .filter ? "Filter log..." : "Find in log..."
+        return viewModel.filter.isRegex ? "\(base) (regex)" : base
+    }
+
+    /// Single-button mode toggle: shows the current mode's icon AND its
+    /// label, so users see at a glance which mode they're in. Clicking
+    /// flips to the other mode. A full segmented control (both labels
+    /// always visible) was tried but pushed the filter bar wider than
+    /// the left pane could fit when the sidebar is open.
+    private func modeToggleButton(theme: any AppTheme) -> some View {
+        let isFilter = viewModel.findMode == .filter
+        return Button {
+            viewModel.findMode = isFilter ? .find : .filter
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: isFilter
+                      ? "line.3.horizontal.decrease.circle"
+                      : "text.magnifyingglass")
+                    .font(.system(size: 11))
+                Text(isFilter ? "Filter" : "Find")
+                    .font(.system(size: 10, weight: .semibold))
+            }
+            .foregroundStyle(theme.secondaryText)
+            .padding(.horizontal, 8)
+            .frame(height: 26)
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(theme.border, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .hoverTooltip(isFilter
+                      ? "Mode: Filter — hides rows that don't match your search. Click for Find mode."
+                      : "Mode: Find — keeps all rows visible; ⌘G / ⇧⌘G step through matches. Click for Filter mode.",
+                      edge: .bottom,
+                      alignment: .bottomLeading)
+    }
+
     /// Stable-ordered list of (id, displayName) for the merged sources of
     /// the current doc. Sorted by display name so chip order doesn't
     /// shuffle around as the dictionary's iteration order would.
@@ -219,7 +241,7 @@ struct FilterBarView: View {
         .help(isVisible ? "Hide rows from \(name)" : "Show rows from \(name)")
     }
 
-    private func filterToggle(label: String, isActive: Bool, theme: any AppTheme, action: @escaping () -> Void) -> some View {
+    private func filterToggle(label: String, isActive: Bool, tooltip: String, theme: any AppTheme, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
@@ -233,6 +255,7 @@ struct FilterBarView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 5))
         }
         .buttonStyle(.plain)
+        .hoverTooltip(tooltip, edge: .bottom)
     }
 
     private func levelChip(level: LogLevel, theme: any AppTheme) -> some View {

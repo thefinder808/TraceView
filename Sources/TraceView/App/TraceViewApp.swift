@@ -102,6 +102,12 @@ struct TraceViewApp: App {
 
                 Divider()
 
+                Button("Use Regular Expression") { appState.toggleRegex() }
+                    .keyboardShortcut("r", modifiers: [.command, .option])
+                    .disabled(appState.selectedDocument == nil)
+
+                Divider()
+
                 Button("Go to Line...") { appState.showGoToLine = true }
                     .keyboardShortcut("l", modifiers: .command)
                     .disabled(appState.selectedDocument == nil)

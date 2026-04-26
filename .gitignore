@@ -9,3 +9,5 @@ xcuserdata/
 # Local-only project docs and tool state
 CLAUDE.md
 .claude/
+.superpowers/
+.playwright-mcp/

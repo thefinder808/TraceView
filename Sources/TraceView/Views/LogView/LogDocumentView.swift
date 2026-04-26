@@ -29,8 +29,12 @@ struct LogDocumentView: View {
                 jumpToBucket(bucketIndex)
             })
 
-            // Filter bar
+            // Filter bar — zIndex so the mode-toggle's HoverTooltip (which
+            // extends past the bar's bottom edge into the table area) draws
+            // above the AppKit-backed NSLogTableView's column headers.
+            // Same fix pattern as ContentView's paneSyncDivider.zIndex(1).
             FilterBarView(viewModel: viewModel, pane: pane)
+                .zIndex(1)
 
             Divider().background(theme.border)
 
@@ -148,6 +152,10 @@ struct LogDocumentView: View {
             } else {
                 document.bookmarks.insert(entry.lineNumber)
             }
+        }
+        .onChange(of: appState.pendingRegexToggleTick) { _, _ in
+            guard pane == appState.activePane else { return }
+            viewModel.filter.isRegex.toggle()
         }
         .onChange(of: appState.pendingFindStepTick) { _, _ in
             guard pane == appState.activePane else { return }
