@@ -87,6 +87,7 @@ struct ContentView: View {
                 Spacer()
             }
         }
+        .overlay(alignment: .top) { activePaneAccent(for: .primary) }
         // Drops on the primary column open into primary.
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             handleFileDrop(providers: providers, into: .primary)
@@ -105,6 +106,7 @@ struct ContentView: View {
                 Spacer()
             }
         }
+        .overlay(alignment: .top) { activePaneAccent(for: .secondary) }
         // Drops on the secondary column open into secondary.
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             handleFileDrop(providers: providers, into: .secondary)
@@ -210,5 +212,18 @@ struct ContentView: View {
             }
         }
         return true
+    }
+
+    /// 2px top accent strip on the active pane when split is open. Hidden
+    /// in single-pane mode (no ambiguity) and on the inactive pane in
+    /// split mode. Color tracks the current theme's accent.
+    @ViewBuilder
+    private func activePaneAccent(for pane: Pane) -> some View {
+        if appState.isSplitView && appState.activePane == pane {
+            Rectangle()
+                .fill(themeManager.current.accentColor)
+                .frame(height: 2)
+                .allowsHitTesting(false)
+        }
     }
 }
