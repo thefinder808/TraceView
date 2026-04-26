@@ -55,12 +55,15 @@ struct HistogramView: View {
 
     @ViewBuilder
     private func interactiveBar(index i: Int, bins: LogHistogram, theme: any AppTheme) -> some View {
-        barColumn(
-            bar: bins.bars[i],
-            maxTotal: bins.maxTotal,
-            theme: theme,
-            isHovered: hoveredBucket == i
-        )
+        ZStack(alignment: .bottom) {
+            shadowOverlay(forBucket: i, bins: bins, theme: theme)
+            barColumn(
+                bar: bins.bars[i],
+                maxTotal: bins.maxTotal,
+                theme: theme,
+                isHovered: hoveredBucket == i
+            )
+        }
         .contentShape(Rectangle())
         .onTapGesture { onBucketClick(i) }
         .onHover { hovering in
@@ -87,6 +90,24 @@ struct HistogramView: View {
             Text(bins.endLabel)
                 .font(.system(size: 9, weight: .regular, design: .monospaced))
                 .foregroundStyle(theme.tertiaryText)
+        }
+    }
+
+    /// Faint "all-time peak" ghost rendered behind the solid bar. Returns
+    /// EmptyView when the bucket has no shadow recorded — most buckets
+    /// most of the time. Color is theme.errorText at 0.25 alpha (single
+    /// uniform color; the ghost simplifies away the err/warn/info
+    /// breakdown, just signaling "there was a spike here at some point").
+    @ViewBuilder
+    private func shadowOverlay(forBucket index: Int, bins: LogHistogram, theme: any AppTheme) -> some View {
+        if let shadow = bins.shadows.first(where: { $0.bucketIndex == index }) {
+            GeometryReader { geo in
+                let height = geo.size.height * CGFloat(shadow.peakCount) / CGFloat(max(bins.maxTotal, 1))
+                Rectangle()
+                    .fill(theme.errorText.opacity(0.25))
+                    .frame(height: height)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+            }
         }
     }
 

@@ -187,31 +187,62 @@ struct LogDocumentView: View {
         }
     }
 
-    /// Histogram bucket click → find the first entry in the bucket's time
-    /// range that survives the current filter, then route through the
-    /// standard go-to-line channel so scroll + selection land the same way
-    /// ⌘L does. Respecting the filter matters because the histogram shows
-    /// unfiltered density but the table only renders the filtered slice;
-    /// jumping to a filtered-out line would be a dead-end.
+    /// Histogram bucket click → land on a real entry in (or just after)
+    /// the bucket's time range, then route through the standard
+    /// go-to-line channel so scroll + selection land the same way ⌘L does.
     ///
-    /// Pausing follow is handled downstream: NSLogTableView's pendingGoToLine
-    /// path invokes onScrollUp() after scrolling, which routes through
-    /// appState.setFollowing and mirrors to the other pane when sync is on.
+    /// Two refinements over the naive "first entry in range" lookup:
     ///
-    /// Lookup walks `filteredEntries` in line order, so for severely out-of-
-    /// order logs (multi-threaded, post-merged) the landing entry is the
-    /// first by line whose timestamp falls in the bucket — not necessarily
-    /// the first by timestamp. Defensible: clicking a histogram bucket
-    /// should land on a real, visible row.
+    /// 1. Pause Following synchronously BEFORE go-to-line. Otherwise the
+    ///    follow timer can tick once before the async onScrollUp callback
+    ///    in NSLogTableView.updateNSView gets a chance to pause it,
+    ///    snapping the table back to the bottom and producing a "first
+    ///    click does nothing, second click works" jerk.
+    ///
+    /// 2. Prefer the highest-severity level present in the bucket. If
+    ///    bar.err > 0, find the first error/critical entry within the
+    ///    bucket's range; else if bar.warn > 0, find the first warning;
+    ///    else fall back to the original "first by timestamp at or after
+    ///    range.start" (which rolls forward past empty buckets).
     private func jumpToBucket(_ index: Int) {
         guard let histogram = document.histogram else { return }
         let range = histogram.timeRange(forBucket: index)
-        let target = viewModel.filteredEntries.first { entry in
-            guard let ts = entry.timestamp else { return false }
-            return ts >= range.start
+        let bar = histogram.bars[index]
+        let entries = viewModel.filteredEntries
+
+        var target: LogEntry?
+        if bar.err > 0 {
+            target = firstEntry(in: entries, range: range, levels: [.error, .critical])
         }
+        if target == nil && bar.warn > 0 {
+            target = firstEntry(in: entries, range: range, levels: [.warning])
+        }
+        if target == nil {
+            target = entries.first { entry in
+                guard let ts = entry.timestamp else { return false }
+                return ts >= range.start
+            }
+        }
+
         guard let entry = target else { return }
+        appState.setFollowing(pane: pane, following: false)
         appState.goToLine(entry.lineNumber, in: pane)
+    }
+
+    /// First entry whose timestamp falls within `[range.start, range.end)`
+    /// AND matches one of the given levels. Used by jumpToBucket's
+    /// level-aware preference to land on an actual error when an
+    /// error-spike bucket is clicked.
+    private func firstEntry(
+        in entries: [LogEntry],
+        range: (start: Date, end: Date),
+        levels: [LogLevel]
+    ) -> LogEntry? {
+        entries.first { entry in
+            guard let ts = entry.timestamp,
+                  ts >= range.start, ts < range.end else { return false }
+            return levels.contains(entry.level)
+        }
     }
 
     /// Per-pane go-to-line binding so each pane only consumes its own

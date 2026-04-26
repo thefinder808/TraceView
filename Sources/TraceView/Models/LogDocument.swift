@@ -24,6 +24,10 @@ final class LogDocument: ObservableObject, Identifiable {
     // Derived summary state, computed by the document once per append and
     // read by every pane showing this doc.
     @Published private(set) var histogram: LogHistogram?
+    /// Per-time-window peaks captured before each rebucket so spikes that
+    /// would otherwise shrink as the histogram's time range stretches
+    /// stay visible as faint shadows. Reset on reload / loadMerged.
+    private var spikePeaks: [SpikePeak] = []
     @Published private(set) var levelCounts: [LogLevel: Int] = [:]
     @Published private(set) var hasTimestamps: Bool = false
     @Published private(set) var hasComponents: Bool = false
@@ -72,6 +76,14 @@ final class LogDocument: ObservableObject, Identifiable {
 
     // Bucket count for the minimap — matches the design handoff.
     private static let histogramBucketCount = 60
+    /// Spike capture is `bar.total > 3 × median(non-zero bar totals) AND >= 5`.
+    /// The multiplier filters out random fluctuation; the absolute floor
+    /// avoids recording spikes in tiny logs where the median is meaningless.
+    private static let spikeThresholdMultiplier = 3.0
+    private static let spikeAbsoluteMin = 5
+    /// Cap on retained peaks. When over cap, the lowest-count peaks are
+    /// dropped first so the visually significant ones survive.
+    private static let spikePeakListCap = 100
 
     init(source: LogSource, displayName: String) {
         self.source = source
@@ -167,6 +179,7 @@ final class LogDocument: ObservableObject, Identifiable {
         hasTimestamps = false
         hasComponents = false
         isLoading = false
+        spikePeaks.removeAll()
         load()
     }
 
@@ -266,6 +279,7 @@ final class LogDocument: ObservableObject, Identifiable {
     @MainActor
     private func loadMerged() {
         guard !mergedSources.isEmpty else { return }
+        spikePeaks.removeAll()
         isLoading = true
 
         // 1. Initial merge: pull all current entries from each source,
@@ -491,14 +505,68 @@ final class LogDocument: ObservableObject, Identifiable {
     private func recomputeHistogram(immediate: Bool) {
         histogramTask?.cancel()
         if immediate {
-            histogram = Self.computeHistogram(from: entries, buckets: Self.histogramBucketCount)
+            captureSpikePeaksFromCurrentHistogram()
+            histogram = Self.computeHistogram(
+                from: entries,
+                peaks: spikePeaks,
+                buckets: Self.histogramBucketCount
+            )
             return
         }
         histogramTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 300_000_000)
             guard let self, !Task.isCancelled else { return }
-            self.histogram = Self.computeHistogram(from: self.entries, buckets: Self.histogramBucketCount)
+            self.captureSpikePeaksFromCurrentHistogram()
+            self.histogram = Self.computeHistogram(
+                from: self.entries,
+                peaks: self.spikePeaks,
+                buckets: Self.histogramBucketCount
+            )
         }
+    }
+
+    /// Walks the about-to-be-replaced histogram bars, identifies spikes
+    /// (above the threshold), and appends them to `spikePeaks` keyed by
+    /// time. No-op on first compute (`histogram == nil`).
+    private func captureSpikePeaksFromCurrentHistogram() {
+        guard let current = histogram else { return }
+        let totals = current.bars.map(\.total).filter { $0 > 0 }
+        guard !totals.isEmpty else { return }
+        let med = Self.median(of: totals)
+        let threshold = max(Double(Self.spikeAbsoluteMin), med * Self.spikeThresholdMultiplier)
+
+        for (i, bar) in current.bars.enumerated() {
+            guard Double(bar.total) > threshold else { continue }
+            let centerTime = current.startTime.addingTimeInterval(
+                Double(i) * current.bucketSize + current.bucketSize / 2
+            )
+            spikePeaks.append(SpikePeak(time: centerTime, count: bar.total))
+        }
+
+        if spikePeaks.count > Self.spikePeakListCap {
+            // Keep the top-N by count; the lowest-magnitude entries
+            // are the least visually informative to preserve.
+            spikePeaks.sort { $0.count > $1.count }
+            spikePeaks = Array(spikePeaks.prefix(Self.spikePeakListCap))
+        }
+    }
+
+    private static func median(of values: [Int]) -> Double {
+        let sorted = values.sorted()
+        let count = sorted.count
+        if count.isMultiple(of: 2) {
+            return (Double(sorted[count / 2 - 1]) + Double(sorted[count / 2])) / 2.0
+        }
+        return Double(sorted[count / 2])
+    }
+
+    /// Per-time-window spike record. `time` is the center of the bucket
+    /// the peak was captured from; `count` is that bucket's total at
+    /// capture time. Stored in `spikePeaks` and reprojected onto current
+    /// buckets each recompute.
+    private struct SpikePeak {
+        let time: Date
+        let count: Int
     }
 
     // Two static formatters — previous code mutated a single shared
@@ -517,7 +585,11 @@ final class LogDocument: ObservableObject, Identifiable {
         return f
     }()
 
-    private static func computeHistogram(from entries: [LogEntry], buckets: Int) -> LogHistogram? {
+    private static func computeHistogram(
+        from entries: [LogEntry],
+        peaks: [SpikePeak],
+        buckets: Int
+    ) -> LogHistogram? {
         guard entries.count >= 10 else { return nil }
 
         let timestamped = entries.compactMap { $0.timestamp }
@@ -549,15 +621,38 @@ final class LogDocument: ObservableObject, Identifiable {
 
         let maxTotal = bars.map(\.total).max() ?? 1
 
+        // Project peaks onto current buckets. Only include a shadow when
+        // its peakCount would visibly extend ABOVE the current bar
+        // (otherwise the bar would hide it anyway — saves render work
+        // and keeps the shadows array minimal).
+        var shadows: [LogHistogram.Shadow] = []
+        for bucketIdx in 0..<buckets {
+            let bucketStart = first.addingTimeInterval(Double(bucketIdx) * bucketSize)
+            let bucketEnd = bucketStart.addingTimeInterval(bucketSize)
+            let inRangePeak = peaks
+                .filter { $0.time >= bucketStart && $0.time < bucketEnd }
+                .map(\.count)
+                .max() ?? 0
+            if inRangePeak > bars[bucketIdx].total {
+                shadows.append(LogHistogram.Shadow(bucketIndex: bucketIdx, peakCount: inRangePeak))
+            }
+        }
+
+        // maxTotal must include shadow heights so the y-axis stays
+        // honest — a tall ghost can legitimately exceed any current bar.
+        let visibleShadowMax = shadows.map(\.peakCount).max() ?? 0
+        let effectiveMaxTotal = max(maxTotal, visibleShadowMax)
+
         let formatter = total > 86400 ? histogramLabelFormatterLong : histogramLabelFormatterShort
 
         return LogHistogram(
             bars: bars,
-            maxTotal: maxTotal,
+            maxTotal: effectiveMaxTotal,
             startLabel: formatter.string(from: first),
             endLabel: formatter.string(from: last),
             startTime: first,
-            bucketSize: bucketSize
+            bucketSize: bucketSize,
+            shadows: shadows
         )
     }
 

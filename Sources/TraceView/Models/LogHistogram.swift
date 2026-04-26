@@ -11,12 +11,26 @@ struct LogHistogram {
         var total: Int { err + warn + info }
     }
 
+    /// Per-time-window peak preserved across rebucketing rounds, projected
+    /// onto a current bucket index. Rendered as a faint ghost behind the
+    /// solid bar so a spike that's now absorbed into a wider bucket stays
+    /// visible. Only included for buckets where peakCount > bar.total
+    /// (i.e. the shadow would visibly extend above the current bar).
+    struct Shadow {
+        let bucketIndex: Int
+        let peakCount: Int
+    }
+
     let bars: [Bar]
+    /// Max value the y-axis must accommodate — accounts for shadow heights
+    /// in addition to bar totals so a tall ghost doesn't visually exceed
+    /// the bar area.
     let maxTotal: Int
     let startLabel: String
     let endLabel: String
     let startTime: Date
     let bucketSize: TimeInterval
+    let shadows: [Shadow]
 
     /// Time range covered by the given bucket — used by histogram
     /// click-to-navigate to resolve a click position into an entry.
