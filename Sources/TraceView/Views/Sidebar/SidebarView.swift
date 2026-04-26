@@ -531,6 +531,18 @@ struct SidebarBrowsableRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .contextMenu {
+            // Left-click already opens in primary; the menu mirrors the
+            // SidebarDocumentContextMenu's "Open in <other> Pane" option
+            // so users can send a Report straight to the right pane
+            // without the open-then-move two-step.
+            Button("Open in Left Pane") {
+                appState.openFile(at: file.url, into: .primary)
+            }
+            Button("Open in Right Pane") {
+                appState.openFile(at: file.url, into: .secondary)
+            }
+        }
     }
 }
 
