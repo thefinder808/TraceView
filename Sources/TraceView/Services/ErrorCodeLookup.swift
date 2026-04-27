@@ -21,10 +21,12 @@ final class ErrorCodeLookup {
 
         // Deduplicate by domain + code
         var seen = Set<String>()
-        return results.filter { info in
+        let deduped = results.filter { info in
             let key = "\(info.domain.rawValue):\(info.code)"
             return seen.insert(key).inserted
         }
+        // Conservative reorder: only bumps a domain to top when input has unambiguous signal
+        return prioritize(input: trimmed, results: deduped)
     }
 
     /// Lookup in a specific domain
@@ -245,6 +247,81 @@ final class ErrorCodeLookup {
         }
 
         return results
+    }
+
+    // MARK: - Prioritization
+
+    /// Conservative reordering: bumps domains to the top only when the input
+    /// shows an unambiguous textual or numeric signal. Returns the array
+    /// unchanged when no STRONG rule fires — a wrong top-pick is more annoying
+    /// than a flat list.
+    private func prioritize(input: String, results: [ErrorCodeInfo]) -> [ErrorCodeInfo] {
+        guard results.count > 1 else { return results }
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let preferred = strongDomain(for: trimmed)
+        guard let preferred else { return results }
+
+        // Stable sort: matches in the preferred domain first, others in original order.
+        var preferredResults: [ErrorCodeInfo] = []
+        var rest: [ErrorCodeInfo] = []
+        for r in results {
+            if r.domain == preferred {
+                preferredResults.append(r)
+            } else {
+                rest.append(r)
+            }
+        }
+        return preferredResults + rest
+    }
+
+    /// Returns the unambiguous domain hinted by the input string, or nil if
+    /// the input doesn't fire any STRONG rule. Order of checks matters: more
+    /// specific patterns first.
+    private func strongDomain(for input: String) -> ErrorDomain? {
+        // Symbol-based rules (case-sensitive checks before case-insensitive)
+        if input.hasPrefix("errSec") { return .security }
+
+        let upper = input.uppercased()
+        if upper.hasPrefix("SIG") { return .posixSignal }
+        if upper.hasPrefix("SQLITE_") { return .sqlite }
+        if upper.hasPrefix("KDNSSERVICEERR_") { return .bonjour }
+        if upper.hasPrefix("NSURL") || upper.hasPrefix("KCFERROR") { return .cfNetwork }
+        if upper.hasPrefix("EX_") { return .posixExit }
+        // ^E[A-Z]+$ → errno (e.g. EACCES, ENOENT) — matches AFTER EX_ to avoid stealing those
+        if upper.range(of: #"^E[A-Z]+$"#, options: .regularExpression) != nil {
+            return .errno
+        }
+
+        // Numeric rules
+        // Hex with sign-extended OSStatus pattern (0x8XXXXXXX)
+        if input.hasPrefix("0x") || input.hasPrefix("0X") {
+            let hex = String(input.dropFirst(2))
+            if let val = UInt64(hex, radix: 16) {
+                // OSStatus pattern: high bit set, 8-digit (0x80000000 .. 0x8FFFFFFF)
+                if hex.count == 8, val >= 0x80000000, val <= 0x8FFFFFFF {
+                    return .osStatus
+                }
+                // IOReturn pattern: 0xE00002XX
+                if val >= 0xE0000200, val <= 0xE00002FF {
+                    return .ioReturn
+                }
+            }
+        }
+
+        // Decimal with no prefix
+        if let val = Int64(input) {
+            // HTTP range
+            if val >= 100, val <= 599 {
+                return .httpStatus
+            }
+            // CFNetwork negative range
+            if val < 0, val >= -3010 {
+                return .cfNetwork
+            }
+        }
+
+        return nil
     }
 
     // MARK: - Domain Lookups
