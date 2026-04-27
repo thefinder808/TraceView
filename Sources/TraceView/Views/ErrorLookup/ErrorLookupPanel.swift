@@ -68,7 +68,9 @@ struct ErrorLookupPanel: View {
                             Text("Not in the built-in database")
                                 .font(.system(size: 12))
                                 .foregroundStyle(theme.secondaryText)
-                            Text("errno · OSStatus · IOReturn · Mach · HTTP")
+                            Text(ErrorDomain.allCases.map { $0.displayName }.joined(separator: " · "))
+                                .lineLimit(2)
+                                .multilineTextAlignment(.center)
                                 .font(.system(size: 10))
                                 .foregroundStyle(theme.tertiaryText)
                         }
@@ -98,13 +100,18 @@ struct ErrorLookupPanel: View {
     // MARK: - Domain Tabs
 
     private func domainTabs(theme: any AppTheme) -> some View {
-        HStack(spacing: 2) {
-            domainTab(label: "Auto", domain: nil, theme: theme)
-            ForEach(ErrorDomain.allCases) { domain in
-                domainTab(label: domain.displayName, domain: domain, theme: theme)
+        // Horizontal scroll because 13 domains overflow the sidebar width.
+        // ScrollView's content does not get a clipShape from its parent, so we
+        // apply the rounded background to the ScrollView itself.
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 2) {
+                domainTab(label: "Auto", domain: nil, theme: theme)
+                ForEach(ErrorDomain.allCases) { domain in
+                    domainTab(label: domain.displayName, domain: domain, theme: theme)
+                }
             }
+            .padding(2)
         }
-        .padding(2)
         .background(theme.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 6))
     }
