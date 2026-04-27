@@ -46,6 +46,14 @@ final class ErrorCodeLookup {
         case .ioReturn: return lookupIOReturn(UInt32(bitPattern: Int32(clamping: code))).map { [$0] } ?? []
         case .machError: return lookupMachError(Int32(clamping: code)).map { [$0] } ?? []
         case .httpStatus: return lookupHTTPStatus(Int(code)).map { [$0] } ?? []
+        case .cfNetwork: return []
+        case .cocoa: return []
+        case .security: return []
+        case .posixSignal: return []
+        case .sqlite: return []
+        case .grpc: return []
+        case .bonjour: return []
+        case .posixExit: return []
         }
     }
 
@@ -122,6 +130,14 @@ final class ErrorCodeLookup {
             }
         case .httpStatus:
             break
+        case .cfNetwork: break
+        case .cocoa: break
+        case .security: break
+        case .posixSignal: break
+        case .sqlite: break
+        case .grpc: break
+        case .bonjour: break
+        case .posixExit: break
         }
         return nil
     }
