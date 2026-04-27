@@ -46,7 +46,7 @@ final class ErrorCodeLookup {
         case .ioReturn: return lookupIOReturn(UInt32(bitPattern: Int32(clamping: code))).map { [$0] } ?? []
         case .machError: return lookupMachError(Int32(clamping: code)).map { [$0] } ?? []
         case .httpStatus: return lookupHTTPStatus(Int(code)).map { [$0] } ?? []
-        case .cfNetwork: return []
+        case .cfNetwork: return lookupCFNetwork(Int32(clamping: code)).map { [$0] } ?? []
         case .cocoa: return []
         case .security: return []
         case .posixSignal: return []
@@ -106,6 +106,11 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .machError, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
             }
         }
+        for (code, (sym, desc)) in Self.cfNetworkTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
+            }
+        }
         return results
     }
 
@@ -130,7 +135,10 @@ final class ErrorCodeLookup {
             }
         case .httpStatus:
             break
-        case .cfNetwork: break
+        case .cfNetwork:
+            for (code, (sym, desc)) in Self.cfNetworkTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+            }
         case .cocoa: break
         case .security: break
         case .posixSignal: break
@@ -154,6 +162,7 @@ final class ErrorCodeLookup {
         if let r = lookupOSStatus(i32) { results.append(r) }
         if let r = lookupIOReturn(u32) { results.append(r) }
         if let r = lookupMachError(i32) { results.append(r) }
+        if let r = lookupCFNetwork(i32) { results.append(r) }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -188,6 +197,11 @@ final class ErrorCodeLookup {
     func lookupHTTPStatus(_ code: Int) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.httpStatusTable[code] else { return nil }
         return ErrorCodeInfo(domain: .httpStatus, code: Int32(code), symbolicName: sym, description: desc, hexValue: nil)
+    }
+
+    func lookupCFNetwork(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.cfNetworkTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
     }
 
     // MARK: - Error Code Tables
@@ -707,5 +721,55 @@ final class ErrorCodeLookup {
         508: ("Loop Detected", "Server detected an infinite loop while processing (WebDAV)"),
         510: ("Not Extended", "Further extensions to the request are required"),
         511: ("Network Authentication Required", "Client needs to authenticate to gain network access (captive portal)"),
+    ]
+
+    // Values mirror Foundation/NSURLError.h (NSURLErrorDomain / CFNetwork).
+    static let cfNetworkTable: [Int32: (String, String)] = [
+        -1: ("NSURLErrorUnknown", "Unknown error"),
+        -999: ("NSURLErrorCancelled", "Cancelled"),
+        -1000: ("NSURLErrorBadURL", "Bad URL"),
+        -1001: ("NSURLErrorTimedOut", "Request timed out"),
+        -1002: ("NSURLErrorUnsupportedURL", "Unsupported URL"),
+        -1003: ("NSURLErrorCannotFindHost", "Cannot find host"),
+        -1004: ("NSURLErrorCannotConnectToHost", "Cannot connect to host"),
+        -1005: ("NSURLErrorNetworkConnectionLost", "Network connection lost"),
+        -1006: ("NSURLErrorDNSLookupFailed", "DNS lookup failed"),
+        -1007: ("NSURLErrorHTTPTooManyRedirects", "Too many HTTP redirects"),
+        -1008: ("NSURLErrorResourceUnavailable", "Resource unavailable"),
+        -1009: ("NSURLErrorNotConnectedToInternet", "Not connected to the internet"),
+        -1010: ("NSURLErrorRedirectToNonExistentLocation", "Redirect to non-existent location"),
+        -1011: ("NSURLErrorBadServerResponse", "Bad server response"),
+        -1012: ("NSURLErrorUserCancelledAuthentication", "User cancelled authentication"),
+        -1013: ("NSURLErrorUserAuthenticationRequired", "User authentication required"),
+        -1014: ("NSURLErrorZeroByteResource", "Zero-byte resource returned"),
+        -1015: ("NSURLErrorCannotDecodeRawData", "Cannot decode raw data"),
+        -1016: ("NSURLErrorCannotDecodeContentData", "Cannot decode content data"),
+        -1017: ("NSURLErrorCannotParseResponse", "Cannot parse response"),
+        -1018: ("NSURLErrorInternationalRoamingOff", "International roaming is off"),
+        -1019: ("NSURLErrorCallIsActive", "Call is active"),
+        -1020: ("NSURLErrorDataNotAllowed", "Cellular data not allowed"),
+        -1021: ("NSURLErrorRequestBodyStreamExhausted", "Request body stream exhausted"),
+        -1022: ("NSURLErrorAppTransportSecurityRequiresSecureConnection", "ATS requires secure connection"),
+        -1100: ("NSURLErrorFileDoesNotExist", "File does not exist"),
+        -1101: ("NSURLErrorFileIsDirectory", "File is a directory"),
+        -1102: ("NSURLErrorNoPermissionsToReadFile", "No permissions to read file"),
+        -1103: ("NSURLErrorDataLengthExceedsMaximum", "Data length exceeds maximum"),
+        -1104: ("NSURLErrorFileOutsideSafeArea", "File outside safe area"),
+        -1200: ("NSURLErrorSecureConnectionFailed", "Secure connection failed"),
+        -1201: ("NSURLErrorServerCertificateHasBadDate", "Server certificate has bad date"),
+        -1202: ("NSURLErrorServerCertificateUntrusted", "Server certificate untrusted"),
+        -1203: ("NSURLErrorServerCertificateHasUnknownRoot", "Server certificate has unknown root"),
+        -1204: ("NSURLErrorServerCertificateNotYetValid", "Server certificate not yet valid"),
+        -1205: ("NSURLErrorClientCertificateRejected", "Client certificate rejected"),
+        -1206: ("NSURLErrorClientCertificateRequired", "Client certificate required"),
+        -2000: ("NSURLErrorCannotLoadFromNetwork", "Cannot load from network"),
+        -3000: ("NSURLErrorCannotCreateFile", "Cannot create file"),
+        -3001: ("NSURLErrorCannotOpenFile", "Cannot open file"),
+        -3002: ("NSURLErrorCannotCloseFile", "Cannot close file"),
+        -3003: ("NSURLErrorCannotWriteToFile", "Cannot write to file"),
+        -3004: ("NSURLErrorCannotRemoveFile", "Cannot remove file"),
+        -3005: ("NSURLErrorCannotMoveFile", "Cannot move file"),
+        -3006: ("NSURLErrorDownloadDecodingFailedMidStream", "Download decoding failed mid-stream"),
+        -3007: ("NSURLErrorDownloadDecodingFailedToComplete", "Download decoding failed to complete"),
     ]
 }
