@@ -41,8 +41,20 @@ struct NSLogTableView: NSViewRepresentable {
     /// that have `sourceDocumentID` populated (merged-view rows).
     var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
 
+    /// Default row height at the default 12pt font, kept as a static for
+    /// callers that need a stable reference (e.g. layout fallbacks before
+    /// the table has rendered). Use `rowHeight(for:)` for the actual height
+    /// at the user's current font size.
     static let baseRowHeight: CGFloat = 24
     static let drawerHeight: CGFloat = 160
+
+    /// Row height scaled to the user's font size. Linear scaling at 2× —
+    /// gives the existing 24pt height at the 12pt default and ranges
+    /// 18pt (9pt font) to 36pt (18pt font), keeping the same visual
+    /// breathing-room ratio across the full Settings range.
+    static func rowHeight(for fontSize: Double) -> CGFloat {
+        ceil(CGFloat(fontSize) * 2)
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -57,7 +69,7 @@ struct NSLogTableView: NSViewRepresentable {
 
         let tableView = NSTableView()
         tableView.style = .plain
-        tableView.rowHeight = 24
+        tableView.rowHeight = Self.rowHeight(for: fontSize)
         tableView.intercellSpacing = NSSize(width: 0, height: 0)
         tableView.usesAlternatingRowBackgroundColors = false
         tableView.backgroundColor = .clear
@@ -191,6 +203,13 @@ struct NSLogTableView: NSViewRepresentable {
         // rendered cell with the new theme while preserving the scroll offset.
         let themeChanged = coordinator.theme.name != theme.name
 
+        // Same problem with font size: cells are recycled via
+        // `makeView(withIdentifier:)`, so simply updating `coordinator.fontSize`
+        // doesn't refresh visible rows — they keep the stale font until
+        // scrolled out and back in. Track the change here so we can pair it
+        // with the row-height update + reloadData below.
+        let fontSizeChanged = coordinator.fontSize != fontSize
+
         // Update data
         coordinator.entries = entries
         coordinator.theme = theme
@@ -266,7 +285,15 @@ struct NSLogTableView: NSViewRepresentable {
             return entries[oldCount - 1].lineNumber == lastLine
         }()
 
-        if themeChanged || rulesChanged {
+        if fontSizeChanged {
+            // Push the new height to the table-wide default and ask the
+            // delegate to re-query heightOfRow for everything currently on
+            // screen. reloadData below replaces the stale-font cells.
+            tableView.rowHeight = Self.rowHeight(for: fontSize)
+            tableView.noteHeightOfRows(withIndexesChanged: IndexSet(integersIn: 0..<entries.count))
+        }
+
+        if themeChanged || rulesChanged || fontSizeChanged {
             tableView.reloadData()
         } else if isTrailingAppend {
             // Incremental append — insert only new rows
@@ -583,7 +610,7 @@ struct NSLogTableView: NSViewRepresentable {
             let rowView = LogTableRowView()
             rowView.entryLevel = entry.level
             rowView.theme = theme
-            rowView.baseRowHeight = NSLogTableView.baseRowHeight
+            rowView.baseRowHeight = NSLogTableView.rowHeight(for: fontSize)
             rowView.isBookmarked = bookmarkedLines.contains(entry.lineNumber)
             rowView.customHighlightColor = highlightColor(for: entry)
 
@@ -622,11 +649,12 @@ struct NSLogTableView: NSViewRepresentable {
         }
 
         func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-            guard row < entries.count else { return NSLogTableView.baseRowHeight }
+            let base = NSLogTableView.rowHeight(for: fontSize)
+            guard row < entries.count else { return base }
             if inlineExpansionEnabled, entries[row].id == currentExpandedID {
-                return NSLogTableView.baseRowHeight + NSLogTableView.drawerHeight
+                return base + NSLogTableView.drawerHeight
             }
-            return NSLogTableView.baseRowHeight
+            return base
         }
 
         func tableViewSelectionDidChange(_ notification: Notification) {

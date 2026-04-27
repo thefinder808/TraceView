@@ -154,9 +154,14 @@ struct TraceViewApp: App {
                     .keyboardShortcut("e", modifiers: [.command, .shift])
             }
 
-            // View menu — log-row font size. Range matches the Settings
-            // stepper (9...18); reset returns to the 12pt default.
-            CommandMenu("View") {
+            // Inject font-size shortcuts into SwiftUI's auto-generated
+            // View menu (created because of NavigationSplitView's sidebar
+            // toggle). A top-level `CommandMenu("View")` would add a SECOND
+            // menu rather than augment the existing one.
+            // Range matches the Settings stepper (9...18); reset = 12pt.
+            CommandGroup(after: .toolbar) {
+                Divider()
+
                 Button("Increase Font Size") {
                     settingsManager.fontSize = min(18, settingsManager.fontSize + 1)
                 }
