@@ -56,7 +56,7 @@ final class ErrorCodeLookup {
                 return lookupGRPC(Int32(code)).map { [$0] } ?? []
             }
             return []
-        case .bonjour: return []
+        case .bonjour: return lookupBonjour(Int32(clamping: code)).map { [$0] } ?? []
         case .posixExit: return []
         }
     }
@@ -140,6 +140,11 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil))
             }
         }
+        for (code, (sym, desc)) in Self.bonjourTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
+            }
+        }
         return results
     }
 
@@ -188,7 +193,10 @@ final class ErrorCodeLookup {
             for (code, (sym, desc)) in Self.grpcTable where sym.uppercased() == upper {
                 return ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil)
             }
-        case .bonjour: break
+        case .bonjour:
+            for (code, (sym, desc)) in Self.bonjourTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+            }
         case .posixExit: break
         }
         return nil
@@ -214,6 +222,7 @@ final class ErrorCodeLookup {
         if value >= 0 && value <= 16 {
             if let r = lookupGRPC(Int32(value)) { results.append(r) }
         }
+        if let r = lookupBonjour(i32) { results.append(r) }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -278,6 +287,11 @@ final class ErrorCodeLookup {
     func lookupGRPC(_ code: Int32) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.grpcTable[code] else { return nil }
         return ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil)
+    }
+
+    func lookupBonjour(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.bonjourTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
     }
 
     // MARK: - Error Code Tables
@@ -1063,5 +1077,44 @@ final class ErrorCodeLookup {
         14: ("UNAVAILABLE",          "Service unavailable (typically transient)"),
         15: ("DATA_LOSS",            "Unrecoverable data loss or corruption"),
         16: ("UNAUTHENTICATED",      "Request does not have valid credentials"),
+    ]
+
+    static let bonjourTable: [Int32: (String, String)] = [
+        0:      ("kDNSServiceErr_NoError",                   "No error"),
+        -65537: ("kDNSServiceErr_Unknown",                   "Unknown error"),
+        -65538: ("kDNSServiceErr_NoSuchName",                "No such name"),
+        -65539: ("kDNSServiceErr_NoMemory",                  "Out of memory"),
+        -65540: ("kDNSServiceErr_BadParam",                  "Bad parameter"),
+        -65541: ("kDNSServiceErr_BadReference",              "Bad reference"),
+        -65542: ("kDNSServiceErr_BadState",                  "Bad state"),
+        -65543: ("kDNSServiceErr_BadFlags",                  "Bad flags"),
+        -65544: ("kDNSServiceErr_Unsupported",               "Unsupported operation"),
+        -65545: ("kDNSServiceErr_NotInitialized",            "Not initialized"),
+        -65547: ("kDNSServiceErr_AlreadyRegistered",         "Service already registered"),
+        -65548: ("kDNSServiceErr_NameConflict",              "Name conflict"),
+        -65549: ("kDNSServiceErr_Invalid",                   "Invalid"),
+        -65550: ("kDNSServiceErr_Firewall",                  "Blocked by firewall"),
+        -65551: ("kDNSServiceErr_Incompatible",              "Library incompatible with daemon"),
+        -65552: ("kDNSServiceErr_BadInterfaceIndex",         "Bad interface index"),
+        -65553: ("kDNSServiceErr_Refused",                   "Refused"),
+        -65554: ("kDNSServiceErr_NoSuchRecord",              "No such record"),
+        -65555: ("kDNSServiceErr_NoAuth",                    "No authentication"),
+        -65556: ("kDNSServiceErr_NoSuchKey",                 "No such key"),
+        -65557: ("kDNSServiceErr_NATTraversal",              "NAT traversal error"),
+        -65558: ("kDNSServiceErr_DoubleNAT",                 "Double NAT"),
+        -65559: ("kDNSServiceErr_BadTime",                   "Clock skew"),
+        -65560: ("kDNSServiceErr_BadSig",                    "Bad signature"),
+        -65561: ("kDNSServiceErr_BadKey",                    "Bad key"),
+        -65562: ("kDNSServiceErr_Transient",                 "Transient error"),
+        -65563: ("kDNSServiceErr_ServiceNotRunning",         "mDNSResponder not running"),
+        -65564: ("kDNSServiceErr_NATPortMappingUnsupported", "NAT-PMP unsupported"),
+        -65565: ("kDNSServiceErr_NATPortMappingDisabled",    "NAT-PMP disabled"),
+        -65566: ("kDNSServiceErr_NoRouter",                  "No router"),
+        -65567: ("kDNSServiceErr_PollingMode",               "Polling mode"),
+        -65568: ("kDNSServiceErr_Timeout",                   "Timeout"),
+        -65569: ("kDNSServiceErr_DefunctConnection",         "Defunct connection"),
+        -65570: ("kDNSServiceErr_PolicyDenied",              "Policy denied"),
+        -65571: ("kDNSServiceErr_NotPermitted",              "Not permitted"),
+        -65572: ("kDNSServiceErr_StaleData",                 "Stale data"),
     ]
 }
