@@ -51,7 +51,11 @@ final class ErrorCodeLookup {
         case .security: return lookupSecurity(Int32(clamping: code)).map { [$0] } ?? []
         case .posixSignal: return lookupPOSIXSignal(Int32(clamping: code)).map { [$0] } ?? []
         case .sqlite: return lookupSQLite(Int32(clamping: code)).map { [$0] } ?? []
-        case .grpc: return []
+        case .grpc:
+            if code >= 0 && code <= 16 {
+                return lookupGRPC(Int32(code)).map { [$0] } ?? []
+            }
+            return []
         case .bonjour: return []
         case .posixExit: return []
         }
@@ -131,6 +135,11 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
             }
         }
+        for (code, (sym, desc)) in Self.grpcTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil))
+            }
+        }
         return results
     }
 
@@ -175,7 +184,10 @@ final class ErrorCodeLookup {
             for (code, (sym, desc)) in Self.sqliteTable where sym.uppercased() == upper {
                 return ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
             }
-        case .grpc: break
+        case .grpc:
+            for (code, (sym, desc)) in Self.grpcTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil)
+            }
         case .bonjour: break
         case .posixExit: break
         }
@@ -199,6 +211,9 @@ final class ErrorCodeLookup {
         if let r = lookupSecurity(i32) { results.append(r) }
         if let r = lookupPOSIXSignal(i32) { results.append(r) }
         if let r = lookupSQLite(i32) { results.append(r) }
+        if value >= 0 && value <= 16 {
+            if let r = lookupGRPC(Int32(value)) { results.append(r) }
+        }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -258,6 +273,11 @@ final class ErrorCodeLookup {
     func lookupSQLite(_ code: Int32) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.sqliteTable[code] else { return nil }
         return ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+    }
+
+    func lookupGRPC(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.grpcTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil)
     }
 
     // MARK: - Error Code Tables
@@ -1021,5 +1041,27 @@ final class ErrorCodeLookup {
         1290: ("SQLITE_IOERR_DIR_FSYNC",        "I/O error on directory fsync"),          // 10 | (5<<8)
         1555: ("SQLITE_CONSTRAINT_PRIMARYKEY",  "Primary key constraint failed"),         // 19 | (6<<8)
         2067: ("SQLITE_CONSTRAINT_UNIQUE",      "Unique constraint failed"),              // 19 | (8<<8)
+    ]
+
+    // Full canonical gRPC status code set. Source: grpc/grpc status_code_enum.h / status.proto.
+    // Codes 0-16 are fixed by spec; no extensions expected.
+    static let grpcTable: [Int32: (String, String)] = [
+        0:  ("OK",                   "Not an error; returned on success"),
+        1:  ("CANCELLED",            "Operation was cancelled (typically by caller)"),
+        2:  ("UNKNOWN",              "Unknown error"),
+        3:  ("INVALID_ARGUMENT",     "Client specified an invalid argument"),
+        4:  ("DEADLINE_EXCEEDED",    "Deadline expired before operation could complete"),
+        5:  ("NOT_FOUND",            "Some requested entity was not found"),
+        6:  ("ALREADY_EXISTS",       "Entity caller attempted to create already exists"),
+        7:  ("PERMISSION_DENIED",    "Caller does not have permission"),
+        8:  ("RESOURCE_EXHAUSTED",   "Some resource has been exhausted"),
+        9:  ("FAILED_PRECONDITION",  "System is not in required state"),
+        10: ("ABORTED",              "Operation was aborted (typically due to concurrency issue)"),
+        11: ("OUT_OF_RANGE",         "Operation attempted past valid range"),
+        12: ("UNIMPLEMENTED",        "Operation is not implemented or not supported"),
+        13: ("INTERNAL",             "Internal errors (broken invariants)"),
+        14: ("UNAVAILABLE",          "Service unavailable (typically transient)"),
+        15: ("DATA_LOSS",            "Unrecoverable data loss or corruption"),
+        16: ("UNAUTHENTICATED",      "Request does not have valid credentials"),
     ]
 }
