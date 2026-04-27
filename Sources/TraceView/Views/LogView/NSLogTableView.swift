@@ -41,11 +41,6 @@ struct NSLogTableView: NSViewRepresentable {
     /// that have `sourceDocumentID` populated (merged-view rows).
     var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
 
-    /// Default row height at the default 12pt font, kept as a static for
-    /// callers that need a stable reference (e.g. layout fallbacks before
-    /// the table has rendered). Use `rowHeight(for:)` for the actual height
-    /// at the user's current font size.
-    static let baseRowHeight: CGFloat = 24
     static let drawerHeight: CGFloat = 160
 
     /// Row height scaled to the user's font size. Linear scaling at 2× —
@@ -286,11 +281,10 @@ struct NSLogTableView: NSViewRepresentable {
         }()
 
         if fontSizeChanged {
-            // Push the new height to the table-wide default and ask the
-            // delegate to re-query heightOfRow for everything currently on
-            // screen. reloadData below replaces the stale-font cells.
+            // Push the new height to the table-wide default. The reloadData
+            // below re-queries heightOfRow for every visible row and rebuilds
+            // the cell views, picking up the new font in one pass.
             tableView.rowHeight = Self.rowHeight(for: fontSize)
-            tableView.noteHeightOfRows(withIndexesChanged: IndexSet(integersIn: 0..<entries.count))
         }
 
         if themeChanged || rulesChanged || fontSizeChanged {
@@ -552,7 +546,9 @@ struct NSLogTableView: NSViewRepresentable {
             }
 
             let monoFont = NSFont.monospacedSystemFont(ofSize: CGFloat(fontSize), weight: .regular)
-            let smallFont = NSFont.monospacedSystemFont(ofSize: CGFloat(fontSize - 1), weight: .regular)
+            // Floored at 10pt so the gutter stays legible when the user
+            // dials all the way down to 9pt — 8pt mono is too small.
+            let smallFont = NSFont.monospacedSystemFont(ofSize: CGFloat(max(10, fontSize - 1)), weight: .regular)
             let badgeFont = NSFont.systemFont(ofSize: 9, weight: .semibold)
 
             switch column.identifier {
