@@ -83,10 +83,10 @@ struct TraceViewApp: App {
 
                 Divider()
 
-                Button("Jump to Bottom") { appState.jumpToBottom() }
+                Button("Jump to Bottom") { appState.jumpToBottom(in: appState.activePane) }
                     .keyboardShortcut(.downArrow, modifiers: .command)
 
-                Button("Toggle Following") { appState.toggleFollowing() }
+                Button("Toggle Following") { appState.toggleFollowing(in: appState.activePane) }
                     .keyboardShortcut("f", modifiers: [.command, .shift])
 
                 Divider()
@@ -110,23 +110,23 @@ struct TraceViewApp: App {
                 // the menu items are just gated on having a doc open.
                 Button("Find Next") { appState.stepFindMatch(by: 1) }
                     .keyboardShortcut("g", modifiers: .command)
-                    .disabled(appState.selectedDocument == nil)
+                    .disabled(appState.selectedDocument(in: appState.activePane) == nil)
 
                 Button("Find Previous") { appState.stepFindMatch(by: -1) }
                     .keyboardShortcut("g", modifiers: [.command, .shift])
-                    .disabled(appState.selectedDocument == nil)
+                    .disabled(appState.selectedDocument(in: appState.activePane) == nil)
 
                 Divider()
 
                 Button("Use Regular Expression") { appState.toggleRegex() }
                     .keyboardShortcut("r", modifiers: [.command, .option])
-                    .disabled(appState.selectedDocument == nil)
+                    .disabled(appState.selectedDocument(in: appState.activePane) == nil)
 
                 Divider()
 
                 Button("Go to Line...") { appState.showGoToLine = true }
                     .keyboardShortcut("l", modifiers: .command)
-                    .disabled(appState.selectedDocument == nil)
+                    .disabled(appState.selectedDocument(in: appState.activePane) == nil)
             }
 
             // Tools menu
@@ -134,8 +134,9 @@ struct TraceViewApp: App {
                 Button("Error Code Lookup") { appState.showErrorLookup.toggle() }
                     .keyboardShortcut("l", modifiers: [.command, .shift])
 
-                Button("Reload File") { appState.reloadCurrentFile() }
+                Button("Reload File") { appState.reloadFile(in: appState.activePane) }
                     .keyboardShortcut("r", modifiers: .command)
+                    .disabled(appState.selectedDocument(in: appState.activePane) == nil)
 
                 Divider()
 
@@ -162,11 +163,11 @@ struct TraceViewApp: App {
 
                 Button("Toggle Bookmark on Selected Line") { appState.toggleBookmarkOnSelection() }
                     .keyboardShortcut("d", modifiers: .command)
-                    .disabled(appState.selectedDocument == nil)
+                    .disabled(appState.selectedDocument(in: appState.activePane) == nil)
 
                 Divider()
 
-                Button("Export Filtered Log...") { appState.showExport = true }
+                Button("Export Filtered Log...") { appState.requestExport(in: appState.activePane) }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
             }
 

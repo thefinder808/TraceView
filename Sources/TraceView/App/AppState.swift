@@ -31,8 +31,22 @@ final class AppState: ObservableObject {
 
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
-    @Published var showExport: Bool = false
+    /// Pane-targeted export request. Each LogDocumentView attaches a sheet
+    /// that only presents when this matches its own pane, so the active
+    /// pane's filtered entries get exported and the inactive pane stays put.
+    /// nil = no sheet open. Replaced the global `showExport: Bool` because
+    /// in split view both panes used to attach the same boolean and race.
+    @Published var exportRequest: ExportRequest? = nil
     @Published var showGoToLine: Bool = false
+
+    struct ExportRequest: Identifiable, Equatable {
+        let id = UUID()
+        let pane: Pane
+    }
+
+    func requestExport(in pane: Pane) {
+        exportRequest = ExportRequest(pane: pane)
+    }
 
     /// Scroll-sync between split panes. When on, scrolling one pane drives
     /// the other to the entry with the closest timestamp. No-op when split
@@ -168,6 +182,10 @@ final class AppState: ObservableObject {
 
     func selectedID(in pane: Pane) -> UUID? {
         pane == .primary ? selectedDocumentID : secondarySelectedDocumentID
+    }
+
+    func selectedDocument(in pane: Pane) -> LogDocument? {
+        pane == .primary ? selectedDocument : secondaryDocument
     }
 
     // MARK: - Tab persistence (opt-in via SettingsManager.restoreTabsOnLaunch)
@@ -482,9 +500,9 @@ final class AppState: ObservableObject {
         selectedDocumentID = primaryTabOrder[index]
     }
 
-    func toggleFollowing() {
-        guard let current = selectedDocument?.isFollowing else { return }
-        setFollowing(pane: .primary, following: !current)
+    func toggleFollowing(in pane: Pane) {
+        guard let current = selectedDocument(in: pane)?.isFollowing else { return }
+        setFollowing(pane: pane, following: !current)
     }
 
     /// Open the error lookup panel pre-filled with `code`.
@@ -519,12 +537,12 @@ final class AppState: ObservableObject {
         pendingFindStepTick += 1
     }
 
-    func jumpToBottom() {
-        setFollowing(pane: .primary, following: true)
+    func jumpToBottom(in pane: Pane) {
+        setFollowing(pane: pane, following: true)
     }
 
-    func reloadCurrentFile() {
-        guard let doc = selectedDocument, case .file = doc.source else { return }
+    func reloadFile(in pane: Pane) {
+        guard let doc = selectedDocument(in: pane), case .file = doc.source else { return }
         doc.reload()
     }
 

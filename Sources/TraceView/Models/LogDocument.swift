@@ -189,69 +189,70 @@ final class LogDocument: ObservableObject, Identifiable {
 
         let compressed = GzipDecompressor.isGzipped(url: url)
         isCompressed = compressed
-
-        // Load the file contents once, then use the same data for parser
-        // detection and full parsing. Previously parser detection
-        // re-decompressed gzipped files, doubling load time on big .gz logs.
-        // Gzipped: spawn gunzip off-main to avoid blocking on a few-second
-        // decompress. Uncompressed: mmap is cheap enough to do on-main.
-        let data: Data?
-        if compressed {
-            data = await Task.detached(priority: .userInitiated) {
-                GzipDecompressor.decompress(url: url)
-            }.value
-        } else {
-            data = try? Data(contentsOf: url, options: .mappedIfSafe)
-        }
-
-        guard let data, let text = String(data: data, encoding: .utf8) else { return }
-
-        fileSize = UInt64(data.count)
-        lastReadOffset = UInt64(data.count)
-
-        // Detect parser from the first 50 non-empty lines of the already-
-        // loaded text. No second disk read or decompress.
-        let sampleLines = text.components(separatedBy: .newlines)
-            .prefix(50)
-            .filter { !$0.isEmpty }
-            .map { String($0) }
-        parser = ParserRegistry.shared.detectParser(sampleLines: sampleLines)
-
+        // Flip isLoading first so the UI shows the spinner immediately
+        // rather than waiting for the decode + parse round-trip.
         isLoading = true
 
-        // Parse the whole file on a background task. A 100K-line file takes
-        // ~1.5s of synchronous parsing; doing it on the main thread froze the
-        // UI from the user's first click through to first render.
-        //
-        // Parsers may opt into a whole-file pass (parseFile) when they need
-        // state across lines — e.g. .ips crash reports where the JSON header
-        // on line 1 carries the timestamp for every body line. Otherwise we
-        // fall through to the line-by-line loop.
-        let capturedParser = parser
         let startID = nextEntryID
-        let parsed: (entries: [LogEntry], nextID: Int) = await Task.detached(priority: .userInitiated) {
+
+        // Single detached task does decompress (if needed), file I/O, decode,
+        // ONE newline split, parser detection, and the full parse. Previously
+        // decode + the parser-detection split happened on @MainActor before
+        // dispatching the parse, blocking first paint for hundreds of ms on
+        // larger logs. The newline split is shared between sample and parse.
+        let result = await Task.detached(priority: .userInitiated) { () -> LoadResult? in
+            let data: Data?
+            if compressed {
+                data = GzipDecompressor.decompress(url: url)
+            } else {
+                data = try? Data(contentsOf: url, options: .mappedIfSafe)
+            }
+            guard let data, let text = String(data: data, encoding: .utf8) else { return nil }
+
             let lines = text.components(separatedBy: .newlines)
-            if let whole = capturedParser.parseFile(lines: lines, startingEntryID: startID) {
-                return whole
-            }
-            var entries: [LogEntry] = []
-            entries.reserveCapacity(lines.count)
+
+            let sampleLines = lines.prefix(50)
+                .filter { !$0.isEmpty }
+                .map { String($0) }
+            let parser = ParserRegistry.shared.detectParser(sampleLines: sampleLines)
+
+            // Parsers may opt into a whole-file pass (parseFile) when they
+            // need state across lines — e.g. .ips crash reports where the
+            // JSON header on line 1 carries the timestamp for every body
+            // line. Otherwise fall through to the line-by-line loop.
             var nextID = startID
-            for (index, line) in lines.enumerated() {
-                guard !line.isEmpty else { continue }
-                let entry = capturedParser.parse(line: line, lineNumber: index + 1, entryID: nextID)
-                nextID += 1
-                entries.append(entry)
+            let entries: [LogEntry]
+            if let whole = parser.parseFile(lines: lines, startingEntryID: startID) {
+                entries = whole.entries
+                nextID = whole.nextID
+            } else {
+                var built: [LogEntry] = []
+                built.reserveCapacity(lines.count)
+                for (index, line) in lines.enumerated() {
+                    guard !line.isEmpty else { continue }
+                    built.append(parser.parse(line: line, lineNumber: index + 1, entryID: nextID))
+                    nextID += 1
+                }
+                entries = built
             }
-            return (entries, nextID)
+
+            return LoadResult(dataCount: data.count, parser: parser, entries: entries, nextID: nextID)
         }.value
 
-        entries = parsed.entries
-        nextEntryID = parsed.nextID
-        updateColumnFlags(scanning: parsed.entries)
-        rebuildLevelCounts(from: parsed.entries)
+        guard let result else {
+            isLoading = false
+            return
+        }
+
+        fileSize = UInt64(result.dataCount)
+        lastReadOffset = UInt64(result.dataCount)
+        parser = result.parser
+        entries = result.entries
+        nextEntryID = result.nextID
+        updateColumnFlags(scanning: result.entries)
+        rebuildLevelCounts(from: result.entries)
         recomputeHistogram(immediate: true)
-        didAppend.send(parsed.entries)
+        didAppend.send(result.entries)
         isLoading = false
 
         // Gzipped files are archive snapshots — they don't get appended to,
@@ -259,6 +260,13 @@ final class LogDocument: ObservableObject, Identifiable {
         if !compressed {
             startWatching(url: url)
         }
+    }
+
+    private struct LoadResult {
+        let dataCount: Int
+        let parser: any LogParser
+        let entries: [LogEntry]
+        let nextID: Int
     }
 
     // MARK: - Merged-view loading
@@ -499,29 +507,36 @@ final class LogDocument: ObservableObject, Identifiable {
         levelCounts = counts
     }
 
-    // Recomputes the 60-bucket minimap histogram. `immediate` runs it now
-    // (used on initial load). Otherwise it schedules a debounced refresh so
-    // high-rate log streams don't thrash re-bucketing on every append.
+    // Recomputes the 60-bucket minimap histogram. `immediate` runs the
+    // compute right away (used on initial load); otherwise the compute is
+    // debounced 300ms so high-rate log streams don't thrash re-bucketing on
+    // every append. Either way the actual `computeHistogram` work runs off
+    // main and the result is published back. For 100K-row logs this avoids
+    // a multi-100ms main-actor stall after parse completes.
     private func recomputeHistogram(immediate: Bool) {
         histogramTask?.cancel()
-        if immediate {
-            captureSpikePeaksFromCurrentHistogram()
-            histogram = Self.computeHistogram(
-                from: entries,
-                peaks: spikePeaks,
-                buckets: Self.histogramBucketCount
-            )
-            return
-        }
+        // The outer Task is @MainActor so:
+        //   - captureSpikePeaks runs on main (reads @Published histogram,
+        //     mutates spikePeaks) AFTER the cancellable debounce sleep,
+        //     which preserves the "only surviving task captures" coalescing
+        //     that prevents duplicate spike-peak entries during bursts;
+        //   - the inner Task.detached runs the actual compute off-main;
+        //   - the await hop publishes `histogram` back on main, which the
+        //     @Published contract requires for SwiftUI consumers.
         histogramTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 300_000_000)
+            if !immediate {
+                try? await Task.sleep(nanoseconds: 300_000_000)
+            }
             guard let self, !Task.isCancelled else { return }
             self.captureSpikePeaksFromCurrentHistogram()
-            self.histogram = Self.computeHistogram(
-                from: self.entries,
-                peaks: self.spikePeaks,
-                buckets: Self.histogramBucketCount
-            )
+            let snapshotEntries = self.entries
+            let snapshotPeaks = self.spikePeaks
+            let buckets = Self.histogramBucketCount
+            let result = await Task.detached(priority: .userInitiated) {
+                Self.computeHistogram(from: snapshotEntries, peaks: snapshotPeaks, buckets: buckets)
+            }.value
+            guard !Task.isCancelled else { return }
+            self.histogram = result
         }
     }
 
@@ -592,10 +607,22 @@ final class LogDocument: ObservableObject, Identifiable {
     ) -> LogHistogram? {
         guard entries.count >= 10 else { return nil }
 
-        let timestamped = entries.compactMap { $0.timestamp }
-        guard Double(timestamped.count) / Double(entries.count) >= 0.1,
-              let first = timestamped.first,
-              let last = timestamped.last,
+        // Single pass for min/max + count. Previously used
+        // `timestamped.first` / `.last`, which assumes file order matches
+        // timestamp order — wrong for merged docs (appendMerged keeps
+        // arrival order, not timestamp order, per the live-append model).
+        var first: Date?
+        var last: Date?
+        var timestampedCount = 0
+        for entry in entries {
+            guard let ts = entry.timestamp else { continue }
+            timestampedCount += 1
+            if first == nil || ts < first! { first = ts }
+            if last == nil || ts > last! { last = ts }
+        }
+        guard timestampedCount > 0,
+              Double(timestampedCount) / Double(entries.count) >= 0.1,
+              let first, let last,
               last > first else { return nil }
 
         let total = last.timeIntervalSince(first)

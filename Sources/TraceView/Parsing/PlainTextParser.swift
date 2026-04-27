@@ -190,11 +190,15 @@ struct PlainTextParser: LogParser {
     }
 
     private static func parseDatedSyslog(_ s: String) -> Date? {
-        // Try both ISO8601DateFormatter variants first (fast and lenient
-        // for well-formed ISO strings). Fall back to per-format
-        // DateFormatter list for dated-syslog permutations.
-        if let d = isoFormatter.date(from: s) { return d }
-        if let d = isoFormatterNoFraction.date(from: s) { return d }
+        // ISO8601DateFormatter requires a 'T' separator. Skipping it for
+        // space-separated dated-syslog timestamps (install.log etc.) saves
+        // ~0.5s on a 32K-line install.log because every line otherwise pays
+        // for two guaranteed-miss ISO attempts. T-separated callers (logfmt,
+        // ISO fallback) keep the fast path.
+        if s.contains("T") {
+            if let d = isoFormatter.date(from: s) { return d }
+            if let d = isoFormatterNoFraction.date(from: s) { return d }
+        }
         for f in datedSyslogFormatters {
             if let d = f.date(from: s) { return d }
         }

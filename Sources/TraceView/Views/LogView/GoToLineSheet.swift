@@ -12,7 +12,7 @@ struct GoToLineSheet: View {
     @FocusState private var focused: Bool
 
     private var totalLines: Int {
-        appState.selectedDocument?.entries.count ?? 0
+        appState.selectedDocument(in: appState.activePane)?.entries.count ?? 0
     }
 
     private var parsed: Int? {
@@ -58,8 +58,7 @@ struct GoToLineSheet: View {
 
     private func submit() {
         guard let line = parsed else { return }
-        // Sheet always targets the active (primary-pane) doc.
-        appState.goToLine(line, in: .primary)
+        appState.goToLine(line, in: appState.activePane)
         dismiss()
     }
 }
