@@ -147,9 +147,12 @@ struct ContentView: View {
                     .frame(width: 26, height: 26)
                 }
                 .buttonStyle(.plain)
+                // Anchor above — the merge button sits ~34pt below sync,
+                // so a default `.bottom` tooltip would land on top of it.
                 .hoverTooltip(synced
                               ? "Disable Pane Scroll Sync (⇧⌘S)"
-                              : "Sync Pane Scrolling (⇧⌘S)")
+                              : "Sync Pane Scrolling (⇧⌘S)",
+                              edge: .top)
 
                 mergePanesButton(theme: theme)
             }

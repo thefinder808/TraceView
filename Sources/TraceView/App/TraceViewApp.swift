@@ -154,6 +154,25 @@ struct TraceViewApp: App {
                     .keyboardShortcut("e", modifiers: [.command, .shift])
             }
 
+            // View menu — log-row font size. Range matches the Settings
+            // stepper (9...18); reset returns to the 12pt default.
+            CommandMenu("View") {
+                Button("Increase Font Size") {
+                    settingsManager.fontSize = min(18, settingsManager.fontSize + 1)
+                }
+                .keyboardShortcut("=", modifiers: .command)
+
+                Button("Decrease Font Size") {
+                    settingsManager.fontSize = max(9, settingsManager.fontSize - 1)
+                }
+                .keyboardShortcut("-", modifiers: .command)
+
+                Button("Reset Font Size") {
+                    settingsManager.fontSize = 12
+                }
+                .keyboardShortcut("0", modifiers: .command)
+            }
+
             // Theme menu
             CommandMenu("Theme") {
                 ForEach(ThemeOption.allCases) { option in
