@@ -48,7 +48,7 @@ final class ErrorCodeLookup {
         case .httpStatus: return lookupHTTPStatus(Int(code)).map { [$0] } ?? []
         case .cfNetwork: return lookupCFNetwork(Int32(clamping: code)).map { [$0] } ?? []
         case .cocoa: return lookupCocoa(Int(code)).map { [$0] } ?? []
-        case .security: return []
+        case .security: return lookupSecurity(Int32(clamping: code)).map { [$0] } ?? []
         case .posixSignal: return []
         case .sqlite: return []
         case .grpc: return []
@@ -116,6 +116,11 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
             }
         }
+        for (code, (sym, desc)) in Self.securityTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
+            }
+        }
         return results
     }
 
@@ -148,7 +153,10 @@ final class ErrorCodeLookup {
             for (code, (sym, desc)) in Self.cocoaTable where sym.uppercased() == upper {
                 return ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
             }
-        case .security: break
+        case .security:
+            for (code, (sym, desc)) in Self.securityTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+            }
         case .posixSignal: break
         case .sqlite: break
         case .grpc: break
@@ -172,6 +180,7 @@ final class ErrorCodeLookup {
         if let r = lookupMachError(i32) { results.append(r) }
         if let r = lookupCFNetwork(i32) { results.append(r) }
         if let r = lookupCocoa(Int(value)) { results.append(r) }
+        if let r = lookupSecurity(i32) { results.append(r) }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -216,6 +225,11 @@ final class ErrorCodeLookup {
     func lookupCocoa(_ code: Int) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.cocoaTable[code] else { return nil }
         return ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+    }
+
+    func lookupSecurity(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.securityTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
     }
 
     // MARK: - Error Code Tables
@@ -835,5 +849,64 @@ final class ErrorCodeLookup {
         134080: ("NSPersistentStoreOpenError", "Persistent store open error"),
         134090: ("NSPersistentStoreTimeoutError", "Persistent store timeout"),
         134100: ("NSPersistentStoreIncompatibleSchemaError", "Incompatible store schema"),
+    ]
+
+    // Sourced from Security.framework/Headers/SecBase.h (macOS 15.4 SDK).
+    // Codes verified against the SDK header; several entries from the original
+    // spec were corrected (see commit message for details).
+    static let securityTable: [Int32: (String, String)] = [
+        0: ("errSecSuccess", "Success"),
+        -4: ("errSecUnimplemented", "Function or operation not implemented"),
+        -34: ("errSecDiskFull", "The disk is full"),
+        -36: ("errSecIO", "I/O error"),
+        -49: ("errSecOpWr", "File already open with write permission"),
+        -50: ("errSecParam", "One or more parameters passed to a function were not valid"),
+        -61: ("errSecWrPerm", "Write permissions error"),
+        -108: ("errSecAllocate", "Failed to allocate memory"),
+        -128: ("errSecUserCanceled", "User canceled the operation"),
+        -909: ("errSecBadReq", "Bad parameter or invalid state for operation"),
+        -2070: ("errSecInternalComponent", "Internal component error"),
+        -4960: ("errSecCoreFoundationUnknown", "CoreFoundation error"),
+        -25240: ("errSecACLNotSimple", "The specified access control list is not in standard (simple) form"),
+        -25241: ("errSecPolicyNotFound", "The specified policy cannot be found"),
+        -25243: ("errSecNoAccessForItem", "The specified item has no access control"),
+        -25244: ("errSecInvalidOwnerEdit", "Invalid attempt to change the owner of this item"),
+        -25245: ("errSecTrustNotAvailable", "No trust results are available"),
+        -25291: ("errSecNotAvailable", "No keychain is available"),
+        -25292: ("errSecReadOnly", "This keychain cannot be modified"),
+        -25293: ("errSecAuthFailed", "The user name or passphrase you entered is not correct"),
+        -25294: ("errSecNoSuchKeychain", "The specified keychain could not be found"),
+        -25295: ("errSecInvalidKeychain", "The specified keychain is not a valid keychain file"),
+        -25296: ("errSecDuplicateKeychain", "A keychain with the same name already exists"),
+        -25297: ("errSecDuplicateCallback", "The specified callback function is already installed"),
+        -25298: ("errSecInvalidCallback", "The specified callback function is not valid"),
+        -25299: ("errSecDuplicateItem", "The specified item already exists in the keychain"),
+        -25300: ("errSecItemNotFound", "The specified item could not be found in the keychain"),
+        -25301: ("errSecBufferTooSmall", "There is not enough memory available to use the specified item"),
+        -25302: ("errSecDataTooLarge", "This item contains information which is too large or in a format that cannot be displayed"),
+        -25303: ("errSecNoSuchAttr", "The specified attribute does not exist"),
+        -25304: ("errSecInvalidItemRef", "The specified item is no longer valid; it may have been deleted from the keychain"),
+        -25305: ("errSecInvalidSearchRef", "Unable to search the current keychain"),
+        -25306: ("errSecNoSuchClass", "The specified item does not appear to be a valid keychain item"),
+        -25307: ("errSecNoDefaultKeychain", "A default keychain could not be found"),
+        -25308: ("errSecInteractionNotAllowed", "User interaction is not allowed"),
+        -25309: ("errSecReadOnlyAttr", "The specified attribute could not be modified"),
+        -25310: ("errSecWrongSecVersion", "This keychain was created by a different version of the system software and cannot be opened"),
+        -25311: ("errSecKeySizeNotAllowed", "This item specifies a key size which is too large or too small"),
+        -25312: ("errSecNoStorageModule", "A required component (data storage module) could not be loaded"),
+        -25313: ("errSecNoCertificateModule", "A required component (certificate module) could not be loaded"),
+        -25314: ("errSecNoPolicyModule", "A required component (policy module) could not be loaded"),
+        -25315: ("errSecInteractionRequired", "User interaction is required but is currently not allowed"),
+        -25316: ("errSecDataNotAvailable", "The contents of this item cannot be retrieved"),
+        -25317: ("errSecDataNotModifiable", "The contents of this item cannot be modified"),
+        -25318: ("errSecCreateChainFailed", "One or more certificates required to validate this certificate cannot be found"),
+        -25319: ("errSecInvalidPrefsDomain", "The specified preferences domain is not valid"),
+        -25320: ("errSecInDarkWake", "In dark wake, no UI possible"),
+        -26267: ("errSecNotSigner", "A certificate was not signed by its proposed parent"),
+        -26275: ("errSecDecode", "Unable to decode the provided data"),
+        -34018: ("errSecMissingEntitlement", "A required entitlement isn't present"),
+        -34020: ("errSecRestrictedAPI", "Client is restricted and is not permitted to perform this operation"),
+        -67694: ("errSecInvalidValue", "An invalid value was detected"),
+        -67871: ("errSecMissingValue", "A missing value was detected"),
     ]
 }
