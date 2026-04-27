@@ -50,7 +50,7 @@ final class ErrorCodeLookup {
         case .cocoa: return lookupCocoa(Int(code)).map { [$0] } ?? []
         case .security: return lookupSecurity(Int32(clamping: code)).map { [$0] } ?? []
         case .posixSignal: return lookupPOSIXSignal(Int32(clamping: code)).map { [$0] } ?? []
-        case .sqlite: return []
+        case .sqlite: return lookupSQLite(Int32(clamping: code)).map { [$0] } ?? []
         case .grpc: return []
         case .bonjour: return []
         case .posixExit: return []
@@ -126,6 +126,11 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
             }
         }
+        for (code, (sym, desc)) in Self.sqliteTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
+            }
+        }
         return results
     }
 
@@ -166,7 +171,10 @@ final class ErrorCodeLookup {
             for (code, (sym, desc)) in Self.posixSignalTable where sym.uppercased() == upper {
                 return ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
             }
-        case .sqlite: break
+        case .sqlite:
+            for (code, (sym, desc)) in Self.sqliteTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+            }
         case .grpc: break
         case .bonjour: break
         case .posixExit: break
@@ -190,6 +198,7 @@ final class ErrorCodeLookup {
         if let r = lookupCocoa(Int(value)) { results.append(r) }
         if let r = lookupSecurity(i32) { results.append(r) }
         if let r = lookupPOSIXSignal(i32) { results.append(r) }
+        if let r = lookupSQLite(i32) { results.append(r) }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -244,6 +253,11 @@ final class ErrorCodeLookup {
     func lookupPOSIXSignal(_ code: Int32) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.posixSignalTable[code] else { return nil }
         return ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+    }
+
+    func lookupSQLite(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.sqliteTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
     }
 
     // MARK: - Error Code Tables
@@ -959,5 +973,53 @@ final class ErrorCodeLookup {
         29: ("SIGINFO",   "Status request from keyboard (Ctrl-T)"),
         30: ("SIGUSR1",   "User-defined signal 1"),
         31: ("SIGUSR2",   "User-defined signal 2"),
+    ]
+
+    // SQLite result codes. Base codes sourced from sqlite3.h in the macOS 15.4 SDK.
+    // Extended codes follow the (primary | (subcode << 8)) formula defined by SQLite.
+    static let sqliteTable: [Int32: (String, String)] = [
+        0:    ("SQLITE_OK",           "Successful result"),
+        1:    ("SQLITE_ERROR",        "Generic error"),
+        2:    ("SQLITE_INTERNAL",     "Internal logic error"),
+        3:    ("SQLITE_PERM",         "Access permission denied"),
+        4:    ("SQLITE_ABORT",        "Callback routine requested abort"),
+        5:    ("SQLITE_BUSY",         "Database file is locked"),
+        6:    ("SQLITE_LOCKED",       "Table in database is locked"),
+        7:    ("SQLITE_NOMEM",        "Out of memory"),
+        8:    ("SQLITE_READONLY",     "Attempt to write a readonly database"),
+        9:    ("SQLITE_INTERRUPT",    "Operation terminated by sqlite3_interrupt()"),
+        10:   ("SQLITE_IOERR",        "Disk I/O error"),
+        11:   ("SQLITE_CORRUPT",      "Database disk image is malformed"),
+        12:   ("SQLITE_NOTFOUND",     "Unknown opcode in sqlite3_file_control()"),
+        13:   ("SQLITE_FULL",         "Insertion failed because database is full"),
+        14:   ("SQLITE_CANTOPEN",     "Unable to open the database file"),
+        15:   ("SQLITE_PROTOCOL",     "Database lock protocol error"),
+        16:   ("SQLITE_EMPTY",        "Internal use only"),
+        17:   ("SQLITE_SCHEMA",       "Database schema changed"),
+        18:   ("SQLITE_TOOBIG",       "String or BLOB exceeds size limit"),
+        19:   ("SQLITE_CONSTRAINT",   "Abort due to constraint violation"),
+        20:   ("SQLITE_MISMATCH",     "Data type mismatch"),
+        21:   ("SQLITE_MISUSE",       "Library used incorrectly"),
+        22:   ("SQLITE_NOLFS",        "Uses OS features not supported on host"),
+        23:   ("SQLITE_AUTH",         "Authorization denied"),
+        24:   ("SQLITE_FORMAT",       "Not used"),
+        25:   ("SQLITE_RANGE",        "2nd parameter to sqlite3_bind out of range"),
+        26:   ("SQLITE_NOTADB",       "File opened that is not a database file"),
+        27:   ("SQLITE_NOTICE",       "Notifications from sqlite3_log()"),
+        28:   ("SQLITE_WARNING",      "Warnings from sqlite3_log()"),
+        100:  ("SQLITE_ROW",          "sqlite3_step() has another row ready"),
+        101:  ("SQLITE_DONE",         "sqlite3_step() has finished executing"),
+        // Extended codes: primary | (subcode << 8)
+        261:  ("SQLITE_BUSY_RECOVERY",          "Recovery from another process"),         // 5  | (1<<8)
+        266:  ("SQLITE_IOERR_READ",             "I/O error on read"),                     // 10 | (1<<8)
+        267:  ("SQLITE_CORRUPT_VTAB",           "Virtual table corruption"),               // 11 | (1<<8)
+        275:  ("SQLITE_CONSTRAINT_CHECK",        "Check constraint failed"),               // 19 | (1<<8)
+        522:  ("SQLITE_IOERR_SHORT_READ",       "Short read"),                            // 10 | (2<<8)
+        778:  ("SQLITE_IOERR_WRITE",            "I/O error on write"),                    // 10 | (3<<8)
+        787:  ("SQLITE_CONSTRAINT_FOREIGNKEY",  "Foreign key constraint failed"),         // 19 | (3<<8)
+        1034: ("SQLITE_IOERR_FSYNC",            "I/O error on fsync"),                    // 10 | (4<<8)
+        1290: ("SQLITE_IOERR_DIR_FSYNC",        "I/O error on directory fsync"),          // 10 | (5<<8)
+        1555: ("SQLITE_CONSTRAINT_PRIMARYKEY",  "Primary key constraint failed"),         // 19 | (6<<8)
+        2067: ("SQLITE_CONSTRAINT_UNIQUE",      "Unique constraint failed"),              // 19 | (8<<8)
     ]
 }
