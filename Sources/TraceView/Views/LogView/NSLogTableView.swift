@@ -249,16 +249,34 @@ struct NSLogTableView: NSViewRepresentable {
             }
         }
 
+        // Detect whether a count growth is a clean trailing append (live-
+        // tail, the common path) or a non-trailing insertion (re-enabling
+        // a hidden source in a merged view interleaves entries by
+        // timestamp — count grows but the new rows aren't all at the end).
+        // Compare the entry now at the previous trailing index against
+        // what WAS the trailing entry; if they match, the prefix is
+        // unchanged and `insertRows(at: oldCount..<newCount)` is correct.
+        // Otherwise the insertions land in the middle and the cheap path
+        // would leave stale rows visible until scroll forces re-query.
+        let isTrailingAppend: Bool = {
+            guard oldCount > 0,
+                  newCount > oldCount,
+                  oldCount - 1 < entries.count,
+                  let lastLine = coordinator.previousLastEntryLine else { return false }
+            return entries[oldCount - 1].lineNumber == lastLine
+        }()
+
         if themeChanged || rulesChanged {
             tableView.reloadData()
-        } else if newCount > oldCount && oldCount > 0 {
+        } else if isTrailingAppend {
             // Incremental append — insert only new rows
             tableView.beginUpdates()
-            let indexSet = IndexSet( oldCount..<newCount)
+            let indexSet = IndexSet(oldCount..<newCount)
             tableView.insertRows(at: indexSet, withAnimation: [])
             tableView.endUpdates()
         } else if newCount != oldCount {
-            // Full data change (filter applied, file reloaded, etc.)
+            // Full data change (filter applied, file reloaded, source
+            // toggle in merged view, etc.)
             tableView.reloadData()
         }
 
@@ -308,6 +326,7 @@ struct NSLogTableView: NSViewRepresentable {
         coordinator.previousExpandedID = desiredExpanded
 
         coordinator.previousEntryCount = newCount
+        coordinator.previousLastEntryLine = entries.last?.lineNumber
 
         // Auto-follow: handled by the coordinator's timer
     }
@@ -340,6 +359,15 @@ struct NSLogTableView: NSViewRepresentable {
         var currentExpandedID: Int?
         var previousExpandedID: Int?
         var previousEntryCount = 0
+        /// `lineNumber` of the entry that was last in the array on the
+        /// previous updateNSView pass. Used to detect whether a count
+        /// growth is a clean trailing append (live-tail) or an insertion-
+        /// in-the-middle (e.g. re-enabling a hidden source in a merged
+        /// view, which interleaves entries by timestamp). Trailing
+        /// appends can use the cheap `insertRows(at:)` path; non-trailing
+        /// insertions need a full reloadData or rows render stale until
+        /// the table re-queries on scroll.
+        var previousLastEntryLine: Int?
         weak var tableView: NSTableView?
         weak var scrollView: NSScrollView?
         private var followTimer: Timer?
