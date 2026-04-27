@@ -18,6 +18,13 @@ struct WindowAccessor: NSViewRepresentable {
             // items flicker in/out of the View menu as macOS reevaluates
             // tabbing eligibility.
             window.tabbingMode = .disallowed
+
+            // Explicitly opt the window into full-screen mode. Without
+            // .fullScreenPrimary, macOS shows "Enter Full Screen" in the
+            // View menu briefly then removes it once it determines the
+            // window can't go full-screen. Declaring support keeps the
+            // item permanent and functional.
+            window.collectionBehavior.insert(.fullScreenPrimary)
         }
         return view
     }
