@@ -81,10 +81,10 @@ struct CommandPalette: View {
                 appState.showErrorLookup.toggle()
             },
             PaletteCommand(label: "Toggle Following", category: "Navigate", shortcut: "Cmd+Shift+F", icon: "arrow.down.to.line") {
-                appState.toggleFollowing()
+                appState.toggleFollowing(in: appState.activePane)
             },
             PaletteCommand(label: "Jump to Bottom", category: "Navigate", shortcut: "Cmd+Down", icon: "arrow.down") {
-                appState.jumpToBottom()
+                appState.jumpToBottom(in: appState.activePane)
             },
             PaletteCommand(label: "Cycle Theme", category: "Theme", shortcut: "Cmd+T", icon: "paintbrush") {
                 themeManager.cycleTheme()

@@ -9,6 +9,11 @@ struct LogDocumentView: View {
     @EnvironmentObject var settingsManager: SettingsManager
     @State private var selectedEntry: LogEntry?
     @State private var expandedEntryID: Int?
+    // Spinner visibility is debounced separately from document.isLoading:
+    // 150ms grace before showing (skips flash on fast loads) + 300ms min
+    // display once shown (so it's actually perceptible when it does appear).
+    @State private var showSpinner: Bool = false
+    @State private var spinnerShownAt: Date?
     let pane: Pane
 
     init(document: LogDocument, pane: Pane = .primary) {
@@ -41,6 +46,8 @@ struct LogDocumentView: View {
             // Log table + detail pane
             VStack(spacing: 0) {
                 ZStack(alignment: .bottomTrailing) {
+                    loadingOverlay(theme: theme)
+
                     NSLogTableView(
                         entries: viewModel.filteredEntries,
                         theme: themeManager.current,
@@ -139,6 +146,29 @@ struct LogDocumentView: View {
             viewModel.findMode = settingsManager.defaultFindMode
             viewModel.load()
         }
+        .task(id: document.isLoading) {
+            // Spinner debounce. .task(id:) auto-cancels and restarts on each
+            // isLoading transition, so a fast load → grace-period sleep gets
+            // cancelled before showSpinner ever flips on. A slow load that
+            // finishes early in the min-display window finishes the sleep
+            // before flipping showSpinner off.
+            if document.isLoading {
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                guard !Task.isCancelled, document.isLoading else { return }
+                showSpinner = true
+                spinnerShownAt = Date()
+            } else {
+                if showSpinner, let started = spinnerShownAt {
+                    let remaining = 0.3 - Date().timeIntervalSince(started)
+                    if remaining > 0 {
+                        try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
+                    }
+                }
+                guard !Task.isCancelled else { return }
+                showSpinner = false
+                spinnerShownAt = nil
+            }
+        }
         .onChange(of: selectedEntry?.lineNumber) { _, newValue in
             // Selecting a row in this pane marks it active. nil transitions
             // (filter-driven entry-list churn) don't count as user intent.
@@ -167,7 +197,15 @@ struct LogDocumentView: View {
             guard let line = viewModel.advanceMatch(by: appState.pendingFindStepDirection) else { return }
             appState.goToLine(line, in: pane)
         }
-        .sheet(isPresented: $appState.showExport) {
+        // Per-pane derived binding: only the pane named in the request
+        // attaches its sheet. Both panes have this modifier, but only one
+        // ever sees a non-nil item — guarantees the export uses the active
+        // pane's filteredEntries and avoids the dual-presentation race the
+        // old global-bool attachment had.
+        .sheet(item: Binding(
+            get: { appState.exportRequest?.pane == pane ? appState.exportRequest : nil },
+            set: { _ in appState.exportRequest = nil }
+        )) { _ in
             ExportSheet(
                 entries: viewModel.filteredEntries,
                 documentName: document.displayName
@@ -180,6 +218,23 @@ struct LogDocumentView: View {
     /// makeNSView. Always returned (regardless of sync toggle) — the sender
     /// side, AppState.reportPaneScroll, gates whether anything actually
     /// fires, so a disabled sync just means no Dates ever arrive.
+    /// Centered spinner shown during initial parse. Tiny files flicker it
+    /// for a frame; larger files (install.log, 100K+ rows) show it for the
+    /// full parse window so the user knows work is happening. Extracted
+    /// from the ZStack body because inlining it tripped SwiftUI's
+    /// type-checker timeout (NSLogTableView's argument list is already
+    /// near the limit).
+    @ViewBuilder
+    private func loadingOverlay(theme: AppTheme) -> some View {
+        if showSpinner {
+            ProgressView()
+                .controlSize(.small)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(theme.tableBackground.opacity(0.6))
+                .zIndex(2)
+        }
+    }
+
     private var scrollSyncSignal: AnyPublisher<Date, Never> {
         switch pane {
         case .primary:   return appState.primaryScrollSyncSignal.eraseToAnyPublisher()
