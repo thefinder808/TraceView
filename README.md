@@ -9,7 +9,7 @@ A native macOS log viewer for admins, developers, and anyone who reads too many 
 Real-time file following, severity-aware highlighting, built-in error-code lookup, and a Console.app-style browser for system reports — all in a SwiftUI interface that feels at home on macOS 14+.
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="TraceView main window showing a merged log view with two source logs combined into one timeline, source column, severity highlighting, event histogram, and per-source filter chips" width="900"/>
+  <img src="docs/screenshot.gif" alt="TraceView in motion: split view live-tailing two log files side-by-side with severity summary chips, density histograms, and a sidebar browsing /var/log plus crash/diagnostic/spin reports" width="900"/>
 </p>
 
 ## Features
