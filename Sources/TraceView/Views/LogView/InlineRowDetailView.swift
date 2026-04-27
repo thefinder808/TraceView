@@ -4,6 +4,7 @@ import SwiftUI
 // placed below the expanded row by LogTableRowView.
 struct InlineRowDetailView: View {
     let entry: LogEntry
+    let fontSize: Double
     let onCopy: () -> Void
     let onFilterToComponent: () -> Void
     let onLookupErrorCode: (String) -> Void
@@ -29,10 +30,12 @@ struct InlineRowDetailView: View {
                     .truncationMode(.middle)
             }
 
-            // Message body — scrolls vertically for long messages
+            // Message body — scrolls vertically for long messages.
+            // Font scales with the table-row font setting (⌘= / ⌘-) so
+            // the drawer stays consistent with the row it expanded from.
             ScrollView(.vertical, showsIndicators: true) {
                 Text(entry.message)
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.system(size: fontSize, design: .monospaced))
                     .foregroundStyle(theme.primaryText)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)

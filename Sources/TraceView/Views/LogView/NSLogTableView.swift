@@ -638,6 +638,7 @@ struct NSLogTableView: NSViewRepresentable {
             guard let themeManager else { return }
             let detail = InlineRowDetailView(
                 entry: entry,
+                fontSize: fontSize,
                 onCopy: { [weak self] in self?.onCopy(entry) },
                 onFilterToComponent: { [weak self] in self?.onFilterToComponent(entry) },
                 onLookupErrorCode: { [weak self] code in self?.onLookupErrorCode(code) }
