@@ -41,8 +41,15 @@ struct NSLogTableView: NSViewRepresentable {
     /// that have `sourceDocumentID` populated (merged-view rows).
     var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
 
-    static let baseRowHeight: CGFloat = 24
     static let drawerHeight: CGFloat = 160
+
+    /// Row height scaled to the user's font size. Linear scaling at 2× —
+    /// gives the existing 24pt height at the 12pt default and ranges
+    /// 18pt (9pt font) to 36pt (18pt font), keeping the same visual
+    /// breathing-room ratio across the full Settings range.
+    static func rowHeight(for fontSize: Double) -> CGFloat {
+        ceil(CGFloat(fontSize) * 2)
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -57,7 +64,7 @@ struct NSLogTableView: NSViewRepresentable {
 
         let tableView = NSTableView()
         tableView.style = .plain
-        tableView.rowHeight = 24
+        tableView.rowHeight = Self.rowHeight(for: fontSize)
         tableView.intercellSpacing = NSSize(width: 0, height: 0)
         tableView.usesAlternatingRowBackgroundColors = false
         tableView.backgroundColor = .clear
@@ -191,6 +198,13 @@ struct NSLogTableView: NSViewRepresentable {
         // rendered cell with the new theme while preserving the scroll offset.
         let themeChanged = coordinator.theme.name != theme.name
 
+        // Same problem with font size: cells are recycled via
+        // `makeView(withIdentifier:)`, so simply updating `coordinator.fontSize`
+        // doesn't refresh visible rows — they keep the stale font until
+        // scrolled out and back in. Track the change here so we can pair it
+        // with the row-height update + reloadData below.
+        let fontSizeChanged = coordinator.fontSize != fontSize
+
         // Update data
         coordinator.entries = entries
         coordinator.theme = theme
@@ -266,7 +280,14 @@ struct NSLogTableView: NSViewRepresentable {
             return entries[oldCount - 1].lineNumber == lastLine
         }()
 
-        if themeChanged || rulesChanged {
+        if fontSizeChanged {
+            // Push the new height to the table-wide default. The reloadData
+            // below re-queries heightOfRow for every visible row and rebuilds
+            // the cell views, picking up the new font in one pass.
+            tableView.rowHeight = Self.rowHeight(for: fontSize)
+        }
+
+        if themeChanged || rulesChanged || fontSizeChanged {
             tableView.reloadData()
         } else if isTrailingAppend {
             // Incremental append — insert only new rows
@@ -525,7 +546,9 @@ struct NSLogTableView: NSViewRepresentable {
             }
 
             let monoFont = NSFont.monospacedSystemFont(ofSize: CGFloat(fontSize), weight: .regular)
-            let smallFont = NSFont.monospacedSystemFont(ofSize: CGFloat(fontSize - 1), weight: .regular)
+            // Floored at 10pt so the gutter stays legible when the user
+            // dials all the way down to 9pt — 8pt mono is too small.
+            let smallFont = NSFont.monospacedSystemFont(ofSize: CGFloat(max(10, fontSize - 1)), weight: .regular)
             let badgeFont = NSFont.systemFont(ofSize: 9, weight: .semibold)
 
             switch column.identifier {
@@ -583,7 +606,7 @@ struct NSLogTableView: NSViewRepresentable {
             let rowView = LogTableRowView()
             rowView.entryLevel = entry.level
             rowView.theme = theme
-            rowView.baseRowHeight = NSLogTableView.baseRowHeight
+            rowView.baseRowHeight = NSLogTableView.rowHeight(for: fontSize)
             rowView.isBookmarked = bookmarkedLines.contains(entry.lineNumber)
             rowView.customHighlightColor = highlightColor(for: entry)
 
@@ -611,6 +634,7 @@ struct NSLogTableView: NSViewRepresentable {
             guard let themeManager else { return }
             let detail = InlineRowDetailView(
                 entry: entry,
+                fontSize: fontSize,
                 onCopy: { [weak self] in self?.onCopy(entry) },
                 onFilterToComponent: { [weak self] in self?.onFilterToComponent(entry) },
                 onLookupErrorCode: { [weak self] code in self?.onLookupErrorCode(code) }
@@ -622,11 +646,12 @@ struct NSLogTableView: NSViewRepresentable {
         }
 
         func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-            guard row < entries.count else { return NSLogTableView.baseRowHeight }
+            let base = NSLogTableView.rowHeight(for: fontSize)
+            guard row < entries.count else { return base }
             if inlineExpansionEnabled, entries[row].id == currentExpandedID {
-                return NSLogTableView.baseRowHeight + NSLogTableView.drawerHeight
+                return base + NSLogTableView.drawerHeight
             }
-            return NSLogTableView.baseRowHeight
+            return base
         }
 
         func tableViewSelectionDidChange(_ notification: Notification) {

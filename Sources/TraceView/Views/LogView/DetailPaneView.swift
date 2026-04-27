@@ -4,6 +4,7 @@ struct DetailPaneView: View {
     let entry: LogEntry
     let onClose: () -> Void
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var settingsManager: SettingsManager
     @State private var showRawLine = false
 
     var body: some View {
@@ -82,10 +83,11 @@ struct DetailPaneView: View {
 
             Divider().background(theme.border)
 
-            // Message body
+            // Message body — scales with the table-row font setting so
+            // ⌘= / ⌘- affects this pane in lockstep with the rows above.
             ScrollView {
                 Text(showRawLine ? entry.rawLine : entry.message)
-                    .font(.system(size: 12, design: .monospaced))
+                    .font(.system(size: settingsManager.fontSize, design: .monospaced))
                     .foregroundStyle(theme.primaryText)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)

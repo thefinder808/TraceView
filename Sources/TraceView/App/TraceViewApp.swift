@@ -1,7 +1,23 @@
 import SwiftUI
+import AppKit
+
+/// Runs before the main menu is loaded so we can disable AppKit's
+/// automatic window tabbing globally. Doing this in `WindowAccessor`'s
+/// async block was too late — AppKit had already validated the View
+/// menu once with tabs allowed, then the dispatched mutation forced a
+/// re-validation, which made "Show Tab Bar" / "Enter Full Screen"
+/// flicker on first menu open. Setting the class property in
+/// `applicationWillFinishLaunching` runs early enough that the items
+/// never get injected to begin with.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSWindow.allowsAutomaticWindowTabbing = false
+    }
+}
 
 @main
 struct TraceViewApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var appState = AppState()
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var settingsManager = SettingsManager()
@@ -152,6 +168,30 @@ struct TraceViewApp: App {
 
                 Button("Export Filtered Log...") { appState.showExport = true }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
+            }
+
+            // Inject font-size shortcuts into SwiftUI's auto-generated
+            // View menu (created because of NavigationSplitView's sidebar
+            // toggle). A top-level `CommandMenu("View")` would add a SECOND
+            // menu rather than augment the existing one.
+            // Range matches the Settings stepper (9...18); reset = 12pt.
+            CommandGroup(after: .toolbar) {
+                Divider()
+
+                Button("Increase Font Size") {
+                    settingsManager.fontSize = min(18, settingsManager.fontSize + 1)
+                }
+                .keyboardShortcut("=", modifiers: .command)
+
+                Button("Decrease Font Size") {
+                    settingsManager.fontSize = max(9, settingsManager.fontSize - 1)
+                }
+                .keyboardShortcut("-", modifiers: .command)
+
+                Button("Reset Font Size") {
+                    settingsManager.fontSize = 12
+                }
+                .keyboardShortcut("0", modifiers: .command)
             }
 
             // Theme menu
