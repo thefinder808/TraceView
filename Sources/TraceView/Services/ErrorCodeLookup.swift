@@ -635,10 +635,12 @@ final class ErrorCodeLookup {
         -10877: ("kAudioUnitErr_InvalidElement", "Invalid audio unit element"),
 
         // Security framework / Keychain
-        -25240: ("errSecReadOnly", "This keychain cannot be modified"),
-        -25241: ("errSecNoSuchKeychain", "The specified keychain could not be found"),
-        -25244: ("errSecNoDefaultKeychain", "No default keychain could be found"),
-        -25245: ("errSecInteractionNotAllowed", "User interaction is not allowed"),
+        // NOTE: -25240..-25245 were previously misattributed to errSec* names
+        // that actually belong to other codes per SecBase.h. Removed in v1.0.6
+        // since the new securityTable now provides authoritative entries for
+        // those codes (errSecACLNotSimple/PolicyNotFound/etc.). The remaining
+        // -25260..-25265 entries below are flagged for follow-up audit; they
+        // may also be misattributed.
         -25260: ("errSecReadOnlyAttr", "The specified attribute could not be modified"),
         -25261: ("errSecWrongSecVersion", "Wrong security version"),
         -25262: ("errSecKeySizeNotAllowed", "This item's key's size is not allowed for this algorithm"),
