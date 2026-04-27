@@ -49,7 +49,7 @@ final class ErrorCodeLookup {
         case .cfNetwork: return lookupCFNetwork(Int32(clamping: code)).map { [$0] } ?? []
         case .cocoa: return lookupCocoa(Int(code)).map { [$0] } ?? []
         case .security: return lookupSecurity(Int32(clamping: code)).map { [$0] } ?? []
-        case .posixSignal: return []
+        case .posixSignal: return lookupPOSIXSignal(Int32(clamping: code)).map { [$0] } ?? []
         case .sqlite: return []
         case .grpc: return []
         case .bonjour: return []
@@ -121,6 +121,11 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
             }
         }
+        for (code, (sym, desc)) in Self.posixSignalTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
+            }
+        }
         return results
     }
 
@@ -157,7 +162,10 @@ final class ErrorCodeLookup {
             for (code, (sym, desc)) in Self.securityTable where sym.uppercased() == upper {
                 return ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
             }
-        case .posixSignal: break
+        case .posixSignal:
+            for (code, (sym, desc)) in Self.posixSignalTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+            }
         case .sqlite: break
         case .grpc: break
         case .bonjour: break
@@ -181,6 +189,7 @@ final class ErrorCodeLookup {
         if let r = lookupCFNetwork(i32) { results.append(r) }
         if let r = lookupCocoa(Int(value)) { results.append(r) }
         if let r = lookupSecurity(i32) { results.append(r) }
+        if let r = lookupPOSIXSignal(i32) { results.append(r) }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -230,6 +239,11 @@ final class ErrorCodeLookup {
     func lookupSecurity(_ code: Int32) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.securityTable[code] else { return nil }
         return ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+    }
+
+    func lookupPOSIXSignal(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.posixSignalTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
     }
 
     // MARK: - Error Code Tables
@@ -908,5 +922,42 @@ final class ErrorCodeLookup {
         -34020: ("errSecRestrictedAPI", "Client is restricted and is not permitted to perform this operation"),
         -67694: ("errSecInvalidValue", "An invalid value was detected"),
         -67871: ("errSecMissingValue", "A missing value was detected"),
+    ]
+
+    // BSD signal set used by Darwin/macOS. Numbers sourced from
+    // <sys/signal.h> in the macOS 15.4 SDK. Linux realtime signals
+    // (32-64) are intentionally not included.
+    static let posixSignalTable: [Int32: (String, String)] = [
+        1:  ("SIGHUP",    "Hangup detected on controlling terminal"),
+        2:  ("SIGINT",    "Interrupt from keyboard (Ctrl-C)"),
+        3:  ("SIGQUIT",   "Quit from keyboard (Ctrl-\\)"),
+        4:  ("SIGILL",    "Illegal instruction"),
+        5:  ("SIGTRAP",   "Trace/breakpoint trap"),
+        6:  ("SIGABRT",   "Aborted (abort() called)"),
+        7:  ("SIGEMT",    "Emulator trap"),
+        8:  ("SIGFPE",    "Floating-point exception"),
+        9:  ("SIGKILL",   "Killed (cannot be caught or ignored)"),
+        10: ("SIGBUS",    "Bus error (bad memory access)"),
+        11: ("SIGSEGV",   "Segmentation fault"),
+        12: ("SIGSYS",    "Bad system call"),
+        13: ("SIGPIPE",   "Broken pipe"),
+        14: ("SIGALRM",   "Alarm clock"),
+        15: ("SIGTERM",   "Terminated"),
+        16: ("SIGURG",    "Urgent condition on socket"),
+        17: ("SIGSTOP",   "Stop process (cannot be caught or ignored)"),
+        18: ("SIGTSTP",   "Stop typed at terminal (Ctrl-Z)"),
+        19: ("SIGCONT",   "Continue if stopped"),
+        20: ("SIGCHLD",   "Child status changed"),
+        21: ("SIGTTIN",   "Background process attempting read"),
+        22: ("SIGTTOU",   "Background process attempting write"),
+        23: ("SIGIO",     "I/O now possible"),
+        24: ("SIGXCPU",   "CPU time limit exceeded"),
+        25: ("SIGXFSZ",   "File size limit exceeded"),
+        26: ("SIGVTALRM", "Virtual alarm clock"),
+        27: ("SIGPROF",   "Profiling timer expired"),
+        28: ("SIGWINCH",  "Window size change"),
+        29: ("SIGINFO",   "Status request from keyboard (Ctrl-T)"),
+        30: ("SIGUSR1",   "User-defined signal 1"),
+        31: ("SIGUSR2",   "User-defined signal 2"),
     ]
 }
