@@ -57,7 +57,11 @@ final class ErrorCodeLookup {
             }
             return []
         case .bonjour: return lookupBonjour(Int32(clamping: code)).map { [$0] } ?? []
-        case .posixExit: return []
+        case .posixExit:
+            if code >= 0 && code <= 255 {
+                return lookupPOSIXExit(Int(code)).map { [$0] } ?? []
+            }
+            return []
         }
     }
 
@@ -145,6 +149,11 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
             }
         }
+        for (code, (sym, desc)) in Self.posixExitTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .posixExit, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
+            }
+        }
         return results
     }
 
@@ -197,7 +206,10 @@ final class ErrorCodeLookup {
             for (code, (sym, desc)) in Self.bonjourTable where sym.uppercased() == upper {
                 return ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
             }
-        case .posixExit: break
+        case .posixExit:
+            for (code, (sym, desc)) in Self.posixExitTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .posixExit, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+            }
         }
         return nil
     }
@@ -223,6 +235,9 @@ final class ErrorCodeLookup {
             if let r = lookupGRPC(Int32(value)) { results.append(r) }
         }
         if let r = lookupBonjour(i32) { results.append(r) }
+        if value >= 0 && value <= 255 {
+            if let r = lookupPOSIXExit(Int(value)) { results.append(r) }
+        }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -292,6 +307,11 @@ final class ErrorCodeLookup {
     func lookupBonjour(_ code: Int32) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.bonjourTable[code] else { return nil }
         return ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+    }
+
+    func lookupPOSIXExit(_ code: Int) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.posixExitTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .posixExit, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
     }
 
     // MARK: - Error Code Tables
@@ -1116,5 +1136,48 @@ final class ErrorCodeLookup {
         -65570: ("kDNSServiceErr_PolicyDenied",              "Policy denied"),
         -65571: ("kDNSServiceErr_NotPermitted",              "Not permitted"),
         -65572: ("kDNSServiceErr_StaleData",                 "Stale data"),
+    ]
+
+    static let posixExitTable: [Int: (String, String)] = [
+        // Universal conventions
+        0:   ("EXIT_SUCCESS",          "Successful termination"),
+        1:   ("EXIT_FAILURE",          "Generic failure"),
+        2:   ("EXIT_MISUSE",           "Misuse of shell builtins (Bash)"),
+        // sysexits.h (BSD; widely used in Unix tools)
+        64:  ("EX_USAGE",             "Command line usage error"),
+        65:  ("EX_DATAERR",           "Data format error"),
+        66:  ("EX_NOINPUT",           "Cannot open input"),
+        67:  ("EX_NOUSER",            "Addressee unknown"),
+        68:  ("EX_NOHOST",            "Host name unknown"),
+        69:  ("EX_UNAVAILABLE",       "Service unavailable"),
+        70:  ("EX_SOFTWARE",          "Internal software error"),
+        71:  ("EX_OSERR",             "System error (e.g., can't fork)"),
+        72:  ("EX_OSFILE",            "Critical OS file missing"),
+        73:  ("EX_CANTCREAT",         "Cannot create output file"),
+        74:  ("EX_IOERR",             "Input/output error"),
+        75:  ("EX_TEMPFAIL",          "Temp failure; user is invited to retry"),
+        76:  ("EX_PROTOCOL",          "Remote error in protocol"),
+        77:  ("EX_NOPERM",            "Permission denied"),
+        78:  ("EX_CONFIG",            "Configuration error"),
+        // Shell conventions
+        126: ("EXIT_NOT_EXECUTABLE",  "Command found but not executable"),
+        127: ("EXIT_NOT_FOUND",       "Command not found"),
+        128: ("EXIT_INVALID_ARG",     "Invalid argument to exit"),
+        // 128 + signal number (most-commonly-seen subset)
+        129: ("EXIT_SIGNALED_HUP",    "Killed by SIGHUP (128 + 1)"),
+        130: ("EXIT_SIGNALED_INT",    "Killed by SIGINT (128 + 2; user pressed Ctrl-C)"),
+        131: ("EXIT_SIGNALED_QUIT",   "Killed by SIGQUIT (128 + 3)"),
+        132: ("EXIT_SIGNALED_ILL",    "Killed by SIGILL (128 + 4)"),
+        134: ("EXIT_SIGNALED_ABRT",   "Killed by SIGABRT (128 + 6; abort() called)"),
+        136: ("EXIT_SIGNALED_FPE",    "Killed by SIGFPE (128 + 8)"),
+        137: ("EXIT_SIGNALED_KILL",   "Killed by SIGKILL (128 + 9; OOM-killer or kill -9)"),
+        138: ("EXIT_SIGNALED_BUS",    "Killed by SIGBUS (128 + 10)"),
+        139: ("EXIT_SIGNALED_SEGV",   "Killed by SIGSEGV (128 + 11; segfault)"),
+        141: ("EXIT_SIGNALED_PIPE",   "Killed by SIGPIPE (128 + 13; broken pipe)"),
+        142: ("EXIT_SIGNALED_ALRM",   "Killed by SIGALRM (128 + 14)"),
+        143: ("EXIT_SIGNALED_TERM",   "Killed by SIGTERM (128 + 15)"),
+        152: ("EXIT_SIGNALED_XCPU",   "Killed by SIGXCPU (128 + 24; CPU limit)"),
+        153: ("EXIT_SIGNALED_XFSZ",   "Killed by SIGXFSZ (128 + 25; file size limit)"),
+        255: ("EXIT_OUT_OF_RANGE",    "Exit code out of range (Bash)"),
     ]
 }
