@@ -47,7 +47,7 @@ final class ErrorCodeLookup {
         case .machError: return lookupMachError(Int32(clamping: code)).map { [$0] } ?? []
         case .httpStatus: return lookupHTTPStatus(Int(code)).map { [$0] } ?? []
         case .cfNetwork: return lookupCFNetwork(Int32(clamping: code)).map { [$0] } ?? []
-        case .cocoa: return []
+        case .cocoa: return lookupCocoa(Int(code)).map { [$0] } ?? []
         case .security: return []
         case .posixSignal: return []
         case .sqlite: return []
@@ -111,6 +111,11 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
             }
         }
+        for (code, (sym, desc)) in Self.cocoaTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
+            }
+        }
         return results
     }
 
@@ -139,7 +144,10 @@ final class ErrorCodeLookup {
             for (code, (sym, desc)) in Self.cfNetworkTable where sym.uppercased() == upper {
                 return ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
             }
-        case .cocoa: break
+        case .cocoa:
+            for (code, (sym, desc)) in Self.cocoaTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+            }
         case .security: break
         case .posixSignal: break
         case .sqlite: break
@@ -163,6 +171,7 @@ final class ErrorCodeLookup {
         if let r = lookupIOReturn(u32) { results.append(r) }
         if let r = lookupMachError(i32) { results.append(r) }
         if let r = lookupCFNetwork(i32) { results.append(r) }
+        if let r = lookupCocoa(Int(value)) { results.append(r) }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -202,6 +211,11 @@ final class ErrorCodeLookup {
     func lookupCFNetwork(_ code: Int32) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.cfNetworkTable[code] else { return nil }
         return ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+    }
+
+    func lookupCocoa(_ code: Int) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.cocoaTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
     }
 
     // MARK: - Error Code Tables
@@ -771,5 +785,55 @@ final class ErrorCodeLookup {
         -3005: ("NSURLErrorCannotMoveFile", "Cannot move file"),
         -3006: ("NSURLErrorDownloadDecodingFailedMidStream", "Download decoding failed mid-stream"),
         -3007: ("NSURLErrorDownloadDecodingFailedToComplete", "Download decoding failed to complete"),
+    ]
+
+    static let cocoaTable: [Int: (String, String)] = [
+        // Foundation generic
+        4: ("NSFileNoSuchFileError", "No such file"),
+        255: ("NSFileLockingError", "File locking error"),
+        256: ("NSFileReadUnknownError", "Unknown file read error"),
+        257: ("NSFileReadNoPermissionError", "No permission to read file"),
+        258: ("NSFileReadInvalidFileNameError", "Invalid file name"),
+        259: ("NSFileReadCorruptFileError", "Corrupt file"),
+        260: ("NSFileReadNoSuchFileError", "No such file (read)"),
+        261: ("NSFileReadInapplicableStringEncodingError", "Inapplicable string encoding"),
+        262: ("NSFileReadUnsupportedSchemeError", "Unsupported URL scheme"),
+        263: ("NSFileReadTooLargeError", "File too large"),
+        264: ("NSFileReadUnknownStringEncodingError", "Unknown string encoding"),
+        512: ("NSFileWriteUnknownError", "Unknown file write error"),
+        513: ("NSFileWriteNoPermissionError", "No permission to write file"),
+        514: ("NSFileWriteInvalidFileNameError", "Invalid file name (write)"),
+        516: ("NSFileWriteFileExistsError", "File already exists"),
+        517: ("NSFileWriteInapplicableStringEncodingError", "Inapplicable encoding (write)"),
+        518: ("NSFileWriteUnsupportedSchemeError", "Unsupported URL scheme (write)"),
+        640: ("NSFileWriteOutOfSpaceError", "Out of disk space"),
+        642: ("NSFileWriteVolumeReadOnlyError", "Volume is read-only"),
+        1024: ("NSExecutableNotLoadableError", "Executable not loadable"),
+        1025: ("NSExecutableArchitectureMismatchError", "Executable architecture mismatch"),
+        1026: ("NSExecutableRuntimeMismatchError", "Executable runtime mismatch"),
+        1027: ("NSExecutableLoadError", "Executable load error"),
+        1028: ("NSExecutableLinkError", "Executable link error"),
+        // Property list / encoding
+        3840: ("NSPropertyListReadCorruptError", "Corrupt property list"),
+        3841: ("NSPropertyListReadUnknownVersionError", "Unknown property list version"),
+        3842: ("NSPropertyListReadStreamError", "Property list stream error"),
+        3851: ("NSPropertyListWriteStreamError", "Property list write stream error"),
+        3852: ("NSPropertyListWriteInvalidError", "Invalid property list"),
+        // XPC
+        4097: ("NSXPCConnectionInterrupted", "XPC connection interrupted"),
+        4099: ("NSXPCConnectionInvalid", "XPC connection invalid"),
+        4101: ("NSXPCConnectionReplyInvalid", "XPC reply invalid"),
+        // User defaults / ubiquity (commonly seen)
+        4352: ("NSUbiquitousFileUnavailableError", "Ubiquitous file unavailable"),
+        4353: ("NSUbiquitousFileNotUploadedDueToQuotaError", "Ubiquitous file quota exceeded"),
+        4354: ("NSUbiquitousFileUbiquityServerNotAvailable", "Ubiquity server unavailable"),
+        // CoreData (most common)
+        133000: ("NSManagedObjectValidationError", "Managed object validation error"),
+        133010: ("NSManagedObjectConstraintValidationError", "Constraint validation error"),
+        133020: ("NSValidationMultipleErrorsError", "Multiple validation errors"),
+        134060: ("NSPersistentStoreSaveError", "Persistent store save error"),
+        134080: ("NSPersistentStoreOpenError", "Persistent store open error"),
+        134090: ("NSPersistentStoreTimeoutError", "Persistent store timeout"),
+        134100: ("NSPersistentStoreIncompatibleSchemaError", "Incompatible store schema"),
     ]
 }
