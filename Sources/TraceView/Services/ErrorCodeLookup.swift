@@ -21,10 +21,12 @@ final class ErrorCodeLookup {
 
         // Deduplicate by domain + code
         var seen = Set<String>()
-        return results.filter { info in
+        let deduped = results.filter { info in
             let key = "\(info.domain.rawValue):\(info.code)"
             return seen.insert(key).inserted
         }
+        // Conservative reorder: only bumps a domain to top when input has unambiguous signal
+        return prioritize(input: trimmed, results: deduped)
     }
 
     /// Lookup in a specific domain
@@ -46,6 +48,22 @@ final class ErrorCodeLookup {
         case .ioReturn: return lookupIOReturn(UInt32(bitPattern: Int32(clamping: code))).map { [$0] } ?? []
         case .machError: return lookupMachError(Int32(clamping: code)).map { [$0] } ?? []
         case .httpStatus: return lookupHTTPStatus(Int(code)).map { [$0] } ?? []
+        case .cfNetwork: return lookupCFNetwork(Int32(clamping: code)).map { [$0] } ?? []
+        case .cocoa: return lookupCocoa(Int(code)).map { [$0] } ?? []
+        case .security: return lookupSecurity(Int32(clamping: code)).map { [$0] } ?? []
+        case .posixSignal: return lookupPOSIXSignal(Int32(clamping: code)).map { [$0] } ?? []
+        case .sqlite: return lookupSQLite(Int32(clamping: code)).map { [$0] } ?? []
+        case .grpc:
+            if code >= 0 && code <= 16 {
+                return lookupGRPC(Int32(code)).map { [$0] } ?? []
+            }
+            return []
+        case .bonjour: return lookupBonjour(Int32(clamping: code)).map { [$0] } ?? []
+        case .posixExit:
+            if code >= 0 && code <= 255 {
+                return lookupPOSIXExit(Int(code)).map { [$0] } ?? []
+            }
+            return []
         }
     }
 
@@ -98,6 +116,46 @@ final class ErrorCodeLookup {
                 results.append(ErrorCodeInfo(domain: .machError, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
             }
         }
+        for (code, (sym, desc)) in Self.cfNetworkTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
+            }
+        }
+        for (code, (sym, desc)) in Self.cocoaTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
+            }
+        }
+        for (code, (sym, desc)) in Self.securityTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
+            }
+        }
+        for (code, (sym, desc)) in Self.posixSignalTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
+            }
+        }
+        for (code, (sym, desc)) in Self.sqliteTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
+            }
+        }
+        for (code, (sym, desc)) in Self.grpcTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil))
+            }
+        }
+        for (code, (sym, desc)) in Self.bonjourTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code))))
+            }
+        }
+        for (code, (sym, desc)) in Self.posixExitTable {
+            if sym.uppercased() == upper {
+                results.append(ErrorCodeInfo(domain: .posixExit, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code)))
+            }
+        }
         return results
     }
 
@@ -122,6 +180,38 @@ final class ErrorCodeLookup {
             }
         case .httpStatus:
             break
+        case .cfNetwork:
+            for (code, (sym, desc)) in Self.cfNetworkTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+            }
+        case .cocoa:
+            for (code, (sym, desc)) in Self.cocoaTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+            }
+        case .security:
+            for (code, (sym, desc)) in Self.securityTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+            }
+        case .posixSignal:
+            for (code, (sym, desc)) in Self.posixSignalTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+            }
+        case .sqlite:
+            for (code, (sym, desc)) in Self.sqliteTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+            }
+        case .grpc:
+            for (code, (sym, desc)) in Self.grpcTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil)
+            }
+        case .bonjour:
+            for (code, (sym, desc)) in Self.bonjourTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+            }
+        case .posixExit:
+            for (code, (sym, desc)) in Self.posixExitTable where sym.uppercased() == upper {
+                return ErrorCodeInfo(domain: .posixExit, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+            }
         }
         return nil
     }
@@ -138,6 +228,18 @@ final class ErrorCodeLookup {
         if let r = lookupOSStatus(i32) { results.append(r) }
         if let r = lookupIOReturn(u32) { results.append(r) }
         if let r = lookupMachError(i32) { results.append(r) }
+        if let r = lookupCFNetwork(i32) { results.append(r) }
+        if let r = lookupCocoa(Int(value)) { results.append(r) }
+        if let r = lookupSecurity(i32) { results.append(r) }
+        if let r = lookupPOSIXSignal(i32) { results.append(r) }
+        if let r = lookupSQLite(i32) { results.append(r) }
+        if value >= 0 && value <= 16 {
+            if let r = lookupGRPC(Int32(value)) { results.append(r) }
+        }
+        if let r = lookupBonjour(i32) { results.append(r) }
+        if value >= 0 && value <= 255 {
+            if let r = lookupPOSIXExit(Int(value)) { results.append(r) }
+        }
 
         // HTTP status (only for positive values in range)
         if value > 0 && value < 600 {
@@ -145,6 +247,81 @@ final class ErrorCodeLookup {
         }
 
         return results
+    }
+
+    // MARK: - Prioritization
+
+    /// Conservative reordering: bumps domains to the top only when the input
+    /// shows an unambiguous textual or numeric signal. Returns the array
+    /// unchanged when no STRONG rule fires — a wrong top-pick is more annoying
+    /// than a flat list.
+    private func prioritize(input: String, results: [ErrorCodeInfo]) -> [ErrorCodeInfo] {
+        guard results.count > 1 else { return results }
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let preferred = strongDomain(for: trimmed)
+        guard let preferred else { return results }
+
+        // Stable sort: matches in the preferred domain first, others in original order.
+        var preferredResults: [ErrorCodeInfo] = []
+        var rest: [ErrorCodeInfo] = []
+        for r in results {
+            if r.domain == preferred {
+                preferredResults.append(r)
+            } else {
+                rest.append(r)
+            }
+        }
+        return preferredResults + rest
+    }
+
+    /// Returns the unambiguous domain hinted by the input string, or nil if
+    /// the input doesn't fire any STRONG rule. Order of checks matters: more
+    /// specific patterns first.
+    private func strongDomain(for input: String) -> ErrorDomain? {
+        // Symbol-based rules (case-sensitive checks before case-insensitive)
+        if input.hasPrefix("errSec") { return .security }
+
+        let upper = input.uppercased()
+        if upper.hasPrefix("SIG") { return .posixSignal }
+        if upper.hasPrefix("SQLITE_") { return .sqlite }
+        if upper.hasPrefix("KDNSSERVICEERR_") { return .bonjour }
+        if upper.hasPrefix("NSURL") || upper.hasPrefix("KCFERROR") { return .cfNetwork }
+        if upper.hasPrefix("EX_") { return .posixExit }
+        // ^E[A-Z]+$ → errno (e.g. EACCES, ENOENT) — matches AFTER EX_ to avoid stealing those
+        if upper.range(of: #"^E[A-Z]+$"#, options: .regularExpression) != nil {
+            return .errno
+        }
+
+        // Numeric rules
+        // Hex with sign-extended OSStatus pattern (0x8XXXXXXX)
+        if input.hasPrefix("0x") || input.hasPrefix("0X") {
+            let hex = String(input.dropFirst(2))
+            if let val = UInt64(hex, radix: 16) {
+                // OSStatus pattern: high bit set, 8-digit (0x80000000 .. 0x8FFFFFFF)
+                if hex.count == 8, val >= 0x80000000, val <= 0x8FFFFFFF {
+                    return .osStatus
+                }
+                // IOReturn pattern: 0xE00002XX
+                if val >= 0xE0000200, val <= 0xE00002FF {
+                    return .ioReturn
+                }
+            }
+        }
+
+        // Decimal with no prefix
+        if let val = Int64(input) {
+            // HTTP range
+            if val >= 100, val <= 599 {
+                return .httpStatus
+            }
+            // CFNetwork negative range
+            if val < 0, val >= -3010 {
+                return .cfNetwork
+            }
+        }
+
+        return nil
     }
 
     // MARK: - Domain Lookups
@@ -172,6 +349,46 @@ final class ErrorCodeLookup {
     func lookupHTTPStatus(_ code: Int) -> ErrorCodeInfo? {
         guard let (sym, desc) = Self.httpStatusTable[code] else { return nil }
         return ErrorCodeInfo(domain: .httpStatus, code: Int32(code), symbolicName: sym, description: desc, hexValue: nil)
+    }
+
+    func lookupCFNetwork(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.cfNetworkTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .cfNetwork, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+    }
+
+    func lookupCocoa(_ code: Int) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.cocoaTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .cocoa, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+    }
+
+    func lookupSecurity(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.securityTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .security, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+    }
+
+    func lookupPOSIXSignal(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.posixSignalTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .posixSignal, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+    }
+
+    func lookupSQLite(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.sqliteTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .sqlite, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
+    }
+
+    func lookupGRPC(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.grpcTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .grpc, code: code, symbolicName: sym, description: desc, hexValue: nil)
+    }
+
+    func lookupBonjour(_ code: Int32) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.bonjourTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .bonjour, code: code, symbolicName: sym, description: desc, hexValue: String(format: "0x%X", UInt32(bitPattern: code)))
+    }
+
+    func lookupPOSIXExit(_ code: Int) -> ErrorCodeInfo? {
+        guard let (sym, desc) = Self.posixExitTable[code] else { return nil }
+        return ErrorCodeInfo(domain: .posixExit, code: Int32(clamping: code), symbolicName: sym, description: desc, hexValue: String(format: "0x%X", code))
     }
 
     // MARK: - Error Code Tables
@@ -418,10 +635,12 @@ final class ErrorCodeLookup {
         -10877: ("kAudioUnitErr_InvalidElement", "Invalid audio unit element"),
 
         // Security framework / Keychain
-        -25240: ("errSecReadOnly", "This keychain cannot be modified"),
-        -25241: ("errSecNoSuchKeychain", "The specified keychain could not be found"),
-        -25244: ("errSecNoDefaultKeychain", "No default keychain could be found"),
-        -25245: ("errSecInteractionNotAllowed", "User interaction is not allowed"),
+        // NOTE: -25240..-25245 were previously misattributed to errSec* names
+        // that actually belong to other codes per SecBase.h. Removed in v1.0.6
+        // since the new securityTable now provides authoritative entries for
+        // those codes (errSecACLNotSimple/PolicyNotFound/etc.). The remaining
+        // -25260..-25265 entries below are flagged for follow-up audit; they
+        // may also be misattributed.
         -25260: ("errSecReadOnlyAttr", "The specified attribute could not be modified"),
         -25261: ("errSecWrongSecVersion", "Wrong security version"),
         -25262: ("errSecKeySizeNotAllowed", "This item's key's size is not allowed for this algorithm"),
@@ -691,5 +910,353 @@ final class ErrorCodeLookup {
         508: ("Loop Detected", "Server detected an infinite loop while processing (WebDAV)"),
         510: ("Not Extended", "Further extensions to the request are required"),
         511: ("Network Authentication Required", "Client needs to authenticate to gain network access (captive portal)"),
+    ]
+
+    // Values mirror Foundation/NSURLError.h (NSURLErrorDomain / CFNetwork).
+    static let cfNetworkTable: [Int32: (String, String)] = [
+        -1: ("NSURLErrorUnknown", "Unknown error"),
+        -999: ("NSURLErrorCancelled", "Cancelled"),
+        -1000: ("NSURLErrorBadURL", "Bad URL"),
+        -1001: ("NSURLErrorTimedOut", "Request timed out"),
+        -1002: ("NSURLErrorUnsupportedURL", "Unsupported URL"),
+        -1003: ("NSURLErrorCannotFindHost", "Cannot find host"),
+        -1004: ("NSURLErrorCannotConnectToHost", "Cannot connect to host"),
+        -1005: ("NSURLErrorNetworkConnectionLost", "Network connection lost"),
+        -1006: ("NSURLErrorDNSLookupFailed", "DNS lookup failed"),
+        -1007: ("NSURLErrorHTTPTooManyRedirects", "Too many HTTP redirects"),
+        -1008: ("NSURLErrorResourceUnavailable", "Resource unavailable"),
+        -1009: ("NSURLErrorNotConnectedToInternet", "Not connected to the internet"),
+        -1010: ("NSURLErrorRedirectToNonExistentLocation", "Redirect to non-existent location"),
+        -1011: ("NSURLErrorBadServerResponse", "Bad server response"),
+        -1012: ("NSURLErrorUserCancelledAuthentication", "User cancelled authentication"),
+        -1013: ("NSURLErrorUserAuthenticationRequired", "User authentication required"),
+        -1014: ("NSURLErrorZeroByteResource", "Zero-byte resource returned"),
+        -1015: ("NSURLErrorCannotDecodeRawData", "Cannot decode raw data"),
+        -1016: ("NSURLErrorCannotDecodeContentData", "Cannot decode content data"),
+        -1017: ("NSURLErrorCannotParseResponse", "Cannot parse response"),
+        -1018: ("NSURLErrorInternationalRoamingOff", "International roaming is off"),
+        -1019: ("NSURLErrorCallIsActive", "Call is active"),
+        -1020: ("NSURLErrorDataNotAllowed", "Cellular data not allowed"),
+        -1021: ("NSURLErrorRequestBodyStreamExhausted", "Request body stream exhausted"),
+        -1022: ("NSURLErrorAppTransportSecurityRequiresSecureConnection", "ATS requires secure connection"),
+        -1100: ("NSURLErrorFileDoesNotExist", "File does not exist"),
+        -1101: ("NSURLErrorFileIsDirectory", "File is a directory"),
+        -1102: ("NSURLErrorNoPermissionsToReadFile", "No permissions to read file"),
+        -1103: ("NSURLErrorDataLengthExceedsMaximum", "Data length exceeds maximum"),
+        -1104: ("NSURLErrorFileOutsideSafeArea", "File outside safe area"),
+        -1200: ("NSURLErrorSecureConnectionFailed", "Secure connection failed"),
+        -1201: ("NSURLErrorServerCertificateHasBadDate", "Server certificate has bad date"),
+        -1202: ("NSURLErrorServerCertificateUntrusted", "Server certificate untrusted"),
+        -1203: ("NSURLErrorServerCertificateHasUnknownRoot", "Server certificate has unknown root"),
+        -1204: ("NSURLErrorServerCertificateNotYetValid", "Server certificate not yet valid"),
+        -1205: ("NSURLErrorClientCertificateRejected", "Client certificate rejected"),
+        -1206: ("NSURLErrorClientCertificateRequired", "Client certificate required"),
+        -2000: ("NSURLErrorCannotLoadFromNetwork", "Cannot load from network"),
+        -3000: ("NSURLErrorCannotCreateFile", "Cannot create file"),
+        -3001: ("NSURLErrorCannotOpenFile", "Cannot open file"),
+        -3002: ("NSURLErrorCannotCloseFile", "Cannot close file"),
+        -3003: ("NSURLErrorCannotWriteToFile", "Cannot write to file"),
+        -3004: ("NSURLErrorCannotRemoveFile", "Cannot remove file"),
+        -3005: ("NSURLErrorCannotMoveFile", "Cannot move file"),
+        -3006: ("NSURLErrorDownloadDecodingFailedMidStream", "Download decoding failed mid-stream"),
+        -3007: ("NSURLErrorDownloadDecodingFailedToComplete", "Download decoding failed to complete"),
+    ]
+
+    static let cocoaTable: [Int: (String, String)] = [
+        // Foundation generic
+        4: ("NSFileNoSuchFileError", "No such file"),
+        255: ("NSFileLockingError", "File locking error"),
+        256: ("NSFileReadUnknownError", "Unknown file read error"),
+        257: ("NSFileReadNoPermissionError", "No permission to read file"),
+        258: ("NSFileReadInvalidFileNameError", "Invalid file name"),
+        259: ("NSFileReadCorruptFileError", "Corrupt file"),
+        260: ("NSFileReadNoSuchFileError", "No such file (read)"),
+        261: ("NSFileReadInapplicableStringEncodingError", "Inapplicable string encoding"),
+        262: ("NSFileReadUnsupportedSchemeError", "Unsupported URL scheme"),
+        263: ("NSFileReadTooLargeError", "File too large"),
+        264: ("NSFileReadUnknownStringEncodingError", "Unknown string encoding"),
+        512: ("NSFileWriteUnknownError", "Unknown file write error"),
+        513: ("NSFileWriteNoPermissionError", "No permission to write file"),
+        514: ("NSFileWriteInvalidFileNameError", "Invalid file name (write)"),
+        516: ("NSFileWriteFileExistsError", "File already exists"),
+        517: ("NSFileWriteInapplicableStringEncodingError", "Inapplicable encoding (write)"),
+        518: ("NSFileWriteUnsupportedSchemeError", "Unsupported URL scheme (write)"),
+        640: ("NSFileWriteOutOfSpaceError", "Out of disk space"),
+        642: ("NSFileWriteVolumeReadOnlyError", "Volume is read-only"),
+        1024: ("NSExecutableNotLoadableError", "Executable not loadable"),
+        1025: ("NSExecutableArchitectureMismatchError", "Executable architecture mismatch"),
+        1026: ("NSExecutableRuntimeMismatchError", "Executable runtime mismatch"),
+        1027: ("NSExecutableLoadError", "Executable load error"),
+        1028: ("NSExecutableLinkError", "Executable link error"),
+        // Property list / encoding
+        3840: ("NSPropertyListReadCorruptError", "Corrupt property list"),
+        3841: ("NSPropertyListReadUnknownVersionError", "Unknown property list version"),
+        3842: ("NSPropertyListReadStreamError", "Property list stream error"),
+        3851: ("NSPropertyListWriteStreamError", "Property list write stream error"),
+        3852: ("NSPropertyListWriteInvalidError", "Invalid property list"),
+        // XPC
+        4097: ("NSXPCConnectionInterrupted", "XPC connection interrupted"),
+        4099: ("NSXPCConnectionInvalid", "XPC connection invalid"),
+        4101: ("NSXPCConnectionReplyInvalid", "XPC reply invalid"),
+        // User defaults / ubiquity (commonly seen)
+        4352: ("NSUbiquitousFileUnavailableError", "Ubiquitous file unavailable"),
+        4353: ("NSUbiquitousFileNotUploadedDueToQuotaError", "Ubiquitous file quota exceeded"),
+        4354: ("NSUbiquitousFileUbiquityServerNotAvailable", "Ubiquity server unavailable"),
+        // CoreData (most common)
+        133000: ("NSManagedObjectValidationError", "Managed object validation error"),
+        133010: ("NSManagedObjectConstraintValidationError", "Constraint validation error"),
+        133020: ("NSValidationMultipleErrorsError", "Multiple validation errors"),
+        134060: ("NSPersistentStoreSaveError", "Persistent store save error"),
+        134080: ("NSPersistentStoreOpenError", "Persistent store open error"),
+        134090: ("NSPersistentStoreTimeoutError", "Persistent store timeout"),
+        134100: ("NSPersistentStoreIncompatibleSchemaError", "Incompatible store schema"),
+    ]
+
+    // Sourced from Security.framework/Headers/SecBase.h (macOS 15.4 SDK).
+    // Codes verified against the SDK header; several entries from the original
+    // spec were corrected (see commit message for details).
+    static let securityTable: [Int32: (String, String)] = [
+        0: ("errSecSuccess", "Success"),
+        -4: ("errSecUnimplemented", "Function or operation not implemented"),
+        -34: ("errSecDiskFull", "The disk is full"),
+        -36: ("errSecIO", "I/O error"),
+        -49: ("errSecOpWr", "File already open with write permission"),
+        -50: ("errSecParam", "One or more parameters passed to a function were not valid"),
+        -61: ("errSecWrPerm", "Write permissions error"),
+        -108: ("errSecAllocate", "Failed to allocate memory"),
+        -128: ("errSecUserCanceled", "User canceled the operation"),
+        -909: ("errSecBadReq", "Bad parameter or invalid state for operation"),
+        -2070: ("errSecInternalComponent", "Internal component error"),
+        -4960: ("errSecCoreFoundationUnknown", "CoreFoundation error"),
+        -25240: ("errSecACLNotSimple", "The specified access control list is not in standard (simple) form"),
+        -25241: ("errSecPolicyNotFound", "The specified policy cannot be found"),
+        -25243: ("errSecNoAccessForItem", "The specified item has no access control"),
+        -25244: ("errSecInvalidOwnerEdit", "Invalid attempt to change the owner of this item"),
+        -25245: ("errSecTrustNotAvailable", "No trust results are available"),
+        -25291: ("errSecNotAvailable", "No keychain is available"),
+        -25292: ("errSecReadOnly", "This keychain cannot be modified"),
+        -25293: ("errSecAuthFailed", "The user name or passphrase you entered is not correct"),
+        -25294: ("errSecNoSuchKeychain", "The specified keychain could not be found"),
+        -25295: ("errSecInvalidKeychain", "The specified keychain is not a valid keychain file"),
+        -25296: ("errSecDuplicateKeychain", "A keychain with the same name already exists"),
+        -25297: ("errSecDuplicateCallback", "The specified callback function is already installed"),
+        -25298: ("errSecInvalidCallback", "The specified callback function is not valid"),
+        -25299: ("errSecDuplicateItem", "The specified item already exists in the keychain"),
+        -25300: ("errSecItemNotFound", "The specified item could not be found in the keychain"),
+        -25301: ("errSecBufferTooSmall", "There is not enough memory available to use the specified item"),
+        -25302: ("errSecDataTooLarge", "This item contains information which is too large or in a format that cannot be displayed"),
+        -25303: ("errSecNoSuchAttr", "The specified attribute does not exist"),
+        -25304: ("errSecInvalidItemRef", "The specified item is no longer valid; it may have been deleted from the keychain"),
+        -25305: ("errSecInvalidSearchRef", "Unable to search the current keychain"),
+        -25306: ("errSecNoSuchClass", "The specified item does not appear to be a valid keychain item"),
+        -25307: ("errSecNoDefaultKeychain", "A default keychain could not be found"),
+        -25308: ("errSecInteractionNotAllowed", "User interaction is not allowed"),
+        -25309: ("errSecReadOnlyAttr", "The specified attribute could not be modified"),
+        -25310: ("errSecWrongSecVersion", "This keychain was created by a different version of the system software and cannot be opened"),
+        -25311: ("errSecKeySizeNotAllowed", "This item specifies a key size which is too large or too small"),
+        -25312: ("errSecNoStorageModule", "A required component (data storage module) could not be loaded"),
+        -25313: ("errSecNoCertificateModule", "A required component (certificate module) could not be loaded"),
+        -25314: ("errSecNoPolicyModule", "A required component (policy module) could not be loaded"),
+        -25315: ("errSecInteractionRequired", "User interaction is required but is currently not allowed"),
+        -25316: ("errSecDataNotAvailable", "The contents of this item cannot be retrieved"),
+        -25317: ("errSecDataNotModifiable", "The contents of this item cannot be modified"),
+        -25318: ("errSecCreateChainFailed", "One or more certificates required to validate this certificate cannot be found"),
+        -25319: ("errSecInvalidPrefsDomain", "The specified preferences domain is not valid"),
+        -25320: ("errSecInDarkWake", "In dark wake, no UI possible"),
+        -26267: ("errSecNotSigner", "A certificate was not signed by its proposed parent"),
+        -26275: ("errSecDecode", "Unable to decode the provided data"),
+        -34018: ("errSecMissingEntitlement", "A required entitlement isn't present"),
+        -34020: ("errSecRestrictedAPI", "Client is restricted and is not permitted to perform this operation"),
+        -67694: ("errSecInvalidValue", "An invalid value was detected"),
+        -67871: ("errSecMissingValue", "A missing value was detected"),
+    ]
+
+    // BSD signal set used by Darwin/macOS. Numbers sourced from
+    // <sys/signal.h> in the macOS 15.4 SDK. Linux realtime signals
+    // (32-64) are intentionally not included.
+    static let posixSignalTable: [Int32: (String, String)] = [
+        1:  ("SIGHUP",    "Hangup detected on controlling terminal"),
+        2:  ("SIGINT",    "Interrupt from keyboard (Ctrl-C)"),
+        3:  ("SIGQUIT",   "Quit from keyboard (Ctrl-\\)"),
+        4:  ("SIGILL",    "Illegal instruction"),
+        5:  ("SIGTRAP",   "Trace/breakpoint trap"),
+        6:  ("SIGABRT",   "Aborted (abort() called)"),
+        7:  ("SIGEMT",    "Emulator trap"),
+        8:  ("SIGFPE",    "Floating-point exception"),
+        9:  ("SIGKILL",   "Killed (cannot be caught or ignored)"),
+        10: ("SIGBUS",    "Bus error (bad memory access)"),
+        11: ("SIGSEGV",   "Segmentation fault"),
+        12: ("SIGSYS",    "Bad system call"),
+        13: ("SIGPIPE",   "Broken pipe"),
+        14: ("SIGALRM",   "Alarm clock"),
+        15: ("SIGTERM",   "Terminated"),
+        16: ("SIGURG",    "Urgent condition on socket"),
+        17: ("SIGSTOP",   "Stop process (cannot be caught or ignored)"),
+        18: ("SIGTSTP",   "Stop typed at terminal (Ctrl-Z)"),
+        19: ("SIGCONT",   "Continue if stopped"),
+        20: ("SIGCHLD",   "Child status changed"),
+        21: ("SIGTTIN",   "Background process attempting read"),
+        22: ("SIGTTOU",   "Background process attempting write"),
+        23: ("SIGIO",     "I/O now possible"),
+        24: ("SIGXCPU",   "CPU time limit exceeded"),
+        25: ("SIGXFSZ",   "File size limit exceeded"),
+        26: ("SIGVTALRM", "Virtual alarm clock"),
+        27: ("SIGPROF",   "Profiling timer expired"),
+        28: ("SIGWINCH",  "Window size change"),
+        29: ("SIGINFO",   "Status request from keyboard (Ctrl-T)"),
+        30: ("SIGUSR1",   "User-defined signal 1"),
+        31: ("SIGUSR2",   "User-defined signal 2"),
+    ]
+
+    // SQLite result codes. Base codes sourced from sqlite3.h in the macOS 15.4 SDK.
+    // Extended codes follow the (primary | (subcode << 8)) formula defined by SQLite.
+    static let sqliteTable: [Int32: (String, String)] = [
+        0:    ("SQLITE_OK",           "Successful result"),
+        1:    ("SQLITE_ERROR",        "Generic error"),
+        2:    ("SQLITE_INTERNAL",     "Internal logic error"),
+        3:    ("SQLITE_PERM",         "Access permission denied"),
+        4:    ("SQLITE_ABORT",        "Callback routine requested abort"),
+        5:    ("SQLITE_BUSY",         "Database file is locked"),
+        6:    ("SQLITE_LOCKED",       "Table in database is locked"),
+        7:    ("SQLITE_NOMEM",        "Out of memory"),
+        8:    ("SQLITE_READONLY",     "Attempt to write a readonly database"),
+        9:    ("SQLITE_INTERRUPT",    "Operation terminated by sqlite3_interrupt()"),
+        10:   ("SQLITE_IOERR",        "Disk I/O error"),
+        11:   ("SQLITE_CORRUPT",      "Database disk image is malformed"),
+        12:   ("SQLITE_NOTFOUND",     "Unknown opcode in sqlite3_file_control()"),
+        13:   ("SQLITE_FULL",         "Insertion failed because database is full"),
+        14:   ("SQLITE_CANTOPEN",     "Unable to open the database file"),
+        15:   ("SQLITE_PROTOCOL",     "Database lock protocol error"),
+        16:   ("SQLITE_EMPTY",        "Internal use only"),
+        17:   ("SQLITE_SCHEMA",       "Database schema changed"),
+        18:   ("SQLITE_TOOBIG",       "String or BLOB exceeds size limit"),
+        19:   ("SQLITE_CONSTRAINT",   "Abort due to constraint violation"),
+        20:   ("SQLITE_MISMATCH",     "Data type mismatch"),
+        21:   ("SQLITE_MISUSE",       "Library used incorrectly"),
+        22:   ("SQLITE_NOLFS",        "Uses OS features not supported on host"),
+        23:   ("SQLITE_AUTH",         "Authorization denied"),
+        24:   ("SQLITE_FORMAT",       "Not used"),
+        25:   ("SQLITE_RANGE",        "2nd parameter to sqlite3_bind out of range"),
+        26:   ("SQLITE_NOTADB",       "File opened that is not a database file"),
+        27:   ("SQLITE_NOTICE",       "Notifications from sqlite3_log()"),
+        28:   ("SQLITE_WARNING",      "Warnings from sqlite3_log()"),
+        100:  ("SQLITE_ROW",          "sqlite3_step() has another row ready"),
+        101:  ("SQLITE_DONE",         "sqlite3_step() has finished executing"),
+        // Extended codes: primary | (subcode << 8)
+        261:  ("SQLITE_BUSY_RECOVERY",          "Recovery from another process"),         // 5  | (1<<8)
+        266:  ("SQLITE_IOERR_READ",             "I/O error on read"),                     // 10 | (1<<8)
+        267:  ("SQLITE_CORRUPT_VTAB",           "Virtual table corruption"),               // 11 | (1<<8)
+        275:  ("SQLITE_CONSTRAINT_CHECK",        "Check constraint failed"),               // 19 | (1<<8)
+        522:  ("SQLITE_IOERR_SHORT_READ",       "Short read"),                            // 10 | (2<<8)
+        778:  ("SQLITE_IOERR_WRITE",            "I/O error on write"),                    // 10 | (3<<8)
+        787:  ("SQLITE_CONSTRAINT_FOREIGNKEY",  "Foreign key constraint failed"),         // 19 | (3<<8)
+        1034: ("SQLITE_IOERR_FSYNC",            "I/O error on fsync"),                    // 10 | (4<<8)
+        1290: ("SQLITE_IOERR_DIR_FSYNC",        "I/O error on directory fsync"),          // 10 | (5<<8)
+        1555: ("SQLITE_CONSTRAINT_PRIMARYKEY",  "Primary key constraint failed"),         // 19 | (6<<8)
+        2067: ("SQLITE_CONSTRAINT_UNIQUE",      "Unique constraint failed"),              // 19 | (8<<8)
+    ]
+
+    // Full canonical gRPC status code set. Source: grpc/grpc status_code_enum.h / status.proto.
+    // Codes 0-16 are fixed by spec; no extensions expected.
+    static let grpcTable: [Int32: (String, String)] = [
+        0:  ("OK",                   "Not an error; returned on success"),
+        1:  ("CANCELLED",            "Operation was cancelled (typically by caller)"),
+        2:  ("UNKNOWN",              "Unknown error"),
+        3:  ("INVALID_ARGUMENT",     "Client specified an invalid argument"),
+        4:  ("DEADLINE_EXCEEDED",    "Deadline expired before operation could complete"),
+        5:  ("NOT_FOUND",            "Some requested entity was not found"),
+        6:  ("ALREADY_EXISTS",       "Entity caller attempted to create already exists"),
+        7:  ("PERMISSION_DENIED",    "Caller does not have permission"),
+        8:  ("RESOURCE_EXHAUSTED",   "Some resource has been exhausted"),
+        9:  ("FAILED_PRECONDITION",  "System is not in required state"),
+        10: ("ABORTED",              "Operation was aborted (typically due to concurrency issue)"),
+        11: ("OUT_OF_RANGE",         "Operation attempted past valid range"),
+        12: ("UNIMPLEMENTED",        "Operation is not implemented or not supported"),
+        13: ("INTERNAL",             "Internal errors (broken invariants)"),
+        14: ("UNAVAILABLE",          "Service unavailable (typically transient)"),
+        15: ("DATA_LOSS",            "Unrecoverable data loss or corruption"),
+        16: ("UNAUTHENTICATED",      "Request does not have valid credentials"),
+    ]
+
+    static let bonjourTable: [Int32: (String, String)] = [
+        0:      ("kDNSServiceErr_NoError",                   "No error"),
+        -65537: ("kDNSServiceErr_Unknown",                   "Unknown error"),
+        -65538: ("kDNSServiceErr_NoSuchName",                "No such name"),
+        -65539: ("kDNSServiceErr_NoMemory",                  "Out of memory"),
+        -65540: ("kDNSServiceErr_BadParam",                  "Bad parameter"),
+        -65541: ("kDNSServiceErr_BadReference",              "Bad reference"),
+        -65542: ("kDNSServiceErr_BadState",                  "Bad state"),
+        -65543: ("kDNSServiceErr_BadFlags",                  "Bad flags"),
+        -65544: ("kDNSServiceErr_Unsupported",               "Unsupported operation"),
+        -65545: ("kDNSServiceErr_NotInitialized",            "Not initialized"),
+        -65547: ("kDNSServiceErr_AlreadyRegistered",         "Service already registered"),
+        -65548: ("kDNSServiceErr_NameConflict",              "Name conflict"),
+        -65549: ("kDNSServiceErr_Invalid",                   "Invalid"),
+        -65550: ("kDNSServiceErr_Firewall",                  "Blocked by firewall"),
+        -65551: ("kDNSServiceErr_Incompatible",              "Library incompatible with daemon"),
+        -65552: ("kDNSServiceErr_BadInterfaceIndex",         "Bad interface index"),
+        -65553: ("kDNSServiceErr_Refused",                   "Refused"),
+        -65554: ("kDNSServiceErr_NoSuchRecord",              "No such record"),
+        -65555: ("kDNSServiceErr_NoAuth",                    "No authentication"),
+        -65556: ("kDNSServiceErr_NoSuchKey",                 "No such key"),
+        -65557: ("kDNSServiceErr_NATTraversal",              "NAT traversal error"),
+        -65558: ("kDNSServiceErr_DoubleNAT",                 "Double NAT"),
+        -65559: ("kDNSServiceErr_BadTime",                   "Clock skew"),
+        -65560: ("kDNSServiceErr_BadSig",                    "Bad signature"),
+        -65561: ("kDNSServiceErr_BadKey",                    "Bad key"),
+        -65562: ("kDNSServiceErr_Transient",                 "Transient error"),
+        -65563: ("kDNSServiceErr_ServiceNotRunning",         "mDNSResponder not running"),
+        -65564: ("kDNSServiceErr_NATPortMappingUnsupported", "NAT-PMP unsupported"),
+        -65565: ("kDNSServiceErr_NATPortMappingDisabled",    "NAT-PMP disabled"),
+        -65566: ("kDNSServiceErr_NoRouter",                  "No router"),
+        -65567: ("kDNSServiceErr_PollingMode",               "Polling mode"),
+        -65568: ("kDNSServiceErr_Timeout",                   "Timeout"),
+        -65569: ("kDNSServiceErr_DefunctConnection",         "Defunct connection"),
+        -65570: ("kDNSServiceErr_PolicyDenied",              "Policy denied"),
+        -65571: ("kDNSServiceErr_NotPermitted",              "Not permitted"),
+        -65572: ("kDNSServiceErr_StaleData",                 "Stale data"),
+    ]
+
+    static let posixExitTable: [Int: (String, String)] = [
+        // Universal conventions
+        0:   ("EXIT_SUCCESS",          "Successful termination"),
+        1:   ("EXIT_FAILURE",          "Generic failure"),
+        2:   ("EXIT_MISUSE",           "Misuse of shell builtins (Bash)"),
+        // sysexits.h (BSD; widely used in Unix tools)
+        64:  ("EX_USAGE",             "Command line usage error"),
+        65:  ("EX_DATAERR",           "Data format error"),
+        66:  ("EX_NOINPUT",           "Cannot open input"),
+        67:  ("EX_NOUSER",            "Addressee unknown"),
+        68:  ("EX_NOHOST",            "Host name unknown"),
+        69:  ("EX_UNAVAILABLE",       "Service unavailable"),
+        70:  ("EX_SOFTWARE",          "Internal software error"),
+        71:  ("EX_OSERR",             "System error (e.g., can't fork)"),
+        72:  ("EX_OSFILE",            "Critical OS file missing"),
+        73:  ("EX_CANTCREAT",         "Cannot create output file"),
+        74:  ("EX_IOERR",             "Input/output error"),
+        75:  ("EX_TEMPFAIL",          "Temp failure; user is invited to retry"),
+        76:  ("EX_PROTOCOL",          "Remote error in protocol"),
+        77:  ("EX_NOPERM",            "Permission denied"),
+        78:  ("EX_CONFIG",            "Configuration error"),
+        // Shell conventions
+        126: ("EXIT_NOT_EXECUTABLE",  "Command found but not executable"),
+        127: ("EXIT_NOT_FOUND",       "Command not found"),
+        128: ("EXIT_INVALID_ARG",     "Invalid argument to exit"),
+        // 128 + signal number (most-commonly-seen subset)
+        129: ("EXIT_SIGNALED_HUP",    "Killed by SIGHUP (128 + 1)"),
+        130: ("EXIT_SIGNALED_INT",    "Killed by SIGINT (128 + 2; user pressed Ctrl-C)"),
+        131: ("EXIT_SIGNALED_QUIT",   "Killed by SIGQUIT (128 + 3)"),
+        132: ("EXIT_SIGNALED_ILL",    "Killed by SIGILL (128 + 4)"),
+        134: ("EXIT_SIGNALED_ABRT",   "Killed by SIGABRT (128 + 6; abort() called)"),
+        136: ("EXIT_SIGNALED_FPE",    "Killed by SIGFPE (128 + 8)"),
+        137: ("EXIT_SIGNALED_KILL",   "Killed by SIGKILL (128 + 9; OOM-killer or kill -9)"),
+        138: ("EXIT_SIGNALED_BUS",    "Killed by SIGBUS (128 + 10)"),
+        139: ("EXIT_SIGNALED_SEGV",   "Killed by SIGSEGV (128 + 11; segfault)"),
+        141: ("EXIT_SIGNALED_PIPE",   "Killed by SIGPIPE (128 + 13; broken pipe)"),
+        142: ("EXIT_SIGNALED_ALRM",   "Killed by SIGALRM (128 + 14)"),
+        143: ("EXIT_SIGNALED_TERM",   "Killed by SIGTERM (128 + 15)"),
+        152: ("EXIT_SIGNALED_XCPU",   "Killed by SIGXCPU (128 + 24; CPU limit)"),
+        153: ("EXIT_SIGNALED_XFSZ",   "Killed by SIGXFSZ (128 + 25; file size limit)"),
+        255: ("EXIT_OUT_OF_RANGE",    "Exit code out of range (Bash)"),
     ]
 }
