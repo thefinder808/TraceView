@@ -239,26 +239,37 @@ final class LogDocument: ObservableObject, Identifiable {
             return LoadResult(dataCount: data.count, parser: parser, entries: entries, nextID: nextID)
         }.value
 
-        guard let result else {
-            isLoading = false
-            return
-        }
+        // Even though loadFile is @MainActor, the continuation after
+        // `await Task.detached(...).value` does not reliably resume on main
+        // — when it lands on the cooperative pool, the @Published writes
+        // below trigger SwiftUI to run layout off-main, which deadlocks
+        // against the lineCountTimer's @Published writes on main. Explicit
+        // MainActor.run guarantees the post-await block stays on main.
+        await MainActor.run {
+            guard let result else {
+                self.isLoading = false
+                return
+            }
 
-        fileSize = UInt64(result.dataCount)
-        lastReadOffset = UInt64(result.dataCount)
-        parser = result.parser
-        entries = result.entries
-        nextEntryID = result.nextID
-        updateColumnFlags(scanning: result.entries)
-        rebuildLevelCounts(from: result.entries)
-        recomputeHistogram(immediate: true)
-        didAppend.send(result.entries)
-        isLoading = false
+            self.fileSize = UInt64(result.dataCount)
+            self.lastReadOffset = UInt64(result.dataCount)
+            self.parser = result.parser
+            self.entries = result.entries
+            self.nextEntryID = result.nextID
+            self.updateColumnFlags(scanning: result.entries)
+            self.rebuildLevelCounts(from: result.entries)
+            self.recomputeHistogram(immediate: true)
+            self.didAppend.send(result.entries)
+            self.isLoading = false
 
-        // Gzipped files are archive snapshots — they don't get appended to,
-        // so no file watcher.
-        if !compressed {
-            startWatching(url: url)
+            // Gzipped files are archive snapshots — they don't get appended
+            // to, so no file watcher. File watching belongs on main with the
+            // rest of the post-load setup so subsequent file-change deliveries
+            // (which DispatchQueue.main.async themselves) don't race with the
+            // initial load's published state.
+            if !compressed {
+                self.startWatching(url: url)
+            }
         }
     }
 
@@ -521,8 +532,12 @@ final class LogDocument: ObservableObject, Identifiable {
         //     which preserves the "only surviving task captures" coalescing
         //     that prevents duplicate spike-peak entries during bursts;
         //   - the inner Task.detached runs the actual compute off-main;
-        //   - the await hop publishes `histogram` back on main, which the
-        //     @Published contract requires for SwiftUI consumers.
+        //   - the explicit MainActor.run hops the @Published write back on
+        //     main even when Swift's outer @MainActor annotation fails to
+        //     resume the continuation on main (a known footgun with
+        //     `await Task.detached(...).value` — see the production hang
+        //     report; SwiftUI ran the layout pass off-main and deadlocked
+        //     against the lineCountTimer's @Published writes on main).
         histogramTask = Task { @MainActor [weak self] in
             if !immediate {
                 try? await Task.sleep(nanoseconds: 300_000_000)
@@ -536,7 +551,9 @@ final class LogDocument: ObservableObject, Identifiable {
                 Self.computeHistogram(from: snapshotEntries, peaks: snapshotPeaks, buckets: buckets)
             }.value
             guard !Task.isCancelled else { return }
-            self.histogram = result
+            await MainActor.run {
+                self.histogram = result
+            }
         }
     }
 

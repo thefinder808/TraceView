@@ -129,8 +129,16 @@ final class LogDocumentViewModel: ObservableObject {
                 return entries.filter { f.matches($0) }
             }.value
             guard !Task.isCancelled else { return }
-            self?.filteredEntries = visible
-            self?.recomputeMatches()
+            // Explicit MainActor.run because the @MainActor outer Task does
+            // not reliably resume on main after `await Task.detached(...).value`
+            // — same footgun that hung LogDocument.recomputeHistogram in
+            // production. Without this the @Published filteredEntries write
+            // can land off-main, triggering SwiftUI layout on the cooperative
+            // pool and deadlocking against the lineCountTimer.
+            await MainActor.run {
+                self?.filteredEntries = visible
+                self?.recomputeMatches()
+            }
         }
     }
 
