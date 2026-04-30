@@ -94,6 +94,19 @@ final class LogDocumentViewModel: ObservableObject {
 
     private func setupFilterPipeline() {
         $filter
+            // Drop Combine's initial-value emission. With streaming first-paint
+            // (PR #52), loadFile no longer blocks the main actor for the whole
+            // parse — so the 150ms-debounced initial-value sink can fire BEFORE
+            // the first chunk's didAppend has populated entries[]. applyFilter
+            // would snapshot empty entries, then later overwrite the chunk's
+            // contributions to filteredEntries with that empty result, leaving
+            // the table body blank despite entries being loaded.
+            //
+            // The initial value is the default empty `LogFilter` — applyFilter
+            // on it is wasted work anyway. Init handles the pre-populated-doc
+            // case explicitly via the entries-not-empty applyFilter() call.
+            // Any user change to filter still flows through normally.
+            .dropFirst()
             .debounce(for: .milliseconds(150), scheduler: RunLoop.main)
             .sink { [weak self] _ in
                 self?.applyFilter()
