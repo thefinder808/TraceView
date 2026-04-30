@@ -42,6 +42,14 @@ struct TraceViewApp: App {
                     }
                     return true
                 }
+                // Handles file URLs delivered via the AppleEvent open-document
+                // path: `open -a TraceView.app /file`, right-click → Open With →
+                // TraceView, double-click a .log in Finder, or any other system
+                // mechanism that routes a file to the app. Without this, those
+                // paths silently no-op (the app launches but never sees the URL).
+                .onOpenURL { url in
+                    appState.openFile(at: url)
+                }
         }
         .defaultSize(width: 1100, height: 700)
         .windowResizability(.contentMinSize)
