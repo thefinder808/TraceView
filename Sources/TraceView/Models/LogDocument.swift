@@ -326,6 +326,58 @@ final class LogDocument: ObservableObject, Identifiable {
         }
     }
 
+    /// Apply a chunk of newly-parsed entries from the initial chunked load.
+    /// Called from the detached parse task via `await MainActor.run`. Updates
+    /// loadState's rowsLoaded so the spinner can show progress, then funnels
+    /// through the same `didAppend.send` path live-tail uses, which fans out
+    /// to per-pane filter pipelines for incremental application.
+    @MainActor
+    private func appendChunkFromInitialParse(_ chunk: [LogEntry]) {
+        guard !chunk.isEmpty else { return }
+        entries.append(contentsOf: chunk)
+        updateColumnFlags(scanning: chunk)
+        incrementLevelCounts(with: chunk)
+        // Debounced (300ms) histogram rebuild — multiple chunks landing
+        // within the debounce window coalesce into a single recompute,
+        // avoiding visible histogram thrash during the stream.
+        recomputeHistogram(immediate: false)
+        didAppend.send(chunk)
+
+        let priorLoaded: Int
+        switch loadState {
+        case .streaming(let n): priorLoaded = n
+        case .idle, .complete:
+            // A late chunk arriving after .complete (race during cancel)
+            // shouldn't reset state; just skip the loadState update.
+            return
+        }
+        loadState = .streaming(rowsLoaded: priorLoaded + chunk.count)
+    }
+
+    /// Finalize a chunked load after the last chunk has been applied.
+    /// Sets fileSize/lastReadOffset/parser/nextEntryID, marks loadState
+    /// .complete, kicks off file watching for non-compressed sources.
+    @MainActor
+    private func finalizeLoad(
+        parser: any LogParser,
+        dataCount: Int,
+        nextID: Int,
+        url: URL,
+        compressed: Bool
+    ) {
+        fileSize = UInt64(dataCount)
+        lastReadOffset = UInt64(dataCount)
+        self.parser = parser
+        self.nextEntryID = nextID
+        loadState = .complete
+
+        // Gzipped files are archive snapshots — they don't get appended to,
+        // so no file watcher.
+        if !compressed {
+            startWatching(url: url)
+        }
+    }
+
     private struct LoadResult {
         let dataCount: Int
         let parser: any LogParser
