@@ -306,14 +306,27 @@ final class LogDocument: ObservableObject, Identifiable {
 
             // Small-file fast path: chunking has fixed per-chunk overhead
             // (MainActor hop + per-chunk subscriber filter pipeline). For
-            // files under ~3000 lines, that overhead doubles total wall-
-            // clock time without any perceived first-paint benefit (small
-            // files were already fast). Eager-parse and emit one chunk.
-            // Threshold chosen empirically: api-server.log (1.7K lines)
-            // regressed from 209ms → 513ms with chunking; install.log
-            // (32K lines) regression of +27% is acceptable for the
-            // perceived first-paint win.
-            let eagerLineThreshold = 3000
+            // small files that overhead dominates total wall-clock time
+            // without any perceived first-paint benefit (small files were
+            // already fast — under the ~200ms perceptibility threshold).
+            // Eager-parse and emit one chunk.
+            //
+            // Threshold of 10000 lines chosen empirically:
+            //   - api-server.log (1.7K lines): regressed 209ms → 513ms with
+            //     chunking; goes eager now → back to 209ms.
+            //   - wifi.log (5K lines, Apple-daemon parser): regressed 194ms
+            //     → 805ms even with the 3000-line threshold because the
+            //     parser's per-line cost is higher; bumping to 10000 puts
+            //     it back near baseline.
+            //   - install.log (33K lines): chunked path delivers the
+            //     perceived first-paint win that dwarfs the +27% total
+            //     wall-clock cost.
+            //
+            // At 10000 lines × ~35us/line for dated-syslog the eager path
+            // takes ~350ms — borderline but still under the perceptibility
+            // threshold. Bigger files cross into "user notices the wait"
+            // and benefit from progressive rendering.
+            let eagerLineThreshold = 10000
             if lines.count < eagerLineThreshold {
                 var built: [LogEntry] = []
                 built.reserveCapacity(lines.count)
