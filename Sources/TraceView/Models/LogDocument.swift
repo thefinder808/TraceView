@@ -78,6 +78,10 @@ final class LogDocument: ObservableObject, Identifiable {
     private var partialLineBuffer: String = ""
     private var histogramTask: Task<Void, Never>?
     private var loadTask: Task<Void, Never>?
+    /// The detached inner task running the chunked parse. Tracked separately
+    /// from `loadTask` (the @MainActor outer task) because Task.detached
+    /// doesn't inherit cancellation; reload() and deinit must cancel both.
+    private var loadParseTask: Task<Void, Never>?
 
     // For .merged sources: held via the dedicated init so we don't need a
     // global doc lookup. nil for any other source kind. Append-subscriptions
@@ -144,6 +148,7 @@ final class LogDocument: ObservableObject, Identifiable {
         fileWatcher?.stop()
         logStream?.stop()
         loadTask?.cancel()
+        loadParseTask?.cancel()
         histogramTask?.cancel()
     }
 
@@ -182,6 +187,8 @@ final class LogDocument: ObservableObject, Identifiable {
         fileWatcher = nil
         loadTask?.cancel()
         loadTask = nil
+        loadParseTask?.cancel()
+        loadParseTask = nil
         histogramTask?.cancel()
         histogramTask = nil
         entries.removeAll()
