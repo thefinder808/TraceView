@@ -187,11 +187,19 @@ final class LogDocument: ObservableObject, Identifiable {
     private func loadFile() async {
         guard case .file(let url) = source else { return }
 
+        #if DEBUG
+        let timer = LoadPerfTimer(label: displayName)
+        #endif
+
         let compressed = GzipDecompressor.isGzipped(url: url)
         isCompressed = compressed
         // Flip isLoading first so the UI shows the spinner immediately
         // rather than waiting for the decode + parse round-trip.
         isLoading = true
+
+        #if DEBUG
+        timer.mark("gzip-check")
+        #endif
 
         let startID = nextEntryID
 
@@ -207,14 +215,27 @@ final class LogDocument: ObservableObject, Identifiable {
             } else {
                 data = try? Data(contentsOf: url, options: .mappedIfSafe)
             }
+            #if DEBUG
+            timer.mark("data-load")
+            #endif
+
             guard let data, let text = String(data: data, encoding: .utf8) else { return nil }
+            #if DEBUG
+            timer.mark("decode")
+            #endif
 
             let lines = text.components(separatedBy: .newlines)
+            #if DEBUG
+            timer.mark("split")
+            #endif
 
             let sampleLines = lines.prefix(50)
                 .filter { !$0.isEmpty }
                 .map { String($0) }
             let parser = ParserRegistry.shared.detectParser(sampleLines: sampleLines)
+            #if DEBUG
+            timer.mark("detect")
+            #endif
 
             // Parsers may opt into a whole-file pass (parseFile) when they
             // need state across lines — e.g. .ips crash reports where the
@@ -235,6 +256,9 @@ final class LogDocument: ObservableObject, Identifiable {
                 }
                 entries = built
             }
+            #if DEBUG
+            timer.mark("parse")
+            #endif
 
             return LoadResult(dataCount: data.count, parser: parser, entries: entries, nextID: nextID)
         }.value
@@ -248,6 +272,9 @@ final class LogDocument: ObservableObject, Identifiable {
         await MainActor.run {
             guard let result else {
                 self.isLoading = false
+                #if DEBUG
+                timer.summary()
+                #endif
                 return
             }
 
@@ -259,8 +286,15 @@ final class LogDocument: ObservableObject, Identifiable {
             self.updateColumnFlags(scanning: result.entries)
             self.rebuildLevelCounts(from: result.entries)
             self.recomputeHistogram(immediate: true)
+            #if DEBUG
+            timer.mark("apply")
+            #endif
+
             self.didAppend.send(result.entries)
             self.isLoading = false
+            #if DEBUG
+            timer.mark("paint")
+            #endif
 
             // Gzipped files are archive snapshots — they don't get appended
             // to, so no file watcher. File watching belongs on main with the
@@ -270,6 +304,10 @@ final class LogDocument: ObservableObject, Identifiable {
             if !compressed {
                 self.startWatching(url: url)
             }
+
+            #if DEBUG
+            timer.summary()
+            #endif
         }
     }
 
