@@ -31,7 +31,21 @@ final class LogDocument: ObservableObject, Identifiable {
     @Published private(set) var levelCounts: [LogLevel: Int] = [:]
     @Published private(set) var hasTimestamps: Bool = false
     @Published private(set) var hasComponents: Bool = false
-    @Published private(set) var isLoading: Bool = false
+    /// Source of truth for the document's initial-load state. Per-chunk
+    /// progress lives in the `.streaming(rowsLoaded:)` associated value so
+    /// the UI can show a row count while the parse streams.
+    @Published private(set) var loadState: LoadState = .idle
+
+    /// Boolean shim for code paths that only care "is something in flight?"
+    /// vs the structured `loadState`. Reads only — write `loadState` directly.
+    /// Notably, `LogDocumentView`'s spinner-debounce uses this so the grace
+    /// period doesn't restart on every chunk's `rowsLoaded` change.
+    var isLoading: Bool {
+        switch loadState {
+        case .idle, .complete: return false
+        case .streaming: return true
+        }
+    }
 
     // Line numbers the user has bookmarked for this document. Persisted per
     // file URL; live streams don't persist (no stable identity to key on).
@@ -178,7 +192,7 @@ final class LogDocument: ObservableObject, Identifiable {
         levelCounts = [:]
         hasTimestamps = false
         hasComponents = false
-        isLoading = false
+        loadState = .idle
         spikePeaks.removeAll()
         load()
     }
@@ -193,9 +207,10 @@ final class LogDocument: ObservableObject, Identifiable {
 
         let compressed = GzipDecompressor.isGzipped(url: url)
         isCompressed = compressed
-        // Flip isLoading first so the UI shows the spinner immediately
-        // rather than waiting for the decode + parse round-trip.
-        isLoading = true
+        // Flip to .streaming first so the UI shows the spinner immediately
+        // rather than waiting for the decode + parse round-trip. Initial
+        // rowsLoaded is 0; chunk callbacks update it as the stream arrives.
+        loadState = .streaming(rowsLoaded: 0)
 
         #if DEBUG
         timer.mark("gzip-check")
@@ -271,7 +286,7 @@ final class LogDocument: ObservableObject, Identifiable {
         // MainActor.run guarantees the post-await block stays on main.
         await MainActor.run {
             guard let result else {
-                self.isLoading = false
+                self.loadState = .idle
                 #if DEBUG
                 timer.summary()
                 #endif
@@ -291,7 +306,7 @@ final class LogDocument: ObservableObject, Identifiable {
             #endif
 
             self.didAppend.send(result.entries)
-            self.isLoading = false
+            self.loadState = .complete
             #if DEBUG
             timer.mark("paint")
             #endif
@@ -337,7 +352,7 @@ final class LogDocument: ObservableObject, Identifiable {
     private func loadMerged() {
         guard !mergedSources.isEmpty else { return }
         spikePeaks.removeAll()
-        isLoading = true
+        loadState = .streaming(rowsLoaded: 0)
 
         // 1. Initial merge: pull all current entries from each source,
         //    tag with source identity, drop untimestamped (no place for
@@ -380,7 +395,7 @@ final class LogDocument: ObservableObject, Identifiable {
         rebuildLevelCounts(from: renumbered)
         recomputeHistogram(immediate: true)
         didAppend.send(renumbered)
-        isLoading = false
+        loadState = .complete
 
         // 3. Subscribe to each source for live additions.
         for source in mergedSources {
