@@ -32,16 +32,6 @@ struct TabBarView: View {
                 .padding(.horizontal, 6)
                 .padding(.top, 4)
             }
-            // Without this, SwiftUI's horizontal ScrollView defaults to a
-            // scroll position that can hide leading content when the
-            // scrollable area is smaller than the content (e.g. narrow pane
-            // with sidebar visible) — the user sees only the tab's close
-            // button + live-indicator, the icon and name are scrolled off
-            // the leading edge, and dragging-to-reveal snaps back when
-            // released. .defaultScrollAnchor(.leading) anchors the rest
-            // position at the leading edge so the first tab is always
-            // visible and the user can scroll RIGHT to reveal more.
-            .defaultScrollAnchor(.leading)
 
             Spacer(minLength: 0)
 
