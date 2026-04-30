@@ -82,6 +82,17 @@ final class LogDocument: ObservableObject, Identifiable {
     /// from `loadTask` (the @MainActor outer task) because Task.detached
     /// doesn't inherit cancellation; reload() and deinit must cancel both.
     private var loadParseTask: Task<Void, Never>?
+    /// Monotonic counter incremented on every `loadFile()` entry and in
+    /// `reload()`. Captured into the detached parse task and checked inside
+    /// every `MainActor.run` callback before mutating state. Closes the race
+    /// where a queued chunk callback runs AFTER reload() has started a new
+    /// load — the captured generation no longer matches `parseGeneration`,
+    /// so the callback skips its work.
+    ///
+    /// Wraparound (& == &+, the overflow-discarding operator) is fine: we
+    /// only ever compare for equality, and any in-flight callback that
+    /// survived 2^64 reloads is welcome to corrupt entries.
+    private var parseGeneration: Int = 0
 
     // For .merged sources: held via the dedicated init so we don't need a
     // global doc lookup. nil for any other source kind. Append-subscriptions
@@ -189,6 +200,7 @@ final class LogDocument: ObservableObject, Identifiable {
         loadTask = nil
         loadParseTask?.cancel()
         loadParseTask = nil
+        parseGeneration &+= 1   // invalidate any in-flight chunk callbacks
         histogramTask?.cancel()
         histogramTask = nil
         entries.removeAll()
@@ -218,6 +230,11 @@ final class LogDocument: ObservableObject, Identifiable {
         // rather than waiting for the decode + parse round-trip. Initial
         // rowsLoaded is 0; chunk callbacks update it as the stream arrives.
         loadState = .streaming(rowsLoaded: 0)
+        // Generation token: captured into the detached task and re-checked
+        // inside every MainActor.run callback, to drop late callbacks from
+        // a parse that was cancelled and replaced by a new one.
+        parseGeneration &+= 1
+        let myGen = parseGeneration
 
         #if DEBUG
         timer.mark("gzip-check")
@@ -249,7 +266,8 @@ final class LogDocument: ObservableObject, Identifiable {
 
             guard let data, let text = String(data: data, encoding: .utf8) else {
                 await MainActor.run { [weak self] in
-                    self?.loadState = .idle
+                    guard let self, self.parseGeneration == myGen else { return }
+                    self.loadState = .idle
                     #if DEBUG
                     timer.summary()
                     #endif
@@ -284,7 +302,7 @@ final class LogDocument: ObservableObject, Identifiable {
                 #endif
                 guard !Task.isCancelled else { return }
                 await MainActor.run { [weak self] in
-                    guard let self else { return }
+                    guard let self, self.parseGeneration == myGen else { return }
                     self.appendChunkFromInitialParse(whole.entries)
                     #if DEBUG
                     timer.mark("apply")
@@ -342,7 +360,7 @@ final class LogDocument: ObservableObject, Identifiable {
                 #endif
                 guard !Task.isCancelled else { return }
                 await MainActor.run { [weak self] in
-                    guard let self else { return }
+                    guard let self, self.parseGeneration == myGen else { return }
                     self.appendChunkFromInitialParse(built)
                     #if DEBUG
                     timer.mark("apply")
@@ -383,7 +401,8 @@ final class LogDocument: ObservableObject, Identifiable {
                     chunkBuffer.removeAll(keepingCapacity: false)
                     chunkBuffer.reserveCapacity(subsequentChunkSize)
                     await MainActor.run { [weak self] in
-                        self?.appendChunkFromInitialParse(chunkToEmit)
+                        guard let self, self.parseGeneration == myGen else { return }
+                        self.appendChunkFromInitialParse(chunkToEmit)
                     }
                     if !emittedAny {
                         emittedAny = true
@@ -397,7 +416,8 @@ final class LogDocument: ObservableObject, Identifiable {
                 let finalChunk = chunkBuffer
                 guard !Task.isCancelled else { return }
                 await MainActor.run { [weak self] in
-                    self?.appendChunkFromInitialParse(finalChunk)
+                    guard let self, self.parseGeneration == myGen else { return }
+                    self.appendChunkFromInitialParse(finalChunk)
                 }
             }
             #if DEBUG
@@ -406,7 +426,7 @@ final class LogDocument: ObservableObject, Identifiable {
 
             guard !Task.isCancelled else { return }
             await MainActor.run { [weak self] in
-                guard let self else { return }
+                guard let self, self.parseGeneration == myGen else { return }
                 #if DEBUG
                 timer.mark("apply")
                 #endif
@@ -440,6 +460,15 @@ final class LogDocument: ObservableObject, Identifiable {
     @MainActor
     private func appendChunkFromInitialParse(_ chunk: [LogEntry]) {
         guard !chunk.isEmpty else { return }
+        // Drop late chunks ENTIRELY — not just their loadState update.
+        // A chunk arriving after .complete (or after reload set .idle) must
+        // not append to entries, fire didAppend, or rebuild the histogram,
+        // because those mutations corrupt a freshly-reset doc.
+        let priorLoaded: Int
+        switch loadState {
+        case .streaming(let n): priorLoaded = n
+        case .idle, .complete: return
+        }
         entries.append(contentsOf: chunk)
         updateColumnFlags(scanning: chunk)
         incrementLevelCounts(with: chunk)
@@ -448,15 +477,6 @@ final class LogDocument: ObservableObject, Identifiable {
         // avoiding visible histogram thrash during the stream.
         recomputeHistogram(immediate: false)
         didAppend.send(chunk)
-
-        let priorLoaded: Int
-        switch loadState {
-        case .streaming(let n): priorLoaded = n
-        case .idle, .complete:
-            // A late chunk arriving after .complete (race during cancel)
-            // shouldn't reset state; just skip the loadState update.
-            return
-        }
         loadState = .streaming(rowsLoaded: priorLoaded + chunk.count)
     }
 
