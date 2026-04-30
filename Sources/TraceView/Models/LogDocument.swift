@@ -304,6 +304,51 @@ final class LogDocument: ObservableObject, Identifiable {
                 return
             }
 
+            // Small-file fast path: chunking has fixed per-chunk overhead
+            // (MainActor hop + per-chunk subscriber filter pipeline). For
+            // files under ~3000 lines, that overhead doubles total wall-
+            // clock time without any perceived first-paint benefit (small
+            // files were already fast). Eager-parse and emit one chunk.
+            // Threshold chosen empirically: api-server.log (1.7K lines)
+            // regressed from 209ms → 513ms with chunking; install.log
+            // (32K lines) regression of +27% is acceptable for the
+            // perceived first-paint win.
+            let eagerLineThreshold = 3000
+            if lines.count < eagerLineThreshold {
+                var built: [LogEntry] = []
+                built.reserveCapacity(lines.count)
+                var nextID = startID
+                for (index, line) in lines.enumerated() {
+                    if Task.isCancelled { return }
+                    guard !line.isEmpty else { continue }
+                    built.append(parser.parse(line: line, lineNumber: index + 1, entryID: nextID))
+                    nextID += 1
+                }
+                #if DEBUG
+                timer.mark("parse")
+                #endif
+                guard !Task.isCancelled else { return }
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    self.appendChunkFromInitialParse(built)
+                    #if DEBUG
+                    timer.mark("apply")
+                    #endif
+                    self.finalizeLoad(
+                        parser: parser,
+                        dataCount: data.count,
+                        nextID: nextID,
+                        url: url,
+                        compressed: compressed
+                    )
+                    #if DEBUG
+                    timer.mark("paint")
+                    timer.summary()
+                    #endif
+                }
+                return
+            }
+
             // Chunked path. First chunk is small (500) so first paint
             // happens fast; subsequent chunks are larger (5000) for
             // throughput. Each chunk hops to MainActor exactly once.
