@@ -31,7 +31,14 @@ struct ContentView: View {
                 }
             }
         }
-        .navigationSplitViewStyle(.prominentDetail)
+        // .balanced (not .prominentDetail): with split view enabled, the
+        // primary pane was getting squeezed under the floating sidebar
+        // because .prominentDetail makes the detail area extend full-width
+        // with the sidebar overlaying it. .balanced gives the sidebar its
+        // own column and the detail HStack (with its panes) uses the
+        // remaining width predictably, matching how Console.app and most
+        // multi-pane macOS apps lay out.
+        .navigationSplitViewStyle(.balanced)
         .background(WindowAccessor())
         .overlay {
             if appState.showCommandPalette {
