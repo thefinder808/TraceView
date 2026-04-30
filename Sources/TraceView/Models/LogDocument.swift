@@ -225,12 +225,18 @@ final class LogDocument: ObservableObject, Identifiable {
 
         let startID = nextEntryID
 
-        // Single detached task does decompress (if needed), file I/O, decode,
-        // ONE newline split, parser detection, and the full parse. Previously
-        // decode + the parser-detection split happened on @MainActor before
-        // dispatching the parse, blocking first paint for hundreds of ms on
-        // larger logs. The newline split is shared between sample and parse.
-        let result = await Task.detached(priority: .userInitiated) { () -> LoadResult? in
+        // Cancel any prior inner parse and start a fresh one. `loadTask`
+        // (the outer @MainActor task) gates re-entry via load()'s guard,
+        // so under normal operation `loadParseTask` should already be nil.
+        // The cancel() is belt-and-suspenders for edge cases.
+        loadParseTask?.cancel()
+
+        // The inner task runs the entire parse pipeline off-main and calls
+        // back into self via `await MainActor.run` at chunk boundaries and
+        // at completion. Stored in self.loadParseTask so reload()/deinit
+        // can cancel it (Task.detached does NOT inherit cancellation).
+        let parseTask = Task.detached(priority: .userInitiated) { [weak self] in
+            // I/O + decode + split + parser detection
             let data: Data?
             if compressed {
                 data = GzipDecompressor.decompress(url: url)
@@ -241,7 +247,15 @@ final class LogDocument: ObservableObject, Identifiable {
             timer.mark("data-load")
             #endif
 
-            guard let data, let text = String(data: data, encoding: .utf8) else { return nil }
+            guard let data, let text = String(data: data, encoding: .utf8) else {
+                await MainActor.run { [weak self] in
+                    self?.loadState = .idle
+                    #if DEBUG
+                    timer.summary()
+                    #endif
+                }
+                return
+            }
             #if DEBUG
             timer.mark("decode")
             #endif
@@ -259,78 +273,105 @@ final class LogDocument: ObservableObject, Identifiable {
             timer.mark("detect")
             #endif
 
-            // Parsers may opt into a whole-file pass (parseFile) when they
-            // need state across lines — e.g. .ips crash reports where the
-            // JSON header on line 1 carries the timestamp for every body
-            // line. Otherwise fall through to the line-by-line loop.
-            var nextID = startID
-            let entries: [LogEntry]
+            // Eager fallback for parsers that need cross-line state (IPS,
+            // Diag, JSON-pretty). Their parseFile builds entries with
+            // file-wide context (e.g. .ips's JSON header carries the
+            // timestamp for every body line); chunking would break that.
+            // These files are rare and small, so eager is fine.
             if let whole = parser.parseFile(lines: lines, startingEntryID: startID) {
-                entries = whole.entries
-                nextID = whole.nextID
-            } else {
-                var built: [LogEntry] = []
-                built.reserveCapacity(lines.count)
-                for (index, line) in lines.enumerated() {
-                    guard !line.isEmpty else { continue }
-                    built.append(parser.parse(line: line, lineNumber: index + 1, entryID: nextID))
-                    nextID += 1
+                #if DEBUG
+                timer.mark("parse")
+                #endif
+                guard !Task.isCancelled else { return }
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    self.appendChunkFromInitialParse(whole.entries)
+                    #if DEBUG
+                    timer.mark("apply")
+                    #endif
+                    self.finalizeLoad(
+                        parser: parser,
+                        dataCount: data.count,
+                        nextID: whole.nextID,
+                        url: url,
+                        compressed: compressed
+                    )
+                    #if DEBUG
+                    timer.mark("paint")
+                    timer.summary()
+                    #endif
                 }
-                entries = built
+                return
+            }
+
+            // Chunked path. First chunk is small (500) so first paint
+            // happens fast; subsequent chunks are larger (5000) for
+            // throughput. Each chunk hops to MainActor exactly once.
+            let firstChunkSize = 500
+            let subsequentChunkSize = 5000
+            var chunkBuffer: [LogEntry] = []
+            chunkBuffer.reserveCapacity(firstChunkSize)
+            var nextID = startID
+            var nextChunkSize = firstChunkSize
+            var emittedAny = false
+
+            for (index, line) in lines.enumerated() {
+                if Task.isCancelled { return }
+                guard !line.isEmpty else { continue }
+                chunkBuffer.append(parser.parse(line: line, lineNumber: index + 1, entryID: nextID))
+                nextID += 1
+                if chunkBuffer.count >= nextChunkSize {
+                    let chunkToEmit = chunkBuffer
+                    chunkBuffer.removeAll(keepingCapacity: false)
+                    chunkBuffer.reserveCapacity(subsequentChunkSize)
+                    await MainActor.run { [weak self] in
+                        self?.appendChunkFromInitialParse(chunkToEmit)
+                    }
+                    if !emittedAny {
+                        emittedAny = true
+                        nextChunkSize = subsequentChunkSize
+                    }
+                }
+            }
+
+            // Final partial chunk.
+            if !chunkBuffer.isEmpty {
+                let finalChunk = chunkBuffer
+                guard !Task.isCancelled else { return }
+                await MainActor.run { [weak self] in
+                    self?.appendChunkFromInitialParse(finalChunk)
+                }
             }
             #if DEBUG
             timer.mark("parse")
             #endif
 
-            return LoadResult(dataCount: data.count, parser: parser, entries: entries, nextID: nextID)
-        }.value
-
-        // Even though loadFile is @MainActor, the continuation after
-        // `await Task.detached(...).value` does not reliably resume on main
-        // — when it lands on the cooperative pool, the @Published writes
-        // below trigger SwiftUI to run layout off-main, which deadlocks
-        // against the lineCountTimer's @Published writes on main. Explicit
-        // MainActor.run guarantees the post-await block stays on main.
-        await MainActor.run {
-            guard let result else {
-                self.loadState = .idle
+            guard !Task.isCancelled else { return }
+            await MainActor.run { [weak self] in
+                guard let self else { return }
                 #if DEBUG
+                timer.mark("apply")
+                #endif
+                self.finalizeLoad(
+                    parser: parser,
+                    dataCount: data.count,
+                    nextID: nextID,
+                    url: url,
+                    compressed: compressed
+                )
+                #if DEBUG
+                timer.mark("paint")
                 timer.summary()
                 #endif
-                return
             }
-
-            self.fileSize = UInt64(result.dataCount)
-            self.lastReadOffset = UInt64(result.dataCount)
-            self.parser = result.parser
-            self.entries = result.entries
-            self.nextEntryID = result.nextID
-            self.updateColumnFlags(scanning: result.entries)
-            self.rebuildLevelCounts(from: result.entries)
-            self.recomputeHistogram(immediate: true)
-            #if DEBUG
-            timer.mark("apply")
-            #endif
-
-            self.didAppend.send(result.entries)
-            self.loadState = .complete
-            #if DEBUG
-            timer.mark("paint")
-            #endif
-
-            // Gzipped files are archive snapshots — they don't get appended
-            // to, so no file watcher. File watching belongs on main with the
-            // rest of the post-load setup so subsequent file-change deliveries
-            // (which DispatchQueue.main.async themselves) don't race with the
-            // initial load's published state.
-            if !compressed {
-                self.startWatching(url: url)
-            }
-
-            #if DEBUG
-            timer.summary()
-            #endif
         }
+
+        loadParseTask = parseTask
+        // Don't await parseTask.value — letting it complete in the
+        // background allows loadFile() to return immediately, which means
+        // the @MainActor task graph isn't blocked on it. The view layer
+        // observes loadState changes via @Published and updates as chunks
+        // arrive. reload()/deinit cancel via loadParseTask.cancel().
     }
 
     /// Apply a chunk of newly-parsed entries from the initial chunked load.
@@ -383,13 +424,6 @@ final class LogDocument: ObservableObject, Identifiable {
         if !compressed {
             startWatching(url: url)
         }
-    }
-
-    private struct LoadResult {
-        let dataCount: Int
-        let parser: any LogParser
-        let entries: [LogEntry]
-        let nextID: Int
     }
 
     // MARK: - Merged-view loading
