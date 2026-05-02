@@ -179,12 +179,15 @@ struct TraceViewApp: App {
                     .keyboardShortcut("e", modifiers: [.command, .shift])
             }
 
-            // Inject font-size shortcuts into SwiftUI's auto-generated
-            // View menu (created because of NavigationSplitView's sidebar
-            // toggle). A top-level `CommandMenu("View")` would add a SECOND
-            // menu rather than augment the existing one.
-            // Range matches the Settings stepper (9...18); reset = 12pt.
+            // Add view-level controls to SwiftUI's standard View menu. A
+            // top-level `CommandMenu("View")` would add a SECOND menu rather
+            // than augment the existing one. Font range matches the Settings
+            // stepper (9...18); reset = 12pt.
             CommandGroup(after: .toolbar) {
+                Button(appState.isSidebarVisible ? "Hide Sidebar" : "Show Sidebar") {
+                    appState.toggleSidebarVisibility()
+                }
+
                 Divider()
 
                 Button("Increase Font Size") {

@@ -16,24 +16,16 @@ struct TabBarView: View {
         let selectedID = appState.selectedID(in: pane)
 
         HStack(spacing: 0) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 2) {
-                    ForEach(docs) { doc in
-                        TabView(
-                            document: doc,
-                            pane: pane,
-                            isActive: doc.id == selectedID,
-                            theme: theme,
-                            onSelect: { select(doc.id) },
-                            onClose: { appState.closeTab(documentID: doc.id, in: pane) }
-                        )
-                    }
+            if docs.count <= 1 {
+                tabItems(docs: docs, selectedID: selectedID, theme: theme)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    tabItems(docs: docs, selectedID: selectedID, theme: theme)
                 }
-                .padding(.horizontal, 6)
-                .padding(.top, 4)
+                .id(scrollIdentity(for: docs))
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-
-            Spacer(minLength: 0)
 
             // Secondary pane shows a trailing ✕ to close the split entirely.
             if pane == .secondary {
@@ -60,6 +52,28 @@ struct TabBarView: View {
                 .fill(theme.border)
                 .frame(height: 1)
         }
+    }
+
+    @ViewBuilder
+    private func tabItems(docs: [LogDocument], selectedID: UUID?, theme: any AppTheme) -> some View {
+        HStack(spacing: 2) {
+            ForEach(docs) { doc in
+                TabView(
+                    document: doc,
+                    pane: pane,
+                    isActive: doc.id == selectedID,
+                    theme: theme,
+                    onSelect: { select(doc.id) },
+                    onClose: { appState.closeTab(documentID: doc.id, in: pane) }
+                )
+            }
+        }
+        .padding(.horizontal, 6)
+        .padding(.top, 4)
+    }
+
+    private func scrollIdentity(for docs: [LogDocument]) -> String {
+        "\(pane)-" + docs.map { $0.id.uuidString }.joined(separator: ":")
     }
 
     private func select(_ id: UUID) {
@@ -93,6 +107,8 @@ private struct TabView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .foregroundStyle(isActive ? theme.primaryText : theme.secondaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .layoutPriority(1)
 
             if document.isLive {
                 Circle()
@@ -113,10 +129,10 @@ private struct TabView: View {
             }
             .buttonStyle(.plain)
             .opacity(isActive || isHovered ? 1 : 0)
+            .layoutPriority(1)
         }
         .padding(.horizontal, 10)
-        .frame(height: 24)
-        .frame(maxWidth: 200)
+        .frame(width: 160, height: 24, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 6)
                 .fill(isActive ? theme.tableBackground : (isHovered ? theme.sidebarHover : .clear))

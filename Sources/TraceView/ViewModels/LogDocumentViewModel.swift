@@ -127,6 +127,8 @@ final class LogDocumentViewModel: ObservableObject {
         filterTask?.cancel()
 
         let entries = document.entries
+        let snapshotCount = entries.count
+        let snapshotLastID = entries.last?.id
         let currentFilter = filter
         let mode = findMode
 
@@ -149,8 +151,14 @@ final class LogDocumentViewModel: ObservableObject {
             // can land off-main, triggering SwiftUI layout on the cooperative
             // pool and deadlocking against the lineCountTimer.
             await MainActor.run {
-                self?.filteredEntries = visible
-                self?.recomputeMatches()
+                guard let self else { return }
+                if self.document.entries.count != snapshotCount
+                    || self.document.entries.last?.id != snapshotLastID {
+                    self.applyFilter()
+                    return
+                }
+                self.filteredEntries = visible
+                self.recomputeMatches()
             }
         }
     }

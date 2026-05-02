@@ -4,41 +4,11 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var settingsManager: SettingsManager
+    @State private var sidebarWidth: CGFloat = SidebarLayout.defaultWidth
+    @State private var sidebarDragStartWidth: CGFloat?
 
     var body: some View {
-        NavigationSplitView {
-            SidebarView()
-                .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 300)
-        } detail: {
-            if appState.primaryDocuments.isEmpty && appState.secondaryDocuments.isEmpty {
-                WelcomeView()
-                    .onDrop(of: [.fileURL], isTargeted: nil) { providers in
-                        handleFileDrop(providers: providers, into: .primary)
-                    }
-            } else {
-                HStack(spacing: 0) {
-                    primaryColumn
-                    if appState.isSplitView {
-                        paneSyncDivider
-                            .zIndex(1)
-                        secondaryColumn
-                    }
-                    if appState.showErrorLookup {
-                        Divider().background(themeManager.current.border)
-                        ErrorLookupPanel()
-                            .frame(minWidth: 260, idealWidth: 280, maxWidth: 380)
-                    }
-                }
-            }
-        }
-        // .balanced (not .prominentDetail): with split view enabled, the
-        // primary pane was getting squeezed under the floating sidebar
-        // because .prominentDetail makes the detail area extend full-width
-        // with the sidebar overlaying it. .balanced gives the sidebar its
-        // own column and the detail HStack (with its panes) uses the
-        // remaining width predictably, matching how Console.app and most
-        // multi-pane macOS apps lay out.
-        .navigationSplitViewStyle(.balanced)
+        rootLayout
         .background(WindowAccessor())
         .overlay {
             if appState.showCommandPalette {
@@ -47,7 +17,17 @@ struct ContentView: View {
             }
         }
         .animation(.spring(duration: 0.2), value: appState.showCommandPalette)
+        .animation(.spring(duration: 0.2), value: appState.isSidebarVisible)
         .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    appState.toggleSidebarVisibility()
+                } label: {
+                    Image(systemName: "sidebar.left")
+                }
+                .hoverTooltip(appState.isSidebarVisible ? "Hide Sidebar" : "Show Sidebar")
+            }
+
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     appState.openFile(into: .secondary)
@@ -73,6 +53,96 @@ struct ContentView: View {
         }
         .sheet(isPresented: $appState.showCreateMergedView) {
             CreateMergedViewSheet()
+        }
+    }
+
+    // MARK: - Root layout
+
+    @ViewBuilder
+    private var rootLayout: some View {
+        // Single always-present HStack: the sidebar visibility toggle adds /
+        // removes the sidebar pieces, but detailContent stays at a stable
+        // position so SwiftUI preserves its identity (and the @StateObject
+        // viewModels of every LogDocumentView inside it) across toggles.
+        // The previous if/else around the whole HStack swapped two
+        // structurally-distinct _ConditionalContent branches, which
+        // recreated every LogDocumentViewModel on each toggle — wiping
+        // filteredEntries, filter state, scroll position, etc. (Verified
+        // via the [VM-INIT] diagnostic in LogDocumentViewModel.)
+        HStack(spacing: 0) {
+            if appState.isSidebarVisible {
+                sidebarColumn
+                    .frame(width: sidebarWidth)
+                sidebarResizeDivider
+            }
+            detailContent
+                .frame(minWidth: 500, maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var sidebarColumn: some View {
+        SidebarView()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(themeManager.current.sidebarBackground)
+    }
+
+    private var sidebarResizeDivider: some View {
+        Rectangle()
+            .fill(themeManager.current.border)
+            .frame(width: 1)
+            .overlay {
+                Rectangle()
+                    .fill(.clear)
+                    .frame(width: SidebarLayout.dividerHitWidth)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                // Always re-assign — the previous `if nil`
+                                // guard could leak a stale start width if the
+                                // divider was removed mid-drag (e.g. user
+                                // toggled the sidebar via shortcut while
+                                // dragging). onEnded doesn't fire when the
+                                // gesture's host view disappears, so the next
+                                // drag's first onChanged would compute against
+                                // the stale start and the divider would jump.
+                                let startWidth = sidebarDragStartWidth ?? sidebarWidth
+                                sidebarDragStartWidth = startWidth
+                                sidebarWidth = clampedSidebarWidth(startWidth + value.translation.width)
+                            }
+                            .onEnded { _ in
+                                sidebarDragStartWidth = nil
+                            }
+                    )
+                    // Recover from the same stale-start scenario by clearing
+                    // dragStart whenever the divider re-appears. Cheap and
+                    // covers the toggle-during-drag edge case.
+                    .onAppear { sidebarDragStartWidth = nil }
+            }
+    }
+
+    @ViewBuilder
+    private var detailContent: some View {
+        if appState.primaryDocuments.isEmpty && appState.secondaryDocuments.isEmpty {
+            WelcomeView()
+                .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                    handleFileDrop(providers: providers, into: .primary)
+                }
+        } else {
+            HStack(spacing: 0) {
+                primaryColumn
+                if appState.isSplitView {
+                    paneSyncDivider
+                        .zIndex(1)
+                    secondaryColumn
+                }
+                if appState.showErrorLookup {
+                    Divider().background(themeManager.current.border)
+                    ErrorLookupPanel()
+                        .frame(minWidth: 260, idealWidth: 280, maxWidth: 380)
+                }
+            }
         }
     }
 
@@ -235,5 +305,16 @@ struct ContentView: View {
                 .frame(height: 2)
                 .allowsHitTesting(false)
         }
+    }
+
+    private func clampedSidebarWidth(_ width: CGFloat) -> CGFloat {
+        min(max(width, SidebarLayout.minWidth), SidebarLayout.maxWidth)
+    }
+
+    private enum SidebarLayout {
+        static let minWidth: CGFloat = 180
+        static let defaultWidth: CGFloat = 220
+        static let maxWidth: CGFloat = 300
+        static let dividerHitWidth: CGFloat = 8
     }
 }
