@@ -29,6 +29,7 @@ final class AppState: ObservableObject {
     /// next shortcut.
     @Published var activePane: Pane = .primary
 
+    @Published var isSidebarVisible: Bool = true
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
     /// Pane-targeted export request. Each LogDocumentView attaches a sheet
@@ -46,6 +47,10 @@ final class AppState: ObservableObject {
 
     func requestExport(in pane: Pane) {
         exportRequest = ExportRequest(pane: pane)
+    }
+
+    func toggleSidebarVisibility() {
+        isSidebarVisible.toggle()
     }
 
     /// Scroll-sync between split panes. When on, scrolling one pane drives

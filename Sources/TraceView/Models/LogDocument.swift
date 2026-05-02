@@ -31,7 +31,21 @@ final class LogDocument: ObservableObject, Identifiable {
     @Published private(set) var levelCounts: [LogLevel: Int] = [:]
     @Published private(set) var hasTimestamps: Bool = false
     @Published private(set) var hasComponents: Bool = false
-    @Published private(set) var isLoading: Bool = false
+    /// Source of truth for the document's initial-load state. Per-chunk
+    /// progress lives in the `.streaming(rowsLoaded:)` associated value so
+    /// the UI can show a row count while the parse streams.
+    @Published private(set) var loadState: LoadState = .idle
+
+    /// Boolean shim for code paths that only care "is something in flight?"
+    /// vs the structured `loadState`. Reads only — write `loadState` directly.
+    /// Notably, `LogDocumentView`'s spinner-debounce uses this so the grace
+    /// period doesn't restart on every chunk's `rowsLoaded` change.
+    var isLoading: Bool {
+        switch loadState {
+        case .idle, .complete: return false
+        case .streaming: return true
+        }
+    }
 
     // Line numbers the user has bookmarked for this document. Persisted per
     // file URL; live streams don't persist (no stable identity to key on).
@@ -64,6 +78,21 @@ final class LogDocument: ObservableObject, Identifiable {
     private var partialLineBuffer: String = ""
     private var histogramTask: Task<Void, Never>?
     private var loadTask: Task<Void, Never>?
+    /// The detached inner task running the chunked parse. Tracked separately
+    /// from `loadTask` (the @MainActor outer task) because Task.detached
+    /// doesn't inherit cancellation; reload() and deinit must cancel both.
+    private var loadParseTask: Task<Void, Never>?
+    /// Monotonic counter incremented on every `loadFile()` entry and in
+    /// `reload()`. Captured into the detached parse task and checked inside
+    /// every `MainActor.run` callback before mutating state. Closes the race
+    /// where a queued chunk callback runs AFTER reload() has started a new
+    /// load — the captured generation no longer matches `parseGeneration`,
+    /// so the callback skips its work.
+    ///
+    /// Wraparound (& == &+, the overflow-discarding operator) is fine: we
+    /// only ever compare for equality, and any in-flight callback that
+    /// survived 2^64 reloads is welcome to corrupt entries.
+    private var parseGeneration: Int = 0
 
     // For .merged sources: held via the dedicated init so we don't need a
     // global doc lookup. nil for any other source kind. Append-subscriptions
@@ -130,6 +159,7 @@ final class LogDocument: ObservableObject, Identifiable {
         fileWatcher?.stop()
         logStream?.stop()
         loadTask?.cancel()
+        loadParseTask?.cancel()
         histogramTask?.cancel()
     }
 
@@ -168,6 +198,9 @@ final class LogDocument: ObservableObject, Identifiable {
         fileWatcher = nil
         loadTask?.cancel()
         loadTask = nil
+        loadParseTask?.cancel()
+        loadParseTask = nil
+        parseGeneration &+= 1   // invalidate any in-flight chunk callbacks
         histogramTask?.cancel()
         histogramTask = nil
         entries.removeAll()
@@ -178,7 +211,7 @@ final class LogDocument: ObservableObject, Identifiable {
         levelCounts = [:]
         hasTimestamps = false
         hasComponents = false
-        isLoading = false
+        loadState = .idle
         spikePeaks.removeAll()
         load()
     }
@@ -193,9 +226,15 @@ final class LogDocument: ObservableObject, Identifiable {
 
         let compressed = GzipDecompressor.isGzipped(url: url)
         isCompressed = compressed
-        // Flip isLoading first so the UI shows the spinner immediately
-        // rather than waiting for the decode + parse round-trip.
-        isLoading = true
+        // Flip to .streaming first so the UI shows the spinner immediately
+        // rather than waiting for the decode + parse round-trip. Initial
+        // rowsLoaded is 0; chunk callbacks update it as the stream arrives.
+        loadState = .streaming(rowsLoaded: 0)
+        // Generation token: captured into the detached task and re-checked
+        // inside every MainActor.run callback, to drop late callbacks from
+        // a parse that was cancelled and replaced by a new one.
+        parseGeneration &+= 1
+        let myGen = parseGeneration
 
         #if DEBUG
         timer.mark("gzip-check")
@@ -203,12 +242,18 @@ final class LogDocument: ObservableObject, Identifiable {
 
         let startID = nextEntryID
 
-        // Single detached task does decompress (if needed), file I/O, decode,
-        // ONE newline split, parser detection, and the full parse. Previously
-        // decode + the parser-detection split happened on @MainActor before
-        // dispatching the parse, blocking first paint for hundreds of ms on
-        // larger logs. The newline split is shared between sample and parse.
-        let result = await Task.detached(priority: .userInitiated) { () -> LoadResult? in
+        // Cancel any prior inner parse and start a fresh one. `loadTask`
+        // (the outer @MainActor task) gates re-entry via load()'s guard,
+        // so under normal operation `loadParseTask` should already be nil.
+        // The cancel() is belt-and-suspenders for edge cases.
+        loadParseTask?.cancel()
+
+        // The inner task runs the entire parse pipeline off-main and calls
+        // back into self via `await MainActor.run` at chunk boundaries and
+        // at completion. Stored in self.loadParseTask so reload()/deinit
+        // can cancel it (Task.detached does NOT inherit cancellation).
+        let parseTask = Task.detached(priority: .userInitiated) { [weak self] in
+            // I/O + decode + split + parser detection
             let data: Data?
             if compressed {
                 data = GzipDecompressor.decompress(url: url)
@@ -219,7 +264,16 @@ final class LogDocument: ObservableObject, Identifiable {
             timer.mark("data-load")
             #endif
 
-            guard let data, let text = String(data: data, encoding: .utf8) else { return nil }
+            guard let data, let text = String(data: data, encoding: .utf8) else {
+                await MainActor.run { [weak self] in
+                    guard let self, self.parseGeneration == myGen else { return }
+                    self.loadState = .idle
+                    #if DEBUG
+                    timer.summary()
+                    #endif
+                }
+                return
+            }
             #if DEBUG
             timer.mark("decode")
             #endif
@@ -237,85 +291,217 @@ final class LogDocument: ObservableObject, Identifiable {
             timer.mark("detect")
             #endif
 
-            // Parsers may opt into a whole-file pass (parseFile) when they
-            // need state across lines — e.g. .ips crash reports where the
-            // JSON header on line 1 carries the timestamp for every body
-            // line. Otherwise fall through to the line-by-line loop.
-            var nextID = startID
-            let entries: [LogEntry]
+            // Eager fallback for parsers that need cross-line state (IPS,
+            // Diag, JSON-pretty). Their parseFile builds entries with
+            // file-wide context (e.g. .ips's JSON header carries the
+            // timestamp for every body line); chunking would break that.
+            // These files are rare and small, so eager is fine.
             if let whole = parser.parseFile(lines: lines, startingEntryID: startID) {
-                entries = whole.entries
-                nextID = whole.nextID
-            } else {
+                #if DEBUG
+                timer.mark("parse")
+                #endif
+                guard !Task.isCancelled else { return }
+                await MainActor.run { [weak self] in
+                    guard let self, self.parseGeneration == myGen else { return }
+                    self.appendChunkFromInitialParse(whole.entries)
+                    #if DEBUG
+                    timer.mark("apply")
+                    #endif
+                    self.finalizeLoad(
+                        parser: parser,
+                        dataCount: data.count,
+                        nextID: whole.nextID,
+                        url: url,
+                        compressed: compressed
+                    )
+                    #if DEBUG
+                    timer.mark("paint")
+                    timer.summary()
+                    #endif
+                }
+                return
+            }
+
+            // Small-file fast path: chunking has fixed per-chunk overhead
+            // (MainActor hop + per-chunk subscriber filter pipeline). For
+            // small files that overhead dominates total wall-clock time
+            // without any perceived first-paint benefit (small files were
+            // already fast — under the ~200ms perceptibility threshold).
+            // Eager-parse and emit one chunk.
+            //
+            // Threshold of 10000 lines chosen empirically:
+            //   - api-server.log (1.7K lines): regressed 209ms → 513ms with
+            //     chunking; goes eager now → back to 209ms.
+            //   - wifi.log (5K lines, Apple-daemon parser): regressed 194ms
+            //     → 805ms even with the 3000-line threshold because the
+            //     parser's per-line cost is higher; bumping to 10000 puts
+            //     it back near baseline.
+            //   - install.log (33K lines): chunked path delivers the
+            //     perceived first-paint win that dwarfs the +27% total
+            //     wall-clock cost.
+            //
+            // At 10000 lines × ~35us/line for dated-syslog the eager path
+            // takes ~350ms — borderline but still under the perceptibility
+            // threshold. Bigger files cross into "user notices the wait"
+            // and benefit from progressive rendering.
+            let eagerLineThreshold = 10000
+            if lines.count < eagerLineThreshold {
                 var built: [LogEntry] = []
                 built.reserveCapacity(lines.count)
+                var nextID = startID
                 for (index, line) in lines.enumerated() {
+                    if Task.isCancelled { return }
                     guard !line.isEmpty else { continue }
                     built.append(parser.parse(line: line, lineNumber: index + 1, entryID: nextID))
                     nextID += 1
                 }
-                entries = built
+                #if DEBUG
+                timer.mark("parse")
+                #endif
+                guard !Task.isCancelled else { return }
+                await MainActor.run { [weak self] in
+                    guard let self, self.parseGeneration == myGen else { return }
+                    self.appendChunkFromInitialParse(built)
+                    #if DEBUG
+                    timer.mark("apply")
+                    #endif
+                    self.finalizeLoad(
+                        parser: parser,
+                        dataCount: data.count,
+                        nextID: nextID,
+                        url: url,
+                        compressed: compressed
+                    )
+                    #if DEBUG
+                    timer.mark("paint")
+                    timer.summary()
+                    #endif
+                }
+                return
+            }
+
+            // Chunked path. First chunk is small (500) so first paint
+            // happens fast; subsequent chunks are larger (5000) for
+            // throughput. Each chunk hops to MainActor exactly once.
+            let firstChunkSize = 500
+            let subsequentChunkSize = 5000
+            var chunkBuffer: [LogEntry] = []
+            chunkBuffer.reserveCapacity(firstChunkSize)
+            var nextID = startID
+            var nextChunkSize = firstChunkSize
+            var emittedAny = false
+
+            for (index, line) in lines.enumerated() {
+                if Task.isCancelled { return }
+                guard !line.isEmpty else { continue }
+                chunkBuffer.append(parser.parse(line: line, lineNumber: index + 1, entryID: nextID))
+                nextID += 1
+                if chunkBuffer.count >= nextChunkSize {
+                    let chunkToEmit = chunkBuffer
+                    chunkBuffer.removeAll(keepingCapacity: false)
+                    chunkBuffer.reserveCapacity(subsequentChunkSize)
+                    await MainActor.run { [weak self] in
+                        guard let self, self.parseGeneration == myGen else { return }
+                        self.appendChunkFromInitialParse(chunkToEmit)
+                    }
+                    if !emittedAny {
+                        emittedAny = true
+                        nextChunkSize = subsequentChunkSize
+                    }
+                }
+            }
+
+            // Final partial chunk.
+            if !chunkBuffer.isEmpty {
+                let finalChunk = chunkBuffer
+                guard !Task.isCancelled else { return }
+                await MainActor.run { [weak self] in
+                    guard let self, self.parseGeneration == myGen else { return }
+                    self.appendChunkFromInitialParse(finalChunk)
+                }
             }
             #if DEBUG
             timer.mark("parse")
             #endif
 
-            return LoadResult(dataCount: data.count, parser: parser, entries: entries, nextID: nextID)
-        }.value
-
-        // Even though loadFile is @MainActor, the continuation after
-        // `await Task.detached(...).value` does not reliably resume on main
-        // — when it lands on the cooperative pool, the @Published writes
-        // below trigger SwiftUI to run layout off-main, which deadlocks
-        // against the lineCountTimer's @Published writes on main. Explicit
-        // MainActor.run guarantees the post-await block stays on main.
-        await MainActor.run {
-            guard let result else {
-                self.isLoading = false
+            guard !Task.isCancelled else { return }
+            await MainActor.run { [weak self] in
+                guard let self, self.parseGeneration == myGen else { return }
                 #if DEBUG
+                timer.mark("apply")
+                #endif
+                self.finalizeLoad(
+                    parser: parser,
+                    dataCount: data.count,
+                    nextID: nextID,
+                    url: url,
+                    compressed: compressed
+                )
+                #if DEBUG
+                timer.mark("paint")
                 timer.summary()
                 #endif
-                return
             }
-
-            self.fileSize = UInt64(result.dataCount)
-            self.lastReadOffset = UInt64(result.dataCount)
-            self.parser = result.parser
-            self.entries = result.entries
-            self.nextEntryID = result.nextID
-            self.updateColumnFlags(scanning: result.entries)
-            self.rebuildLevelCounts(from: result.entries)
-            self.recomputeHistogram(immediate: true)
-            #if DEBUG
-            timer.mark("apply")
-            #endif
-
-            self.didAppend.send(result.entries)
-            self.isLoading = false
-            #if DEBUG
-            timer.mark("paint")
-            #endif
-
-            // Gzipped files are archive snapshots — they don't get appended
-            // to, so no file watcher. File watching belongs on main with the
-            // rest of the post-load setup so subsequent file-change deliveries
-            // (which DispatchQueue.main.async themselves) don't race with the
-            // initial load's published state.
-            if !compressed {
-                self.startWatching(url: url)
-            }
-
-            #if DEBUG
-            timer.summary()
-            #endif
         }
+
+        loadParseTask = parseTask
+        // Don't await parseTask.value — letting it complete in the
+        // background allows loadFile() to return immediately, which means
+        // the @MainActor task graph isn't blocked on it. The view layer
+        // observes loadState changes via @Published and updates as chunks
+        // arrive. reload()/deinit cancel via loadParseTask.cancel().
     }
 
-    private struct LoadResult {
-        let dataCount: Int
-        let parser: any LogParser
-        let entries: [LogEntry]
-        let nextID: Int
+    /// Apply a chunk of newly-parsed entries from the initial chunked load.
+    /// Called from the detached parse task via `await MainActor.run`. Updates
+    /// loadState's rowsLoaded so the spinner can show progress, then funnels
+    /// through the same `didAppend.send` path live-tail uses, which fans out
+    /// to per-pane filter pipelines for incremental application.
+    @MainActor
+    private func appendChunkFromInitialParse(_ chunk: [LogEntry]) {
+        guard !chunk.isEmpty else { return }
+        // Drop late chunks ENTIRELY — not just their loadState update.
+        // A chunk arriving after .complete (or after reload set .idle) must
+        // not append to entries, fire didAppend, or rebuild the histogram,
+        // because those mutations corrupt a freshly-reset doc.
+        let priorLoaded: Int
+        switch loadState {
+        case .streaming(let n): priorLoaded = n
+        case .idle, .complete: return
+        }
+        entries.append(contentsOf: chunk)
+        updateColumnFlags(scanning: chunk)
+        incrementLevelCounts(with: chunk)
+        // Debounced (300ms) histogram rebuild — multiple chunks landing
+        // within the debounce window coalesce into a single recompute,
+        // avoiding visible histogram thrash during the stream.
+        recomputeHistogram(immediate: false)
+        didAppend.send(chunk)
+        loadState = .streaming(rowsLoaded: priorLoaded + chunk.count)
+    }
+
+    /// Finalize a chunked load after the last chunk has been applied.
+    /// Sets fileSize/lastReadOffset/parser/nextEntryID, marks loadState
+    /// .complete, kicks off file watching for non-compressed sources.
+    @MainActor
+    private func finalizeLoad(
+        parser: any LogParser,
+        dataCount: Int,
+        nextID: Int,
+        url: URL,
+        compressed: Bool
+    ) {
+        fileSize = UInt64(dataCount)
+        lastReadOffset = UInt64(dataCount)
+        self.parser = parser
+        self.nextEntryID = nextID
+        loadState = .complete
+
+        // Gzipped files are archive snapshots — they don't get appended to,
+        // so no file watcher.
+        if !compressed {
+            startWatching(url: url)
+        }
     }
 
     // MARK: - Merged-view loading
@@ -337,7 +523,7 @@ final class LogDocument: ObservableObject, Identifiable {
     private func loadMerged() {
         guard !mergedSources.isEmpty else { return }
         spikePeaks.removeAll()
-        isLoading = true
+        loadState = .streaming(rowsLoaded: 0)
 
         // 1. Initial merge: pull all current entries from each source,
         //    tag with source identity, drop untimestamped (no place for
@@ -380,7 +566,7 @@ final class LogDocument: ObservableObject, Identifiable {
         rebuildLevelCounts(from: renumbered)
         recomputeHistogram(immediate: true)
         didAppend.send(renumbered)
-        isLoading = false
+        loadState = .complete
 
         // 3. Subscribe to each source for live additions.
         for source in mergedSources {

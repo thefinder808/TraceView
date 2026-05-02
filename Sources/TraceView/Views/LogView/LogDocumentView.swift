@@ -227,11 +227,19 @@ struct LogDocumentView: View {
     @ViewBuilder
     private func loadingOverlay(theme: AppTheme) -> some View {
         if showSpinner {
-            ProgressView()
-                .controlSize(.small)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(theme.tableBackground.opacity(0.6))
-                .zIndex(2)
+            VStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                if case .streaming(let rowsLoaded) = document.loadState, rowsLoaded > 0 {
+                    Text("Loading… \(rowsLoaded.formatted()) rows")
+                        .font(.system(size: 11))
+                        .foregroundStyle(theme.secondaryText)
+                        .monospacedDigit()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(theme.tableBackground.opacity(0.6))
+            .zIndex(2)
         }
     }
 
