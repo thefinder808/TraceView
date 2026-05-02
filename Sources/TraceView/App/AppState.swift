@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import AppKit
 
 /// Which split pane something targets. Tabs are per-pane even though the
 /// underlying `LogDocument`s are window-scoped shared resources.
@@ -132,14 +133,37 @@ final class AppState: ObservableObject {
     private var documentSubscriptions: [UUID: AnyCancellable] = [:]
     private var tabPersistenceCancellables = Set<AnyCancellable>()
 
+    // While any NSMenu is being tracked (the macOS menu bar's File/Edit/View
+    // dropdowns, SwiftUI .contextMenu, etc.), suppress forwarded publishes.
+    // Otherwise the App scene's body re-evaluates on every document tick and
+    // SwiftUI replaces the menu bar's NSMenu, cancelling the user's open
+    // tracking session — items appear briefly then vanish. The next document
+    // tick after the menu closes refreshes views naturally.
+    private var isMenuTracking = false
+
     // Exposed for SettingsManager to clear when the user toggles
     // restoreTabsOnLaunch off, so opting out doesn't leak saved state.
     static let savedOpenTabsKey = "traceview.savedOpenTabs"
     static let savedSelectedTabKey = "traceview.savedSelectedTab"
 
     init() {
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(menuStartedTracking),
+            name: NSMenu.didBeginTrackingNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(menuEndedTracking),
+            name: NSMenu.didEndTrackingNotification, object: nil)
+
         setupTabPersistence()
         restoreTabsIfEnabled()
+    }
+
+    @objc private func menuStartedTracking(_ note: Notification) {
+        isMenuTracking = true
+    }
+
+    @objc private func menuEndedTracking(_ note: Notification) {
+        isMenuTracking = false
     }
 
     // MARK: - Derived pane collections
@@ -324,9 +348,11 @@ final class AppState: ObservableObject {
             secondarySelectedDocumentID = document.id
         }
 
-        // Forward child changes to trigger UI updates
+        // Forward child changes to trigger UI updates, except while a menu
+        // is being tracked (see isMenuTracking above).
         let sub = document.objectWillChange.sink { [weak self] _ in
-            self?.objectWillChange.send()
+            guard let self, !self.isMenuTracking else { return }
+            self.objectWillChange.send()
         }
         documentSubscriptions[document.id] = sub
     }
