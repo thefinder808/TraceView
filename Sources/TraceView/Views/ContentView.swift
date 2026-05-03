@@ -151,9 +151,12 @@ struct ContentView: View {
     @ViewBuilder
     private var primaryColumn: some View {
         VStack(spacing: 0) {
-            // Hide the bar when the pane has a single tab and no split —
-            // preserves the original "no bar when one file" quietness.
-            if appState.primaryDocuments.count > 1 || appState.isSplitView {
+            // Show the tab bar whenever the primary pane has at least one
+            // doc — provides consistent chrome regardless of split or tab
+            // count. (The previous "no bar when one file" rule was relaxed
+            // after the sidebar-toggle UX work made consistent chrome the
+            // expected behavior across pane states.)
+            if !appState.primaryDocuments.isEmpty {
                 TabBarView(pane: .primary)
             }
             if let doc = appState.selectedDocument {
