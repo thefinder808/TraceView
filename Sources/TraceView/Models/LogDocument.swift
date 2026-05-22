@@ -359,7 +359,7 @@ final class LogDocument: ObservableObject, Identifiable {
                 timer.mark("parse")
                 #endif
                 guard !Task.isCancelled else { return }
-                await MainActor.run { [weak self] in
+                await MainActor.run { [weak self, nextID, built] in
                     guard let self, self.parseGeneration == myGen else { return }
                     self.appendChunkFromInitialParse(built)
                     #if DEBUG
@@ -425,7 +425,7 @@ final class LogDocument: ObservableObject, Identifiable {
             #endif
 
             guard !Task.isCancelled else { return }
-            await MainActor.run { [weak self] in
+            await MainActor.run { [weak self, nextID] in
                 guard let self, self.parseGeneration == myGen else { return }
                 #if DEBUG
                 timer.mark("apply")
