@@ -15,14 +15,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-@main
-struct TraceViewApp: App {
+public struct TraceViewApp: App {
+    public init() {}
+
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var appState = AppState()
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var settingsManager = SettingsManager()
 
-    var body: some Scene {
+    public var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)

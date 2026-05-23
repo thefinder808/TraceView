@@ -5,9 +5,19 @@ let package = Package(
     name: "TraceView",
     platforms: [.macOS(.v14)],
     targets: [
+        .target(
+            name: "TraceViewCore",
+            path: "Sources/TraceViewCore"
+        ),
         .executableTarget(
             name: "TraceView",
-            path: "Sources/TraceView"
-        )
+            dependencies: ["TraceViewCore"],
+            path: "Sources/TraceViewApp"
+        ),
+        .testTarget(
+            name: "TraceViewCoreTests",
+            dependencies: ["TraceViewCore"],
+            path: "Tests/TraceViewCoreTests"
+        ),
     ]
 )
