@@ -6,14 +6,21 @@ final class LogDocument: ObservableObject, Identifiable {
     let source: LogSource
     let displayName: String
 
+    // Storage seam for entries. Phase 1 wraps the previous `[LogEntry]`
+    // directly in InMemoryEntrySource; Phase 3 will swap in an indexed
+    // source for huge files behind the same protocol.
+    let entrySource: EntrySource = InMemoryEntrySource()
+
     // Not @Published — appends happen in tight loops on high-rate streams;
     // a per-append objectWillChange would thrash every @ObservedObject in
     // the view tree. Panes subscribe to `didAppend` for incremental updates.
-    var entries: [LogEntry] = []
+    var entries: [LogEntry] { entrySource.allEntries }
 
     // Per-append signal with the newly-appended slice. Pane view models
     // incrementally filter this and append to their own filteredEntries.
-    let didAppend = PassthroughSubject<[LogEntry], Never>()
+    // Forwarded from the entry source so InMemoryEntrySource's internal
+    // publishes reach existing subscribers transparently.
+    var didAppend: AnyPublisher<[LogEntry], Never> { entrySource.didAppend }
 
     @Published var isFollowing: Bool = true
     @Published var isLive: Bool = false
@@ -203,7 +210,7 @@ final class LogDocument: ObservableObject, Identifiable {
         parseGeneration &+= 1   // invalidate any in-flight chunk callbacks
         histogramTask?.cancel()
         histogramTask = nil
-        entries.removeAll()
+        entrySource.reset()
         nextEntryID = 0
         lastReadOffset = 0
         partialLineBuffer = ""
@@ -469,14 +476,17 @@ final class LogDocument: ObservableObject, Identifiable {
         case .streaming(let n): priorLoaded = n
         case .idle, .complete: return
         }
-        entries.append(contentsOf: chunk)
+        // Order matters: append before recomputeHistogram, which snapshots
+        // self.entries. entrySource.append also fires didAppend; subscribers
+        // (per-pane filter pipeline) read only the slice arg, not derived
+        // state, so the earlier publish is observationally identical.
+        entrySource.append(chunk)
         updateColumnFlags(scanning: chunk)
         incrementLevelCounts(with: chunk)
         // Debounced (300ms) histogram rebuild — multiple chunks landing
         // within the debounce window coalesce into a single recompute,
         // avoiding visible histogram thrash during the stream.
         recomputeHistogram(immediate: false)
-        didAppend.send(chunk)
         loadState = .streaming(rowsLoaded: priorLoaded + chunk.count)
     }
 
@@ -561,11 +571,10 @@ final class LogDocument: ObservableObject, Identifiable {
             nextEntryID += 1
         }
 
-        entries = renumbered
+        entrySource.replace(with: renumbered)
         updateColumnFlags(scanning: renumbered)
         rebuildLevelCounts(from: renumbered)
         recomputeHistogram(immediate: true)
-        didAppend.send(renumbered)
         loadState = .complete
 
         // 3. Subscribe to each source for live additions.
@@ -606,11 +615,10 @@ final class LogDocument: ObservableObject, Identifiable {
         }
         guard !tagged.isEmpty else { return }
 
-        entries.append(contentsOf: tagged)
+        entrySource.append(tagged)
         updateColumnFlags(scanning: tagged)
         incrementLevelCounts(with: tagged)
         recomputeHistogram(immediate: false)
-        didAppend.send(tagged)
     }
 
     // MARK: - Unified log stream
@@ -706,11 +714,10 @@ final class LogDocument: ObservableObject, Identifiable {
             newEntries.append(entry)
         }
 
-        entries.append(contentsOf: newEntries)
+        entrySource.append(newEntries)
         updateColumnFlags(scanning: newEntries)
         incrementLevelCounts(with: newEntries)
         recomputeHistogram(immediate: false)
-        didAppend.send(newEntries)
     }
 
     // MARK: - Derived summaries
