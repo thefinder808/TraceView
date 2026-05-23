@@ -60,6 +60,15 @@ struct SettingsView: View {
                     .foregroundStyle(theme.secondaryText)
             }
 
+            // Experimental — Phase 2 renderer escape hatch
+            Section("Experimental") {
+                Toggle("Use new log renderer", isOn: $settingsManager.useNewLogView)
+
+                Text("New log renderer for very large files. Some features (inline detail expansion) are not yet available; clicking a row falls back to the bottom detail pane.")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
+            }
+
             // Highlight rules
             Section("Highlight Rules") {
                 ForEach($settingsManager.highlightRules) { $rule in

@@ -10,6 +10,7 @@ final class SettingsManager: ObservableObject {
     private static let detailDisplayModeKey = "traceview.detailDisplayMode"
     private static let highlightRulesKey = "traceview.highlightRules"
     private static let findModeKey = "traceview.findMode"
+    private static let useNewLogViewKey = "traceview.useNewLogView"
     static let restoreTabsOnLaunchKey = "traceview.restoreTabsOnLaunch"
 
     @Published var fontSize: Double {
@@ -50,6 +51,15 @@ final class SettingsManager: ObservableObject {
 
     @Published var defaultFindMode: FindMode {
         didSet { UserDefaults.standard.set(defaultFindMode.rawValue, forKey: Self.findModeKey) }
+    }
+
+    // Phase 2 feature flag. Routes LogDocumentView to the new custom
+    // NSView-in-NSScrollView renderer (LogScrollView) instead of the
+    // NSTableView-based NSLogTableView. Default off until the new view
+    // reaches parity and we flip it during P2.5 dogfood. The toggle stays
+    // exposed in Settings as the rollback escape hatch.
+    @Published var useNewLogView: Bool {
+        didSet { UserDefaults.standard.set(useNewLogView, forKey: Self.useNewLogViewKey) }
     }
 
     @Published var restoreTabsOnLaunch: Bool {
@@ -111,6 +121,9 @@ final class SettingsManager: ObservableObject {
 
         let rawFind = defaults.string(forKey: Self.findModeKey) ?? FindMode.filter.rawValue
         self.defaultFindMode = FindMode(rawValue: rawFind) ?? .filter
+
+        // Default off — opt-in until P2.5.
+        self.useNewLogView = defaults.bool(forKey: Self.useNewLogViewKey)
     }
 }
 
