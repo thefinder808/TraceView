@@ -84,6 +84,18 @@ final class LogDocument: ObservableObject, Identifiable {
     private var logStream: UnifiedLogStream?
     private var partialLineBuffer: String = ""
     private var histogramTask: Task<Void, Never>?
+    /// Wall-clock time the most recent histogram compute succeeded.
+    /// Drives the max-staleness escape valve in `recomputeHistogram(_:)`
+    /// so high-rate streams (UnifiedLogStream flushes batches every
+    /// 100ms — faster than the 300ms debounce, so the debounce-only
+    /// scheme cancelled every task before it computed) eventually see a
+    /// histogram update.
+    private var lastHistogramComputeTime: Date = .distantPast
+    /// Force a histogram compute if `recomputeHistogram` is asked but the
+    /// last successful compute is older than this. Keeps the visible
+    /// refresh rate ≥ 1Hz on streams while leaving the debounce intact
+    /// for bursty file-load chunks.
+    private static let histogramMaxStaleness: TimeInterval = 1.0
     private var loadTask: Task<Void, Never>?
     /// The detached inner task running the chunked parse. Tracked separately
     /// from `loadTask` (the @MainActor outer task) because Task.detached
@@ -757,6 +769,18 @@ final class LogDocument: ObservableObject, Identifiable {
     // a multi-100ms main-actor stall after parse completes.
     private func recomputeHistogram(immediate: Bool) {
         histogramTask?.cancel()
+        // Three triggers for an immediate compute:
+        //   1. Caller passed `immediate: true` (end of file load, etc.).
+        //   2. No histogram has ever been computed yet — first call should
+        //      paint a histogram ASAP, not wait the full debounce window.
+        //   3. Max-staleness exceeded — protects high-rate streams from
+        //      starvation. UnifiedLogStream flushes every 100ms, which
+        //      cancels the 300ms debounce on every batch and would
+        //      otherwise mean the histogram never computes for live
+        //      "All System" / "User" feeds.
+        let lastCompute = lastHistogramComputeTime
+        let stale = Date().timeIntervalSince(lastCompute) > Self.histogramMaxStaleness
+        let runImmediate = immediate || stale
         // The outer Task is @MainActor so:
         //   - captureSpikePeaks runs on main (reads @Published histogram,
         //     mutates spikePeaks) AFTER the cancellable debounce sleep,
@@ -770,7 +794,7 @@ final class LogDocument: ObservableObject, Identifiable {
         //     report; SwiftUI ran the layout pass off-main and deadlocked
         //     against the lineCountTimer's @Published writes on main).
         histogramTask = Task { @MainActor [weak self] in
-            if !immediate {
+            if !runImmediate {
                 try? await Task.sleep(nanoseconds: 300_000_000)
             }
             guard let self, !Task.isCancelled else { return }
@@ -784,6 +808,7 @@ final class LogDocument: ObservableObject, Identifiable {
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 self.histogram = result
+                self.lastHistogramComputeTime = Date()
             }
         }
     }

@@ -109,6 +109,53 @@ final class LogScrollDocumentView: NSView {
     /// the entry between `menu(for:)` and the @objc action selectors.
     private var contextMenuEntry: LogEntry?
 
+    // MARK: - Inline expansion
+
+    /// Pixel-height delta a row gains when expanded. Matches
+    /// NSLogTableView.drawerHeight so the new and legacy renderers look
+    /// identical when the user toggles between them. Re-exposes the
+    /// constant from `LogScrollRowGeometry` for callers that haven't
+    /// gotten a geometry value yet (e.g., `syncHostingView`).
+    static let expandedDelta: CGFloat = LogScrollRowGeometry.expandedDelta
+
+    /// Whether clicking a row toggles expansion. Bound to
+    /// `SettingsManager.detailDisplayMode == .inline`. When false, click
+    /// just selects without expanding (selection still populates the
+    /// bottom detail pane).
+    var inlineExpansionEnabled: Bool = false
+
+    /// Entry currently expanded, or nil. Bound to the `expandedEntryID`
+    /// SwiftUI state on `LogDocumentView`. Single-row-at-a-time —
+    /// expanding a new row collapses the previous one.
+    private(set) var expandedEntryID: Int?
+
+    /// Resolved row index of `expandedEntryID` against the current
+    /// `entries` array. Cached on every `apply(...)` so the
+    /// rect-math accessors don't re-scan entries on every paint.
+    private var expandedRow: Int?
+
+    /// Fires when the user clicks to toggle expansion. The parent
+    /// writes through to the `expandedEntryID` binding.
+    var onExpansionToggled: (Int?) -> Void = { _ in }
+
+    /// Builder closure for the SwiftUI detail view embedded below an
+    /// expanded row. Supplied by `LogScrollView` so the SwiftUI
+    /// environment (`themeManager`, callback closures) is captured at
+    /// the right layer. Called lazily — once per expansion toggle, not
+    /// on every layout pass.
+    var detailViewBuilder: ((LogEntry) -> NSView)?
+
+    /// The currently-attached SwiftUI host view (`NSHostingView` wrapping
+    /// `InlineRowDetailView`). Lifecycle is tied to `expandedRow`:
+    /// attached when an expansion becomes active, repositioned on layout
+    /// passes, detached on collapse.
+    private var hostingSubview: NSView?
+
+    /// Entry ID the current `hostingSubview` was built for. Used to
+    /// decide whether to rebuild (different entry expanded) vs reuse
+    /// (same entry, just reposition) on layout changes.
+    private var hostingSubviewEntryID: Int?
+
     private var followTimer: Timer?
 
     // MARK: - Caches
@@ -167,31 +214,38 @@ final class LogScrollDocumentView: NSView {
     /// flipped is more natural for top-down log indexing.
     override var isFlipped: Bool { true }
 
-    // MARK: - Row geometry (variable-height-ready API, constant-height impl)
+    // MARK: - Row geometry (one row may be expanded)
 
-    /// Current row height. Constant in Phase 2; deferred inline-expansion
-    /// phase will introduce a sparse expansion map behind these accessors
-    /// without changing the API.
-    var rowHeight: CGFloat {
+    /// Base row height — the height every row has when not expanded.
+    var baseRowHeight: CGFloat {
         ceil(CGFloat(fontSize) * 2)
     }
 
-    func rowFrame(for row: Int) -> NSRect {
-        let h = rowHeight
-        return NSRect(x: 0, y: CGFloat(row) * h, width: bounds.width, height: h)
+    /// Compatibility shim: the old constant-height accessor. Returns
+    /// `baseRowHeight`. New code should use `baseRowHeight` directly or
+    /// `rowFrame(for:).height` when the expanded row matters.
+    var rowHeight: CGFloat { baseRowHeight }
+
+    /// Pure-value geometry helper for testability. Same logic the view
+    /// applies, but factored out so unit tests don't have to construct
+    /// a full NSView + apply() chain just to verify rect math.
+    private var geometry: LogScrollRowGeometry {
+        LogScrollRowGeometry(
+            baseRowHeight: baseRowHeight,
+            expandedRow: expandedRow,
+            entryCount: entries.count,
+            width: bounds.width
+        )
     }
 
-    /// First row index whose frame intersects `rect`.
-    func firstRow(in rect: NSRect) -> Int {
-        guard rowHeight > 0 else { return 0 }
-        return max(0, Int(floor(rect.minY / rowHeight)))
-    }
+    func rowFrame(for row: Int) -> NSRect { geometry.rowFrame(for: row) }
+    func firstRow(in rect: NSRect) -> Int { geometry.firstRow(in: rect) }
+    func lastRow(in rect: NSRect) -> Int { geometry.lastRow(in: rect) }
 
-    /// One past the last row index whose frame intersects `rect`. Caller
-    /// should iterate `firstRow(in:) ..< lastRow(in:)`.
-    func lastRow(in rect: NSRect) -> Int {
-        guard rowHeight > 0 else { return 0 }
-        return min(entries.count, Int(ceil(rect.maxY / rowHeight)))
+    /// Total virtual document height: `entries.count * baseRowHeight`
+    /// plus an extra `expandedDelta` if any row is currently expanded.
+    private func computeDocumentHeight() -> CGFloat {
+        geometry.documentHeight()
     }
 
     // MARK: - State application
@@ -208,11 +262,14 @@ final class LogScrollDocumentView: NSView {
         isFollowing: Bool,
         bookmarkedLines: Set<Int>,
         highlightRules: [HighlightRule],
+        expandedEntryID: Int?,
+        inlineExpansionEnabled: Bool,
         sourceNameForID: @escaping (UUID) -> String?
     ) {
         self.isFollowing = isFollowing
         let oldCount = self.entries.count
         let oldLastLine = previousLastEntryLine
+        let oldExpandedRow = expandedRow
         let fontSizeChanged = self.fontSize != fontSize
         let themeChanged = (self.theme?.name ?? "") != theme.name
         let countChanged = oldCount != entries.count
@@ -228,6 +285,18 @@ final class LogScrollDocumentView: NSView {
             rebuildHighlightRegexes()
         }
         self.sourceNameForID = sourceNameForID
+
+        // Inline-expansion state. The desired expansion clears if the
+        // mode is off OR the previously-expanded entry is no longer in
+        // `entries` (filtered out, file reloaded, merged source toggled).
+        self.inlineExpansionEnabled = inlineExpansionEnabled
+        let desiredExpandedID: Int? = inlineExpansionEnabled ? expandedEntryID : nil
+        self.expandedEntryID = desiredExpandedID
+        let resolvedExpandedRow: Int? = desiredExpandedID.flatMap { id in
+            entries.firstIndex(where: { $0.id == id })
+        }
+        self.expandedRow = resolvedExpandedRow
+        let expandedRowChanged = oldExpandedRow != resolvedExpandedRow
 
         // Detect trailing-append shape — same logic NSLogTableView uses to
         // decide between `insertRows` and `reloadData` (NSLogTableView.swift:275-281).
@@ -252,26 +321,37 @@ final class LogScrollDocumentView: NSView {
             attrCache = nil
         }
 
-        // Document height grows/shrinks with entry count and font size.
-        // Setting frame.size *before* marking dirty keeps the scroller knob
-        // accurate the moment we ask AppKit to redraw — otherwise the
-        // overlay scroller's fade-in is driven by a stale document height
-        // for one frame.
+        // Document height grows/shrinks with entry count, font size, and
+        // expansion state. Setting frame.size *before* marking dirty
+        // keeps the scroller knob accurate the moment we ask AppKit to
+        // redraw — otherwise the overlay scroller's fade-in is driven by
+        // a stale document height for one frame.
         //
         // Exception: during a live-scroll session, pure trailing appends
         // defer the height growth until the scroll settles. Mid-bounce
-        // height changes cause AppKit to recompute the rubber-band target
-        // on every entry, producing visible jitter. Font-size changes and
-        // non-trailing count changes still apply immediately because
-        // those genuinely change visible content.
-        if countChanged || fontSizeChanged {
-            let canDefer = isLiveScrolling && isTrailingAppend && !fontSizeChanged
+        // height changes cause AppKit to recompute the rubber-band
+        // target on every entry, producing visible jitter. Font-size
+        // changes, non-trailing count changes, and expansion toggles all
+        // apply immediately because those genuinely change visible
+        // content (and expansion is a deliberate user gesture that
+        // should reflect immediately).
+        if countChanged || fontSizeChanged || expandedRowChanged {
+            let canDefer = isLiveScrolling && isTrailingAppend
+                && !fontSizeChanged && !expandedRowChanged
             if canDefer {
-                pendingFrameHeight = CGFloat(entries.count) * rowHeight
+                pendingFrameHeight = computeDocumentHeight()
             } else {
                 updateFrameHeight()
                 pendingFrameHeight = nil
             }
+        }
+
+        // Attach / detach / reposition the SwiftUI detail host whenever
+        // expansion changes. The hosting view's lifecycle is tied to
+        // `expandedRow`, not to the apply pass — `syncHostingView` builds
+        // or removes the subview based on current state.
+        if expandedRowChanged {
+            syncHostingView()
         }
 
         // Selection follows the entries array: if the previously-selected
@@ -288,13 +368,15 @@ final class LogScrollDocumentView: NSView {
         // visible jitter on streaming logs (UnifiedLogStream feeds
         // entries at ~10-20 Hz) — every append used to repaint the
         // entire visible viewport, disturbing rubber-band bounce
-        // animations and ping-ponging during pane scroll-sync. The four
+        // animations and ping-ponging during pane scroll-sync. The
         // cases below cover each axis of change:
         let visibleStateChanged = fontSizeChanged || themeChanged
             || bookmarksChanged || rulesChanged
-        if visibleStateChanged {
+        if visibleStateChanged || expandedRowChanged {
             // Theme/font/bookmark-set/highlight-rule changes can affect
-            // any visible row — repaint everything.
+            // any visible row — repaint everything. Expansion toggles
+            // shift every row below the expanded one, so the whole view
+            // needs paint as well.
             needsDisplay = true
         } else if isTrailingAppend {
             // Pure append: existing rows are pixel-identical. Only the
@@ -304,11 +386,15 @@ final class LogScrollDocumentView: NSView {
             // pre-render window. Visible content stays undisturbed,
             // which is what lets rubber-band bounce and scroll-sync
             // stay smooth.
+            //
+            // Use rowFrame(for:) for the start-of-new-rows y position so
+            // an active expansion shifts the rect correctly.
+            let startY = rowFrame(for: oldCount).minY
             let newRowsRect = NSRect(
                 x: 0,
-                y: CGFloat(oldCount) * rowHeight,
+                y: startY,
                 width: bounds.width,
-                height: CGFloat(entries.count - oldCount) * rowHeight
+                height: CGFloat(entries.count - oldCount) * baseRowHeight
             )
             setNeedsDisplay(newRowsRect)
         } else if countChanged {
@@ -359,9 +445,64 @@ final class LogScrollDocumentView: NSView {
     }
 
     private func updateFrameHeight() {
-        let newHeight = CGFloat(entries.count) * rowHeight
+        let newHeight = computeDocumentHeight()
         if frame.size.height != newHeight {
             setFrameSize(NSSize(width: frame.size.width, height: newHeight))
+        }
+    }
+
+    // MARK: - SwiftUI detail-host lifecycle
+
+    /// Reconcile the attached `NSHostingView` against the current
+    /// `expandedRow`. Three cases:
+    /// - No expansion → remove existing host.
+    /// - Expansion to the same entry as the current host → reposition.
+    /// - Expansion to a new entry → rebuild via `detailViewBuilder`.
+    /// Called from `apply(...)` when expansion changes and from
+    /// `setFrameSize(_:)` when width changes.
+    private func syncHostingView() {
+        guard let er = expandedRow, er < entries.count,
+              let builder = detailViewBuilder else {
+            removeHostingView()
+            return
+        }
+        let entry = entries[er]
+
+        if hostingSubviewEntryID != entry.id {
+            removeHostingView()
+            let view = builder(entry)
+            view.translatesAutoresizingMaskIntoConstraints = true
+            addSubview(view)
+            hostingSubview = view
+            hostingSubviewEntryID = entry.id
+        }
+
+        guard let view = hostingSubview else { return }
+        let rowRect = rowFrame(for: er)
+        view.frame = NSRect(
+            x: 0,
+            y: rowRect.minY + baseRowHeight,
+            width: bounds.width,
+            height: Self.expandedDelta
+        )
+    }
+
+    private func removeHostingView() {
+        hostingSubview?.removeFromSuperview()
+        hostingSubview = nil
+        hostingSubviewEntryID = nil
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        let widthChanged = newSize.width != frame.size.width
+        super.setFrameSize(newSize)
+        if widthChanged {
+            // Width changes shift column boundaries (message column
+            // auto-resizes); the layout cache lives on the container
+            // and is refreshed via syncLayout when the clip view's
+            // frameDidChange fires. Here we just need to reposition the
+            // host view (its width tracks the document's).
+            syncHostingView()
         }
     }
 
@@ -374,16 +515,64 @@ final class LogScrollDocumentView: NSView {
 
     override func mouseDown(with event: NSEvent) {
         let location = convert(event.locationInWindow, from: nil)
-        guard rowHeight > 0 else { return }
-        let row = Int(floor(location.y / rowHeight))
-        guard row >= 0, row < entries.count else {
-            // Click on blank area below the last row — clear selection.
+        guard let row = rowAtPoint(location) else {
+            // Click on blank area below the last row — clear selection
+            // (and collapse any open expansion). Don't pause follow:
+            // an accidental click outside any row shouldn't disrupt
+            // live tailing.
             updateSelection(to: nil)
+            if inlineExpansionEnabled, expandedEntryID != nil {
+                onExpansionToggled(nil)
+            }
             return
         }
-        updateSelection(to: row)
-        // Take first-responder so future keyboard nav (P2.3) lands here.
+
+        // A row click is investigative — pause live-follow so the row
+        // stays put while the user reads it. Idempotent if follow was
+        // already paused; the AppState gate makes the call a no-op.
+        onScrollUp()
+
+        // Re-click of the currently-selected row is special. In inline
+        // mode the existing rowClicked logic toggles expansion (handled
+        // below); in bottom-pane mode we now clear selection so the
+        // bottom detail pane closes, matching the inline "re-click
+        // collapses the detail" semantics.
+        let isReclick = (selectedRow == row)
+
+        if inlineExpansionEnabled {
+            updateSelection(to: row)
+            let entry = entries[row]
+            let newID: Int? = (expandedEntryID == entry.id) ? nil : entry.id
+            onExpansionToggled(newID)
+        } else {
+            updateSelection(to: isReclick ? nil : row)
+        }
+
+        // Take first-responder so keyboard nav lands here.
         window?.makeFirstResponder(self)
+    }
+
+    /// Resolve a point in document-view coordinates to a row index.
+    /// Honors active expansion via `firstRow(in:)`. Returns nil when the
+    /// point is below the last row (clicks on blank trailing space).
+    private func rowAtPoint(_ point: NSPoint) -> Int? {
+        guard baseRowHeight > 0 else { return nil }
+        let probe = NSRect(x: 0, y: point.y, width: 1, height: 0.1)
+        let row = firstRow(in: probe)
+        guard row >= 0, row < entries.count else { return nil }
+        // Verify the point actually falls inside the row's frame (the
+        // expanded-row case has a tall band; a click in the detail-host
+        // region should NOT count as a click on the row — that area is
+        // owned by the SwiftUI subview, which handles its own clicks).
+        let frame = rowFrame(for: row)
+        guard point.y < frame.minY + baseRowHeight else {
+            // Inside the expanded row's detail band. The hosting subview
+            // catches its own clicks; we just no-op the document-view
+            // selection logic so the user's click on a button inside
+            // InlineRowDetailView doesn't also re-trigger expansion.
+            return nil
+        }
+        return row
     }
 
     /// Scroll the given row into view and mark it selected. Used by the
@@ -448,6 +637,9 @@ final class LogScrollDocumentView: NSView {
         }
 
         guard newRow != selectedRow else { return }
+        // Keyboard nav is also investigative — pause follow before
+        // moving the selection, same as click selection.
+        onScrollUp()
         updateSelection(to: newRow)
         scrollToVisible(rowFrame(for: newRow))
     }
@@ -465,9 +657,7 @@ final class LogScrollDocumentView: NSView {
 
     override func menu(for event: NSEvent) -> NSMenu? {
         let p = convert(event.locationInWindow, from: nil)
-        guard rowHeight > 0 else { return nil }
-        let row = Int(floor(p.y / rowHeight))
-        guard row >= 0, row < entries.count else { return nil }
+        guard let row = rowAtPoint(p) else { return nil }
 
         // Cache the clicked entry so the @objc action methods (which
         // can't carry payload through NSMenuItem.target/action) can read
@@ -623,7 +813,7 @@ final class LogScrollDocumentView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let theme, let cache = currentAttrs() else { return }
-        let rowH = rowHeight
+        let rowH = baseRowHeight
         guard rowH > 0 else { return }
 
         let start = firstRow(in: dirtyRect)
@@ -634,7 +824,11 @@ final class LogScrollDocumentView: NSView {
 
         for row in start..<end {
             let entry = entries[row]
-            let rowY = CGFloat(row) * rowH
+            // Cell-band rect for this row. For the expanded row we draw
+            // only the top `baseRowHeight` band — the detail host
+            // (NSHostingView) owns the bottom portion. So even for an
+            // expanded row, rowRect here is just the top band.
+            let rowY = rowFrame(for: row).minY
             let rowRect = NSRect(x: 0, y: rowY, width: bounds.width, height: rowH)
 
             // Severity background — full row width. Restrict to dirtyRect

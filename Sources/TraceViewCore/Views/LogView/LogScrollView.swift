@@ -74,6 +74,15 @@ struct LogScrollView: NSViewRepresentable {
         container.documentView.onOpenInSourceLog = { [weak coordinator = context.coordinator] entry in
             coordinator?.onOpenInSourceLog(entry)
         }
+        // Expansion toggle writes back through the binding.
+        container.documentView.onExpansionToggled = { [weak coordinator = context.coordinator] id in
+            coordinator?.expandedEntryIDBinding?.wrappedValue = id
+        }
+        // Detail-host builder lives on the coordinator so it sees the
+        // latest theme/font/callback state on every build.
+        container.documentView.detailViewBuilder = { [weak coordinator = context.coordinator] entry in
+            coordinator?.buildDetailHostingView(for: entry) ?? NSView()
+        }
 
         // Restore saved column widths + order on first construction so the
         // initial layout reflects prior sessions. The same UserDefaults
@@ -111,14 +120,22 @@ struct LogScrollView: NSViewRepresentable {
 
     func updateNSView(_ container: LogScrollContainerView, context: Context) {
         // Update coordinator's cached bindings/callbacks so the
-        // notification-driven paths (scroll observer, selection callback)
-        // route through the latest values.
+        // notification-driven paths (scroll observer, selection callback,
+        // detail-host builder) route through the latest values.
         context.coordinator.selectedEntryBinding = $selectedEntry
+        context.coordinator.expandedEntryIDBinding = $expandedEntryID
         context.coordinator.pendingGoToLineBinding = $pendingGoToLine
         context.coordinator.onScrollUp = onScrollUp
         context.coordinator.onToggleBookmark = onToggleBookmark
         context.coordinator.onOpenInSourceLog = onOpenInSourceLog
         context.coordinator.onVisibleTopChanged = onVisibleTopChanged
+        // Detail-host build state — captured here so newly-constructed
+        // hosting subviews use the latest font, theme, and callback set.
+        context.coordinator.themeManager = themeManager
+        context.coordinator.fontSize = fontSize
+        context.coordinator.onCopy = onCopy
+        context.coordinator.onFilterToComponent = onFilterToComponent
+        context.coordinator.onLookupErrorCode = onLookupErrorCode
 
         let visibility = ColumnVisibility(
             showLineNumber: showLineNumbers,
@@ -136,6 +153,8 @@ struct LogScrollView: NSViewRepresentable {
             isFollowing: isFollowing,
             bookmarkedLines: bookmarkedLines,
             highlightRules: highlightRules,
+            expandedEntryID: expandedEntryID,
+            inlineExpansionEnabled: inlineExpansionEnabled,
             sourceNameForID: sourceNameForID
         )
 
@@ -154,11 +173,38 @@ struct LogScrollView: NSViewRepresentable {
     final class Coordinator {
         weak var container: LogScrollContainerView?
         var selectedEntryBinding: Binding<LogEntry?>?
+        var expandedEntryIDBinding: Binding<Int?>?
         var pendingGoToLineBinding: Binding<Int?>?
         var onScrollUp: () -> Void = {}
         var onToggleBookmark: (LogEntry) -> Void = { _ in }
         var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
         var onVisibleTopChanged: (LogEntry?) -> Void = { _ in }
+
+        // Detail-host construction state. Updated each updateNSView so a
+        // hosting view built later in the session captures the latest
+        // theme, font, and callback closures (instead of whatever was
+        // alive at makeNSView time).
+        weak var themeManager: ThemeManager?
+        var fontSize: Double = 12.0
+        var onCopy: (LogEntry) -> Void = { _ in }
+        var onFilterToComponent: (LogEntry) -> Void = { _ in }
+        var onLookupErrorCode: (String) -> Void = { _ in }
+
+        /// Build the `NSHostingView` for a row's expanded detail. Called
+        /// by `LogScrollDocumentView.syncHostingView()` via the
+        /// `detailViewBuilder` closure plumbed in `makeNSView`.
+        func buildDetailHostingView(for entry: LogEntry) -> NSView {
+            guard let themeManager else { return NSView() }
+            let detail = InlineRowDetailView(
+                entry: entry,
+                fontSize: fontSize,
+                onCopy: { [weak self] in self?.onCopy(entry) },
+                onFilterToComponent: { [weak self] in self?.onFilterToComponent(entry) },
+                onLookupErrorCode: { [weak self] code in self?.onLookupErrorCode(code) }
+            )
+            .environmentObject(themeManager)
+            return NSHostingView(rootView: detail)
+        }
 
         /// Subscription to the inbound `scrollToTimestampSignal` publisher.
         /// Installed once in `installScrollSync(...)` and held for the
@@ -294,29 +340,54 @@ struct LogScrollView: NSViewRepresentable {
             onVisibleTopChanged(topEntry)
         }
 
-        /// Largest index whose entry has `timestamp ≤ target`. If no
-        /// entry qualifies (target is before any timestamped row),
-        /// returns the first row that has any timestamp. Returns nil if
-        /// no entry has a timestamp at all. Linear scan — matches the
-        /// existing NSLogTableView implementation; O(log n) bisect is a
-        /// later optimization since entries aren't guaranteed sorted by
-        /// timestamp on merged-view docs.
+        /// Largest index whose entry has `timestamp ≤ target`. Wrapper
+        /// around the pure helper `findNearestRow(in:forTimestamp:)`.
         private func nearestRow(forTimestamp target: Date) -> Int? {
             guard let container else { return nil }
-            let entries = container.documentView.entries
-            var bestIndex: Int?
-            var bestTimestamp: Date?
-            for (i, entry) in entries.enumerated() {
-                guard let ts = entry.timestamp, ts <= target else { continue }
-                if bestTimestamp == nil || ts > bestTimestamp! {
-                    bestIndex = i
-                    bestTimestamp = ts
+            return Self.findNearestRow(in: container.documentView.entries, forTimestamp: target)
+        }
+
+        /// Largest index of `entries` whose `timestamp ≤ target`. Returns
+        /// nil if the array is empty or no entry has a timestamp.
+        ///
+        /// Upper-bound bisect — O(log n) on sorted arrays. Single-source
+        /// logs are timestamp-sorted by construction; merged-view logs
+        /// interleave by timestamp at merge time (per upstream CLAUDE.md
+        /// invariants), so the merged result is globally sorted too.
+        /// Pathological cases (logs with wildly out-of-order timestamps)
+        /// fall through to the nil-fallback path; scroll-sync UX cares
+        /// about smoothness, not exact row targeting.
+        ///
+        /// If no entry has a timestamp ≤ target (target is before all
+        /// timestamps), falls back to the first timestamped entry —
+        /// matches the pre-bisect linear-scan behavior.
+        static func findNearestRow(in entries: [LogEntry], forTimestamp target: Date) -> Int? {
+            guard !entries.isEmpty else { return nil }
+
+            // Upper-bound bisect: smallest index where the predicate
+            // "timestamp ≤ target" first becomes false. The largest
+            // qualifying index is then `lo - 1`.
+            var lo = 0
+            var hi = entries.count
+            while lo < hi {
+                let mid = (lo + hi) / 2
+                if let ts = entries[mid].timestamp, ts <= target {
+                    lo = mid + 1
+                } else {
+                    // ts > target, or ts is nil. For nil-timestamp
+                    // entries interleaved in an otherwise-sorted array,
+                    // biasing left is a heuristic — the nil-fallback at
+                    // the end catches the pathological case where the
+                    // bisect missed all qualifying entries.
+                    hi = mid
                 }
             }
-            if bestIndex == nil {
-                bestIndex = entries.firstIndex(where: { $0.timestamp != nil })
+
+            let candidate = lo - 1
+            if candidate >= 0, entries[candidate].timestamp != nil {
+                return candidate
             }
-            return bestIndex
+            return entries.firstIndex(where: { $0.timestamp != nil })
         }
 
         /// Find the row whose `lineNumber` matches `target`, scroll +
@@ -442,6 +513,8 @@ final class LogScrollContainerView: NSView {
         isFollowing: Bool,
         bookmarkedLines: Set<Int>,
         highlightRules: [HighlightRule],
+        expandedEntryID: Int?,
+        inlineExpansionEnabled: Bool,
         sourceNameForID: @escaping (UUID) -> String?
     ) {
         self.visibility = visibility
@@ -452,6 +525,8 @@ final class LogScrollContainerView: NSView {
             isFollowing: isFollowing,
             bookmarkedLines: bookmarkedLines,
             highlightRules: highlightRules,
+            expandedEntryID: expandedEntryID,
+            inlineExpansionEnabled: inlineExpansionEnabled,
             sourceNameForID: sourceNameForID
         )
         syncLayout()

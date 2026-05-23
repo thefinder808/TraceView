@@ -74,11 +74,10 @@ struct LogDocumentView: View {
                     }
                 }
 
-                // Bottom detail pane (.bottomPane mode, OR any mode while
-                // the new renderer is on — inline expansion isn't wired in
-                // Phase 2, so .inline falls back to the bottom pane there).
-                if (settingsManager.detailDisplayMode == .bottomPane || settingsManager.useNewLogView),
-                   let entry = selectedEntry {
+                // Bottom detail pane (only in .bottomPane mode). Inline
+                // expansion lands as a per-row drawer in both renderers
+                // now, so the new view no longer falls back here.
+                if settingsManager.detailDisplayMode == .bottomPane, let entry = selectedEntry {
                     Divider().background(theme.border)
 
                     DetailPaneView(entry: entry, onClose: { selectedEntry = nil })
@@ -186,7 +185,7 @@ struct LogDocumentView: View {
                 pendingGoToLine: paneGoToLineBinding,
                 bookmarkedLines: document.bookmarks,
                 highlightRules: settingsManager.highlightRules,
-                inlineExpansionEnabled: false,
+                inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
                 themeManager: themeManager,
                 onCopy: { entry in
                     NSPasteboard.general.clearContents()
