@@ -60,11 +60,12 @@ struct SettingsView: View {
                     .foregroundStyle(theme.secondaryText)
             }
 
-            // Experimental — Phase 2 renderer escape hatch
-            Section("Experimental") {
+            // Renderer — Phase 2 cutover left this toggle as a rollback
+            // hatch back to the legacy NSTableView path. Default is on.
+            Section("Renderer") {
                 Toggle("Use new log renderer", isOn: $settingsManager.useNewLogView)
 
-                Text("New log renderer for very large files. Some features (inline detail expansion) are not yet available; clicking a row falls back to the bottom detail pane.")
+                Text("Custom NSView-in-NSScrollView renderer (default). Turn off to fall back to the legacy NSTableView-based renderer. The legacy path is kept for rollback and will be removed in a future release.")
                     .font(.caption)
                     .foregroundStyle(theme.secondaryText)
             }

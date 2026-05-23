@@ -122,8 +122,16 @@ final class SettingsManager: ObservableObject {
         let rawFind = defaults.string(forKey: Self.findModeKey) ?? FindMode.filter.rawValue
         self.defaultFindMode = FindMode(rawValue: rawFind) ?? .filter
 
-        // Default off — opt-in until P2.5.
-        self.useNewLogView = defaults.bool(forKey: Self.useNewLogViewKey)
+        // Default ON as of P2.5 — the new renderer is the production
+        // path; the toggle remains as a rollback hatch. Users who
+        // previously opted out (set the key to false explicitly) keep
+        // their preference; users who never touched it get the new
+        // renderer on first launch.
+        if defaults.object(forKey: Self.useNewLogViewKey) == nil {
+            self.useNewLogView = true
+        } else {
+            self.useNewLogView = defaults.bool(forKey: Self.useNewLogViewKey)
+        }
     }
 }
 
