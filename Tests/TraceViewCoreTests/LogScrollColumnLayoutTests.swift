@@ -195,6 +195,115 @@ final class LogScrollColumnLayoutTests: XCTestCase {
         XCTAssertTrue(remaining.contains(.sourceLabel))
     }
 
+    // MARK: - Message-last invariant (P2.2)
+
+    /// User can drag any non-message column to any position, but message
+    /// is structurally the rightmost column — it's the autoresize column
+    /// and putting it anywhere else makes width-fills-remainder math leave
+    /// trailing columns off-screen.
+    func testMessageInMiddleOfSavedOrderIsMovedToEnd() {
+        let bogus: [ColumnID] = [.lineNumber, .message, .timestamp, .level, .component]
+        let frames = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: allConfigurableVisible,
+            order: bogus
+        )
+        XCTAssertEqual(frames.last?.id, .message)
+        // The non-message columns retain their listed relative order.
+        let nonMessage = frames.dropLast().map(\.id)
+        XCTAssertEqual(nonMessage, [.lineNumber, .timestamp, .level, .component])
+    }
+
+    func testMessageFirstInSavedOrderIsMovedToEnd() {
+        let bogus: [ColumnID] = [.message, .lineNumber, .timestamp, .level, .component]
+        let frames = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: allConfigurableVisible,
+            order: bogus
+        )
+        XCTAssertEqual(frames.last?.id, .message)
+    }
+
+    // MARK: - Saved state survives visibility toggles (P2.2)
+
+    /// Toggling a column off then on must preserve its saved width.
+    /// Header drag-resize persists to ColumnLayoutStore; users expect
+    /// that a saved width survives ⌘-shift-T or any other visibility
+    /// flip without having to re-drag.
+    func testSavedWidthSurvivesVisibilityToggle() {
+        let widths: [ColumnID: CGFloat] = [.timestamp: 175]
+
+        // Visible.
+        let visible = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: allConfigurableVisible,
+            savedWidths: widths
+        )
+        XCTAssertEqual(visible.first(where: { $0.id == .timestamp })?.width, 175)
+
+        // Hidden.
+        var hidden = allConfigurableVisible
+        hidden.showTimestamp = false
+        let hiddenFrames = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: hidden,
+            savedWidths: widths
+        )
+        XCTAssertFalse(hiddenFrames.contains { $0.id == .timestamp })
+
+        // Visible again — width must be the same saved value, not the default.
+        let reshown = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: allConfigurableVisible,
+            savedWidths: widths
+        )
+        XCTAssertEqual(reshown.first(where: { $0.id == .timestamp })?.width, 175)
+    }
+
+    /// Saved user order must persist across visibility toggles. If the
+    /// user reorders {lineNumber, timestamp, level, component} to
+    /// {level, lineNumber, component, timestamp} and later toggles
+    /// timestamps off and back on, timestamps should reappear in its
+    /// saved position — not at the default-order index.
+    func testSavedOrderSurvivesVisibilityToggle() {
+        let userOrder: [ColumnID] = [.level, .lineNumber, .component, .timestamp]
+
+        let visibleFrames = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: allConfigurableVisible,
+            order: userOrder
+        )
+        // First 4 visible columns reflect saved order; message is forced last.
+        XCTAssertEqual(
+            visibleFrames.map(\.id),
+            [.level, .lineNumber, .component, .timestamp, .message]
+        )
+
+        // Toggle timestamp off.
+        var hidden = allConfigurableVisible
+        hidden.showTimestamp = false
+        let hiddenFrames = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: hidden,
+            order: userOrder
+        )
+        XCTAssertEqual(
+            hiddenFrames.map(\.id),
+            [.level, .lineNumber, .component, .message]
+        )
+
+        // Toggle timestamp back on — must return to its saved position.
+        let reshown = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: allConfigurableVisible,
+            order: userOrder
+        )
+        XCTAssertEqual(
+            reshown.map(\.id),
+            [.level, .lineNumber, .component, .timestamp, .message]
+        )
+    }
+
     // MARK: - Cumulative x-positions
 
     func testXPositionsAreCumulativeWidths() {

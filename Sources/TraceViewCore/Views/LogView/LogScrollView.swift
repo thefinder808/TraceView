@@ -7,12 +7,11 @@ import Combine
 /// can swap between the two by branching on `SettingsManager.useNewLogView`
 /// with identical argument lists at both call sites.
 ///
-/// PR #1 carries: rendering, column headers (title only, no resize), click
-/// selection, live-follow with scroll-up auto-pause. The remaining inputs
-/// (expansion, go-to-line, bookmarks, highlight rules, scroll-sync,
-/// keyboard nav, right-click menu) are accepted but ignored — they land in
-/// P2.2–P2.4. Keeping the signature aligned avoids churning the call site
-/// each PR.
+/// Phase 2 PR #1 carries: rendering, column headers, click selection,
+/// live-follow with scroll-up auto-pause. PR #2 (this PR) adds column
+/// resize, reorder, and persistence. P2.3 will add keyboard nav,
+/// right-click menu, bookmarks, and highlight rules. P2.4 will add
+/// scroll-sync, go-to-line, and visible-top reporting.
 struct LogScrollView: NSViewRepresentable {
     let entries: [LogEntry]
     let theme: any AppTheme
@@ -67,6 +66,33 @@ struct LogScrollView: NSViewRepresentable {
             coordinator?.selectedEntryBinding?.wrappedValue = entry
         }
 
+        // Restore saved column widths + order on first construction so the
+        // initial layout reflects prior sessions. The same UserDefaults
+        // keys are used by NSLogTableView's ColumnLayoutStore.apply(to:),
+        // so saved state round-trips between the two renderers.
+        let savedWidths: [ColumnID: CGFloat] = ColumnLayoutStore.loadWidths()
+            .reduce(into: [:]) { acc, kv in
+                guard let id = ColumnID(rawValue: kv.key) else { return }
+                acc[id] = CGFloat(kv.value)
+            }
+        let savedOrder: [ColumnID]? = ColumnLayoutStore.loadOrder().flatMap { raw in
+            let parsed = raw.compactMap { ColumnID(rawValue: $0) }
+            return parsed.isEmpty ? nil : parsed
+        }
+        container.userWidths = savedWidths
+        container.userOrder = savedOrder
+
+        // Persistence — when the header view fires a resize/reorder change,
+        // route through the container (which already updates its own
+        // state) and into ColumnLayoutStore. Mirrors NSLogTableView's
+        // columnDidResize/columnDidMove notification handlers.
+        container.onColumnResized = { id, width in
+            ColumnLayoutStore.saveWidth(Double(width), for: id.rawValue)
+        }
+        container.onColumnsReordered = { order in
+            ColumnLayoutStore.saveOrder(order.map(\.rawValue))
+        }
+
         context.coordinator.container = container
         context.coordinator.installObservers()
 
@@ -87,11 +113,8 @@ struct LogScrollView: NSViewRepresentable {
             showSource: showSource
         )
 
-        // Push state to the document view first — this updates its
-        // visibility/theme/fontSize, which `syncWidth` then reads to
-        // recompute the column layout for the header.
         container.documentView.onScrollUp = onScrollUp
-        container.documentView.apply(
+        container.applyState(
             entries: entries,
             theme: theme,
             fontSize: fontSize,
@@ -99,8 +122,6 @@ struct LogScrollView: NSViewRepresentable {
             isFollowing: isFollowing,
             sourceNameForID: sourceNameForID
         )
-
-        container.syncWidth()
     }
 
     // MARK: - Coordinator
@@ -134,7 +155,7 @@ struct LogScrollView: NSViewRepresentable {
         /// fire for these (SwiftUI's representable update cadence isn't
         /// driven by AppKit layout passes), so we sync here too.
         @objc private func clipViewFrameChanged(_ notification: Notification) {
-            container?.syncWidth()
+            container?.syncLayout()
         }
 
         /// User-driven scroll. If they're scrolling above the tail while
@@ -162,13 +183,43 @@ struct LogScrollView: NSViewRepresentable {
 
 /// Parent view that arranges the static column header above the scrolling
 /// document. The header is a sibling of the scroll view (not inside it),
-/// so it stays pinned while rows scroll. Width sync — keeping the header,
-/// the scroll view, and the document view all at the same width — runs
-/// through `syncWidth()` on every meaningful state change.
+/// so it stays pinned while rows scroll. The container owns the layout
+/// state — visibility, user-modified widths, user-modified order — and
+/// computes the [ColumnFrame] array that both the header and the
+/// document view render against. Single source of truth means resize
+/// hit-testing in the header can't drift from the column boundaries the
+/// document view draws.
 final class LogScrollContainerView: NSView {
     let headerView: LogScrollHeaderView
     let scrollView: NSScrollView
     let documentView: LogScrollDocumentView
+
+    // MARK: - Layout state
+
+    private(set) var visibility = ColumnVisibility(
+        showLineNumber: true,
+        showTimestamp: true,
+        showComponent: true,
+        showSource: false
+    )
+
+    /// User-modified column widths, keyed by ColumnID. Loaded from
+    /// `ColumnLayoutStore` on init, updated as the user drags column
+    /// dividers, persisted via the `onColumnResized` callback.
+    var userWidths: [ColumnID: CGFloat] = [:]
+
+    /// User-modified column order. Nil means "use default order".
+    /// Loaded from `ColumnLayoutStore` on init, updated when the user
+    /// drags a column to a new position, persisted via the
+    /// `onColumnsReordered` callback.
+    var userOrder: [ColumnID]?
+
+    // MARK: - Persistence callbacks
+
+    var onColumnResized: (ColumnID, CGFloat) -> Void = { _, _ in }
+    var onColumnsReordered: ([ColumnID]) -> Void = { _ in }
+
+    // MARK: - Init
 
     override init(frame frameRect: NSRect) {
         self.headerView = LogScrollHeaderView(frame: .zero)
@@ -180,6 +231,20 @@ final class LogScrollContainerView: NSView {
         addSubview(scrollView)
         autoresizesSubviews = false
         translatesAutoresizingMaskIntoConstraints = true
+
+        // Header sends user-driven layout edits back to the container so
+        // the container can update state, push fresh layout to both
+        // children, and forward to the persistence callbacks.
+        headerView.onResizeDrag = { [weak self] id, newWidth in
+            self?.handleResize(id: id, newWidth: newWidth)
+        }
+        headerView.onResizeCommit = { [weak self] id in
+            guard let self, let width = self.currentWidth(for: id) else { return }
+            self.onColumnResized(id, width)
+        }
+        headerView.onReorderCommit = { [weak self] newOrder in
+            self?.handleReorderCommit(newOrder)
+        }
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
@@ -197,11 +262,35 @@ final class LogScrollContainerView: NSView {
         scrollView.frame = NSRect(x: 0, y: h, width: b.width, height: max(0, b.height - h))
     }
 
+    // MARK: - State application
+
+    /// Single entry point from LogScrollView.updateNSView. Updates
+    /// non-layout state on the document view, then recomputes layout for
+    /// the current clip-view width and pushes it to both children.
+    func applyState(
+        entries: [LogEntry],
+        theme: any AppTheme,
+        fontSize: Double,
+        visibility: ColumnVisibility,
+        isFollowing: Bool,
+        sourceNameForID: @escaping (UUID) -> String?
+    ) {
+        self.visibility = visibility
+        documentView.apply(
+            entries: entries,
+            theme: theme,
+            fontSize: fontSize,
+            isFollowing: isFollowing,
+            sourceNameForID: sourceNameForID
+        )
+        syncLayout()
+    }
+
     /// Recompute the column layout for the current clip-view width and
-    /// push it to both the header and (implicitly, via setFrameSize) the
-    /// document view's redraw. Called from `updateNSView` for state
-    /// changes and from the frame-change observer for live-resize.
-    func syncWidth() {
+    /// push it to both the header (for hit-testing + title positioning)
+    /// and the document view (for per-row column rendering). Called from
+    /// `applyState` and from the frame-change observer on live-resize.
+    func syncLayout() {
         let clipWidth = scrollView.contentView.frame.width
         if documentView.frame.size.width != clipWidth {
             documentView.setFrameSize(NSSize(
@@ -212,8 +301,44 @@ final class LogScrollContainerView: NSView {
         guard let theme = documentView.theme else { return }
         let columns = LogScrollColumnLayout.compute(
             boundsWidth: clipWidth,
-            visibility: documentView.visibility
+            visibility: visibility,
+            savedWidths: userWidths,
+            order: userOrder
         )
-        headerView.apply(columns: columns, theme: theme, fontSize: documentView.fontSize)
+        documentView.applyLayout(columns)
+        headerView.apply(
+            columns: columns,
+            theme: theme,
+            fontSize: documentView.fontSize
+        )
+    }
+
+    // MARK: - Mouse-driven layout edits (from header)
+
+    private func handleResize(id: ColumnID, newWidth: CGFloat) {
+        // Clamp into the column's [minWidth, maxWidth] band. Message
+        // column doesn't participate in resize (it autofills the
+        // remainder), but the header view already filters it out before
+        // calling here.
+        let clamped: CGFloat
+        if let maxW = id.maxWidth {
+            clamped = max(id.minWidth, min(maxW, newWidth))
+        } else {
+            clamped = max(id.minWidth, newWidth)
+        }
+        userWidths[id] = clamped
+        syncLayout()
+    }
+
+    private func handleReorderCommit(_ newOrder: [ColumnID]) {
+        userOrder = newOrder
+        syncLayout()
+        onColumnsReordered(newOrder)
+    }
+
+    /// Current rendered width of a column. Used by `onResizeCommit` to
+    /// persist the clamped width rather than the raw drag value.
+    private func currentWidth(for id: ColumnID) -> CGFloat? {
+        documentView.columns.first(where: { $0.id == id })?.width
     }
 }

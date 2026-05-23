@@ -155,10 +155,24 @@ enum LogScrollColumnLayout {
         return frames
     }
 
+    /// Merge a partial saved order with the default order:
+    /// 1. Listed columns keep their relative positions (less message).
+    /// 2. Unlisted columns slot in at the end in default-order positions.
+    /// 3. `.message` is forced to the final slot regardless of where the
+    ///    caller placed it — message is the autoresize column and must
+    ///    always sit at the right edge, otherwise its width-fills-remainder
+    ///    math leaves trailing columns drawn off-screen.
+    ///
+    /// Header drag-reorder relies on (3): the user can drag any non-message
+    /// column anywhere in the header, but the message column is locked at
+    /// the right edge.
     private static func resolve(order: [ColumnID]?) -> [ColumnID] {
-        guard let order else { return defaultOrder }
-        let seen = Set(order)
-        let missing = defaultOrder.filter { !seen.contains($0) }
-        return order + missing
+        let baseOrder = order ?? defaultOrder
+        var withoutMessage = baseOrder.filter { $0 != .message }
+        let seen = Set(withoutMessage)
+        let missing = defaultOrder.filter { !seen.contains($0) && $0 != .message }
+        withoutMessage.append(contentsOf: missing)
+        withoutMessage.append(.message)
+        return withoutMessage
     }
 }

@@ -25,12 +25,15 @@ final class LogScrollDocumentView: NSView {
     private(set) var entries: [LogEntry] = []
     private(set) var theme: (any AppTheme)?
     private(set) var fontSize: Double = 12.0
-    private(set) var visibility = ColumnVisibility(
-        showLineNumber: true,
-        showTimestamp: true,
-        showComponent: true,
-        showSource: false
-    )
+    /// Visible columns in display order. Computed by
+    /// `LogScrollContainerView.syncLayout()` from
+    /// `(boundsWidth, visibility, userWidths, userOrder)` and pushed via
+    /// `applyLayout(_:)`. The document view never computes layout itself
+    /// — keeping all layout math in the container means the header view
+    /// and the document view can never drift, which matters for resize
+    /// hit-testing where pixel-exact divider positions decide whether a
+    /// click lands on the resize cursor or the column body.
+    private(set) var columns: [ColumnFrame] = []
     private var sourceNameForID: (UUID) -> String? = { _ in nil }
 
     /// True while the table should pin to the last row. Mirrors the
@@ -57,10 +60,6 @@ final class LogScrollDocumentView: NSView {
     private var followTimer: Timer?
 
     // MARK: - Caches
-
-    private var cachedLayout: [ColumnFrame] = []
-    private var cachedLayoutWidth: CGFloat = -1
-    private var cachedLayoutVisibility: ColumnVisibility?
 
     /// Per-(fontSize, theme.name) attribute lookup. Flat by design — each
     /// column's drawing context is one indirection away. Rebuilt only when
@@ -154,20 +153,17 @@ final class LogScrollDocumentView: NSView {
         entries: [LogEntry],
         theme: any AppTheme,
         fontSize: Double,
-        visibility: ColumnVisibility,
         isFollowing: Bool,
         sourceNameForID: @escaping (UUID) -> String?
     ) {
         self.isFollowing = isFollowing
         let fontSizeChanged = self.fontSize != fontSize
         let themeChanged = (self.theme?.name ?? "") != theme.name
-        let visibilityChanged = self.visibility != visibility
         let countChanged = self.entries.count != entries.count
 
         self.entries = entries
         self.theme = theme
         self.fontSize = fontSize
-        self.visibility = visibility
         self.sourceNameForID = sourceNameForID
 
         // Invalidate BEFORE marking dirty so the next draw rebuilds the
@@ -176,9 +172,6 @@ final class LogScrollDocumentView: NSView {
         // wrong colors / fonts after a theme switch.
         if fontSizeChanged || themeChanged {
             attrCache = nil
-        }
-        if fontSizeChanged || visibilityChanged {
-            invalidateLayoutCache()
         }
 
         // Document height grows/shrinks with entry count and font size.
@@ -200,6 +193,15 @@ final class LogScrollDocumentView: NSView {
             onSelectionChanged(nil)
         }
 
+        needsDisplay = true
+    }
+
+    /// Push a fresh column layout. Called by the container whenever
+    /// width, visibility, saved widths, or column order changes. The
+    /// document view doesn't compute layout itself — see the doc comment
+    /// on `columns`.
+    func applyLayout(_ newColumns: [ColumnFrame]) {
+        self.columns = newColumns
         needsDisplay = true
     }
 
@@ -248,39 +250,6 @@ final class LogScrollDocumentView: NSView {
 
         let entry: LogEntry? = newRow.flatMap { $0 < entries.count ? entries[$0] : nil }
         onSelectionChanged(entry)
-    }
-
-    override func setFrameSize(_ newSize: NSSize) {
-        let widthChanged = newSize.width != frame.size.width
-        super.setFrameSize(newSize)
-        if widthChanged {
-            // Width drives the message column's autoresizing width, so any
-            // change invalidates the cached layout. The whole view repaints
-            // because every visible row's message column shifts.
-            invalidateLayoutCache()
-            needsDisplay = true
-        }
-    }
-
-    // MARK: - Layout cache
-
-    private func invalidateLayoutCache() {
-        cachedLayoutWidth = -1
-        cachedLayoutVisibility = nil
-    }
-
-    private func currentLayout() -> [ColumnFrame] {
-        if cachedLayoutWidth == bounds.width, cachedLayoutVisibility == visibility {
-            return cachedLayout
-        }
-        let layout = LogScrollColumnLayout.compute(
-            boundsWidth: bounds.width,
-            visibility: visibility
-        )
-        cachedLayout = layout
-        cachedLayoutWidth = bounds.width
-        cachedLayoutVisibility = visibility
-        return layout
     }
 
     // MARK: - Attribute cache
@@ -399,7 +368,7 @@ final class LogScrollDocumentView: NSView {
         let end = lastRow(in: dirtyRect)
         guard start < end else { return }
 
-        let layout = currentLayout()
+        let layout = columns
 
         for row in start..<end {
             let entry = entries[row]
