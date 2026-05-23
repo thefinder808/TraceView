@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
@@ -6,9 +7,24 @@ struct ContentView: View {
     @EnvironmentObject var settingsManager: SettingsManager
     @State private var sidebarWidth: CGFloat = SidebarLayout.defaultWidth
     @State private var sidebarDragStartWidth: CGFloat?
+    /// Live width during a pane-divider drag. Initialized from
+    /// `settingsManager.primaryPaneWidth` in `.onAppear`, mutated as the
+    /// drag progresses, and persisted back to `SettingsManager` on
+    /// `onEnded`. Keeping the in-flight value as @State (not @Published)
+    /// avoids the cascading rebuild of every view that observes
+    /// SettingsManager — which is what was making the drag feel jumpy
+    /// (the rebuild storm was interrupting the gesture mid-flight).
+    @State private var primaryPaneWidth: CGFloat = 640
+    @State private var paneDragStartWidth: CGFloat?
 
     var body: some View {
         rootLayout
+        .onAppear {
+            // Sync the live drag-state @State with the persisted value
+            // from SettingsManager. Done once per view lifetime; subsequent
+            // drag updates go straight to the local @State.
+            primaryPaneWidth = CGFloat(settingsManager.primaryPaneWidth)
+        }
         .background(WindowAccessor())
         .overlay {
             if appState.showCommandPalette {
@@ -131,11 +147,28 @@ struct ContentView: View {
                 }
         } else {
             HStack(spacing: 0) {
-                primaryColumn
                 if appState.isSplitView {
-                    paneSyncDivider
-                        .zIndex(1)
-                    secondaryColumn
+                    // The split panes live inside a GeometryReader so the
+                    // divider drag can clamp `primaryPaneWidth` against the
+                    // actual available width — without that, dragging right
+                    // could push the secondary pane below its usable
+                    // minimum. The error-lookup panel stays outside the
+                    // GeometryReader as a sibling so its min/max sizing
+                    // negotiates with the rest of the HStack as before.
+                    GeometryReader { geo in
+                        HStack(spacing: 0) {
+                            primaryColumn
+                                .frame(width: clampedPrimaryPaneWidth(
+                                    primaryPaneWidth,
+                                    available: geo.size.width
+                                ))
+                            paneSyncDivider(available: geo.size.width)
+                                .zIndex(1)
+                            secondaryColumn
+                        }
+                    }
+                } else {
+                    primaryColumn
                 }
                 if appState.showErrorLookup {
                     Divider().background(themeManager.current.border)
@@ -198,15 +231,54 @@ struct ContentView: View {
     /// Divider between primary and secondary panes, with a sync-toggle
     /// button sitting over it. When sync is on the line goes accent-colored
     /// and thicker, giving a hard-to-miss "these panes are linked" cue.
+    ///
+    /// Drag handle: an 8pt-wide invisible rectangle catches drags anywhere
+    /// on the divider except on the sync/merge buttons themselves. The
+    /// rectangle is layered below the buttons in the ZStack so SwiftUI's
+    /// hit-test routes button clicks to the buttons; drags away from the
+    /// button band fall through to the rectangle.
     @ViewBuilder
-    private var paneSyncDivider: some View {
+    private func paneSyncDivider(available: CGFloat) -> some View {
         let theme = themeManager.current
         let synced = appState.paneScrollSyncEnabled
 
         ZStack {
+            // PaneDividerHandle is FIRST in the ZStack so SwiftUI/AppKit
+            // place its NSViewRepresentable host at the bottom of the
+            // z-stack. That matters because NSViewRepresentable wraps
+            // the NSView in a hosting layer that can paint an opaque
+            // background, which would otherwise obscure the visible
+            // divider line. Putting the handle first + marking the line
+            // non-hit-testable keeps both visible and interactive.
+            PaneDividerHandle(
+                onDragStart: {
+                    paneDragStartWidth = primaryPaneWidth
+                },
+                onDrag: { delta in
+                    let start = paneDragStartWidth ?? primaryPaneWidth
+                    primaryPaneWidth = clampedPrimaryPaneWidth(
+                        start + delta,
+                        available: available
+                    )
+                },
+                onDragEnd: {
+                    paneDragStartWidth = nil
+                    // Persist once on release so the @Published mutation
+                    // doesn't cascade a rebuild storm during the drag.
+                    settingsManager.primaryPaneWidth = Double(primaryPaneWidth)
+                }
+            )
+            .frame(width: PaneSplitLayout.dividerHitWidth)
+
             Rectangle()
                 .fill(synced ? theme.accentColor : theme.border)
-                .frame(width: synced ? 3 : 1)
+                // 2pt minimum keeps the divider visible against dark
+                // backgrounds — a 1pt line + 1px monitor pixel grid
+                // routinely made the line look "transparent" mid-stream.
+                .frame(width: synced ? 3 : 2)
+                // The line is purely visual — clicks should fall through
+                // to the PaneDividerHandle below, which owns the drag.
+                .allowsHitTesting(false)
 
             // Stack the two buttons vertically with a small gap. Sync sits
             // above merge — sync is the more frequent action, merge is a
@@ -314,10 +386,41 @@ struct ContentView: View {
         min(max(width, SidebarLayout.minWidth), SidebarLayout.maxWidth)
     }
 
+    /// Clamp the primary pane width so both primary and secondary stay
+    /// at least `PaneSplitLayout.minWidth` wide. `available` is the
+    /// total horizontal space allocated to both panes plus the divider
+    /// (from the GeometryReader wrapping the split-pane region).
+    ///
+    /// If `available` is too small for both panes at their minimum
+    /// (rare — only happens during the first layout pass, when the
+    /// GeometryReader might briefly report a 0 size), skip clamping
+    /// entirely and return the requested width. The next pass with
+    /// real geometry will land correctly. Without this guard, a
+    /// 0-width initial pass would clamp the saved width down to
+    /// minWidth, and that small value would then stick (via the
+    /// drag-end persist path) on the next user interaction.
+    private func clampedPrimaryPaneWidth(_ width: CGFloat, available: CGFloat) -> CGFloat {
+        guard available > 2 * PaneSplitLayout.minWidth else { return width }
+        let lowerBound = PaneSplitLayout.minWidth
+        let upperBound = available - PaneSplitLayout.minWidth
+        return min(max(width, lowerBound), upperBound)
+    }
+
     private enum SidebarLayout {
         static let minWidth: CGFloat = 180
         static let defaultWidth: CGFloat = 220
         static let maxWidth: CGFloat = 300
+        static let dividerHitWidth: CGFloat = 8
+    }
+
+    private enum PaneSplitLayout {
+        /// Each pane (primary and secondary) needs at least this much
+        /// horizontal space. Clamping enforces it on both edges of the
+        /// drag — the user can't shrink either pane below this.
+        static let minWidth: CGFloat = 280
+        /// Width of the invisible drag-catcher rectangle inside the
+        /// paneSyncDivider's ZStack. Wider than the visible line so the
+        /// user has a reasonable target to grab.
         static let dividerHitWidth: CGFloat = 8
     }
 }

@@ -162,131 +162,75 @@ struct LogDocumentView: View {
         }
     }
 
-    /// Branches between the new LogScrollView (Phase 2 custom renderer) and
-    /// the legacy NSLogTableView based on the SettingsManager flag. Both
-    /// branches take an identical argument list; PR #1 of Phase 2 only
-    /// honors a subset of them in LogScrollView (render-only thin shell).
-    /// Extracted from the ZStack body for the same reason loadingOverlay
-    /// is — the argument lists are near SwiftUI's type-checker limit and
-    /// inlining the conditional trips a timeout.
+    /// The log renderer. Phase 2 cutover left only LogScrollView; the
+    /// legacy NSLogTableView path was deleted after the dogfood window.
+    /// Extracted from the ZStack body because LogScrollView's argument
+    /// list pushes SwiftUI's type-checker close to its limit and
+    /// inlining trips a timeout (same reason loadingOverlay is split out).
     @ViewBuilder
     private func logTable() -> some View {
-        if settingsManager.useNewLogView {
-            LogScrollView(
-                entries: viewModel.filteredEntries,
-                theme: themeManager.current,
-                fontSize: settingsManager.fontSize,
-                showLineNumbers: settingsManager.showLineNumbers,
-                showTimestamp: settingsManager.showTimestamp && document.hasTimestamps,
-                showComponent: settingsManager.showComponent && document.hasComponents,
-                isFollowing: document.isFollowing,
-                selectedEntry: $selectedEntry,
-                expandedEntryID: $expandedEntryID,
-                pendingGoToLine: paneGoToLineBinding,
-                bookmarkedLines: document.bookmarks,
-                highlightRules: settingsManager.highlightRules,
-                inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
-                themeManager: themeManager,
-                onCopy: { entry in
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(entry.message, forType: .string)
-                },
-                onFilterToComponent: { entry in
-                    if let comp = entry.component {
-                        viewModel.filter.component = comp
-                    }
-                },
-                onLookupErrorCode: { code in
-                    appState.lookupErrorCode(code)
-                },
-                onToggleBookmark: { entry in
-                    if document.bookmarks.contains(entry.lineNumber) {
-                        document.bookmarks.remove(entry.lineNumber)
-                    } else {
-                        document.bookmarks.insert(entry.lineNumber)
-                    }
-                },
-                onScrollUp: {
-                    appState.setFollowing(pane: pane, following: false)
-                },
-                onVisibleTopChanged: { entry in
-                    appState.reportPaneScroll(pane: pane, entry: entry)
-                },
-                scrollToTimestampSignal: scrollSyncSignal,
-                showSource: document.isMerged,
-                sourceNameForID: { id in
-                    document.mergedSourceNames[id]
-                },
-                onOpenInSourceLog: { entry in
-                    guard let id = entry.sourceDocumentID,
-                          let line = entry.sourceLineNumber else { return }
-                    appState.openInSourceLog(documentID: id, lineNumber: line)
+        LogScrollView(
+            entries: viewModel.filteredEntries,
+            theme: themeManager.current,
+            fontSize: settingsManager.fontSize,
+            showLineNumbers: settingsManager.showLineNumbers,
+            showTimestamp: settingsManager.showTimestamp && document.hasTimestamps,
+            showComponent: settingsManager.showComponent && document.hasComponents,
+            isFollowing: document.isFollowing,
+            selectedEntry: $selectedEntry,
+            expandedEntryID: $expandedEntryID,
+            pendingGoToLine: paneGoToLineBinding,
+            bookmarkedLines: document.bookmarks,
+            highlightRules: settingsManager.highlightRules,
+            inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
+            themeManager: themeManager,
+            onCopy: { entry in
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(entry.message, forType: .string)
+            },
+            onFilterToComponent: { entry in
+                if let comp = entry.component {
+                    viewModel.filter.component = comp
                 }
-            )
-        } else {
-            NSLogTableView(
-                entries: viewModel.filteredEntries,
-                theme: themeManager.current,
-                fontSize: settingsManager.fontSize,
-                showLineNumbers: settingsManager.showLineNumbers,
-                showTimestamp: settingsManager.showTimestamp && document.hasTimestamps,
-                showComponent: settingsManager.showComponent && document.hasComponents,
-                isFollowing: document.isFollowing,
-                selectedEntry: $selectedEntry,
-                expandedEntryID: $expandedEntryID,
-                pendingGoToLine: paneGoToLineBinding,
-                bookmarkedLines: document.bookmarks,
-                highlightRules: settingsManager.highlightRules,
-                inlineExpansionEnabled: settingsManager.detailDisplayMode == .inline,
-                themeManager: themeManager,
-                onCopy: { entry in
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(entry.message, forType: .string)
-                },
-                onFilterToComponent: { entry in
-                    if let comp = entry.component {
-                        viewModel.filter.component = comp
-                    }
-                },
-                onLookupErrorCode: { code in
-                    appState.lookupErrorCode(code)
-                },
-                onToggleBookmark: { entry in
-                    // Mutate the pane's own document directly —
-                    // not via AppState — so right-clicking in
-                    // secondary doesn't bookmark on primary's
-                    // doc. Same fix shape as the ⌘D observer.
-                    if document.bookmarks.contains(entry.lineNumber) {
-                        document.bookmarks.remove(entry.lineNumber)
-                    } else {
-                        document.bookmarks.insert(entry.lineNumber)
-                    }
-                },
-                onScrollUp: {
-                    appState.setFollowing(pane: pane, following: false)
-                },
-                onVisibleTopChanged: { entry in
-                    appState.reportPaneScroll(pane: pane, entry: entry)
-                },
-                scrollToTimestampSignal: scrollSyncSignal,
-                showSource: document.isMerged,
-                sourceNameForID: { id in
-                    document.mergedSourceNames[id]
-                },
-                onOpenInSourceLog: { entry in
-                    guard let id = entry.sourceDocumentID,
-                          let line = entry.sourceLineNumber else { return }
-                    appState.openInSourceLog(documentID: id, lineNumber: line)
+            },
+            onLookupErrorCode: { code in
+                appState.lookupErrorCode(code)
+            },
+            onToggleBookmark: { entry in
+                // Mutate the pane's own document directly — not via
+                // AppState — so right-clicking in secondary doesn't
+                // bookmark on primary's doc. Same fix shape as the
+                // ⌘D observer.
+                if document.bookmarks.contains(entry.lineNumber) {
+                    document.bookmarks.remove(entry.lineNumber)
+                } else {
+                    document.bookmarks.insert(entry.lineNumber)
                 }
-            )
-        }
+            },
+            onScrollUp: {
+                appState.setFollowing(pane: pane, following: false)
+            },
+            onVisibleTopChanged: { entry in
+                appState.reportPaneScroll(pane: pane, entry: entry)
+            },
+            scrollToTimestampSignal: scrollSyncSignal,
+            showSource: document.isMerged,
+            sourceNameForID: { id in
+                document.mergedSourceNames[id]
+            },
+            onOpenInSourceLog: { entry in
+                guard let id = entry.sourceDocumentID,
+                      let line = entry.sourceLineNumber else { return }
+                appState.openInSourceLog(documentID: id, lineNumber: line)
+            }
+        )
     }
 
     /// Centered spinner shown during initial parse. Tiny files flicker it
     /// for a frame; larger files (install.log, 100K+ rows) show it for the
     /// full parse window so the user knows work is happening. Extracted
     /// from the ZStack body because inlining it tripped SwiftUI's
-    /// type-checker timeout (NSLogTableView's argument list is already
+    /// type-checker timeout (LogScrollView's argument list is already
     /// near the limit).
     @ViewBuilder
     private func loadingOverlay(theme: AppTheme) -> some View {

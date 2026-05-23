@@ -60,16 +60,6 @@ struct SettingsView: View {
                     .foregroundStyle(theme.secondaryText)
             }
 
-            // Renderer — Phase 2 cutover left this toggle as a rollback
-            // hatch back to the legacy NSTableView path. Default is on.
-            Section("Renderer") {
-                Toggle("Use new log renderer", isOn: $settingsManager.useNewLogView)
-
-                Text("Custom NSView-in-NSScrollView renderer (default). Turn off to fall back to the legacy NSTableView-based renderer. The legacy path is kept for rollback and will be removed in a future release.")
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
-            }
-
             // Highlight rules
             Section("Highlight Rules") {
                 ForEach($settingsManager.highlightRules) { $rule in

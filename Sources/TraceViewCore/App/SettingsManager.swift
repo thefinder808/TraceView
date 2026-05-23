@@ -10,7 +10,7 @@ final class SettingsManager: ObservableObject {
     private static let detailDisplayModeKey = "traceview.detailDisplayMode"
     private static let highlightRulesKey = "traceview.highlightRules"
     private static let findModeKey = "traceview.findMode"
-    private static let useNewLogViewKey = "traceview.useNewLogView"
+    private static let primaryPaneWidthKey = "traceview.primaryPaneWidth"
     static let restoreTabsOnLaunchKey = "traceview.restoreTabsOnLaunch"
 
     @Published var fontSize: Double {
@@ -53,13 +53,12 @@ final class SettingsManager: ObservableObject {
         didSet { UserDefaults.standard.set(defaultFindMode.rawValue, forKey: Self.findModeKey) }
     }
 
-    // Phase 2 feature flag. Routes LogDocumentView to the new custom
-    // NSView-in-NSScrollView renderer (LogScrollView) instead of the
-    // NSTableView-based NSLogTableView. Default off until the new view
-    // reaches parity and we flip it during P2.5 dogfood. The toggle stays
-    // exposed in Settings as the rollback escape hatch.
-    @Published var useNewLogView: Bool {
-        didSet { UserDefaults.standard.set(useNewLogView, forKey: Self.useNewLogViewKey) }
+    /// Width of the primary pane when split-view is active. The
+    /// secondary pane takes the remaining space (via maxWidth: .infinity).
+    /// Persisted so the user's preferred layout survives quit/relaunch.
+    /// Drag-resized via the divider between the two panes (see ContentView).
+    @Published var primaryPaneWidth: Double {
+        didSet { UserDefaults.standard.set(primaryPaneWidth, forKey: Self.primaryPaneWidthKey) }
     }
 
     @Published var restoreTabsOnLaunch: Bool {
@@ -122,16 +121,15 @@ final class SettingsManager: ObservableObject {
         let rawFind = defaults.string(forKey: Self.findModeKey) ?? FindMode.filter.rawValue
         self.defaultFindMode = FindMode(rawValue: rawFind) ?? .filter
 
-        // Default ON as of P2.5 — the new renderer is the production
-        // path; the toggle remains as a rollback hatch. Users who
-        // previously opted out (set the key to false explicitly) keep
-        // their preference; users who never touched it get the new
-        // renderer on first launch.
-        if defaults.object(forKey: Self.useNewLogViewKey) == nil {
-            self.useNewLogView = true
-        } else {
-            self.useNewLogView = defaults.bool(forKey: Self.useNewLogViewKey)
-        }
+        // Validate against a sane minimum. A previous build could have
+        // saved a sub-min value through a clamp bug (drag-during-tiny-
+        // window race, etc.); rather than honoring that and rendering a
+        // wedged-too-small primary pane forever, fall back to the
+        // default. The actual lower-bound clamp lives in ContentView
+        // alongside PaneSplitLayout.minWidth — we keep a safe floor
+        // here (200pt) just to reject genuinely broken saved values.
+        let savedPaneWidth = defaults.double(forKey: Self.primaryPaneWidthKey)
+        self.primaryPaneWidth = savedPaneWidth >= 200 ? savedPaneWidth : 640
     }
 }
 
