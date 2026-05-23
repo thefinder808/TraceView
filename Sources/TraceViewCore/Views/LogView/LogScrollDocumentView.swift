@@ -25,6 +25,39 @@ final class LogScrollDocumentView: NSView {
     private(set) var entries: [LogEntry] = []
     private(set) var theme: (any AppTheme)?
     private(set) var fontSize: Double = 12.0
+
+    /// `lineNumber` of the entry that was last in the array on the
+    /// previous `apply(...)`. Used to detect whether a count growth is a
+    /// clean trailing append (live-tail, the common path on streaming
+    /// logs) or a non-trailing insertion (filter applied, source toggled
+    /// in merged view). Trailing appends can invalidate only the new
+    /// rows' rect instead of the whole view — critical for streaming
+    /// logs under active user scroll, where unconditional whole-view
+    /// invalidation causes visible jitter mid-rubber-band and mid-sync.
+    private var previousLastEntryLine: Int?
+
+    /// True while AppKit reports a live-scroll session is in flight
+    /// (gesture, momentum, or rubber-band bounce). Set from the
+    /// coordinator's willStart/didEnd notification handlers. While set,
+    /// `apply(...)` defers `frame.size.height` growth for pure trailing
+    /// appends — changing the document height mid-bounce makes AppKit
+    /// re-evaluate the bounce target every entry, producing visible
+    /// jitter. The deferred height flushes on `didEndLiveScroll`.
+    var isLiveScrolling: Bool = false {
+        didSet {
+            guard oldValue != isLiveScrolling, !isLiveScrolling else { return }
+            if let pending = pendingFrameHeight {
+                setFrameSize(NSSize(width: frame.size.width, height: pending))
+                pendingFrameHeight = nil
+                // Ensure the newly-revealed bottom region paints on the
+                // next runloop pass. Without this, AppKit can leave a
+                // briefly-blank strip until something else triggers a
+                // dirty-rect pass.
+                needsDisplay = true
+            }
+        }
+    }
+    private var pendingFrameHeight: CGFloat?
     /// Visible columns in display order. Computed by
     /// `LogScrollContainerView.syncLayout()` from
     /// `(boundsWidth, visibility, userWidths, userOrder)` and pushed via
@@ -56,6 +89,25 @@ final class LogScrollDocumentView: NSView {
     /// the `selectedEntry` binding so the bottom detail pane updates and
     /// `AppState.activePane` tracks which pane the user is reading.
     var onSelectionChanged: (LogEntry?) -> Void = { _ in }
+
+    /// Line numbers that should render a 3px accent stripe on the left
+    /// edge. Set by `LogDocument.bookmarks` via the apply chain.
+    private(set) var bookmarkedLines: Set<Int> = []
+
+    /// Highlight rules (regex → tint color). Compiled on apply into
+    /// `compiledHighlights`; the draw loop iterates the compiled cache
+    /// once per row, first-match-wins, matching NSLogTableView semantics.
+    private(set) var highlightRules: [HighlightRule] = []
+    private var compiledHighlights: [(rule: HighlightRule, regex: NSRegularExpression)] = []
+
+    /// Right-click handlers. Wired from LogScrollView.
+    var onToggleBookmark: (LogEntry) -> Void = { _ in }
+    var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
+
+    /// Entry the right-click context menu was built for. NSMenu doesn't
+    /// pass the originating event into the menu-item action, so we cache
+    /// the entry between `menu(for:)` and the @objc action selectors.
+    private var contextMenuEntry: LogEntry?
 
     private var followTimer: Timer?
 
@@ -154,17 +206,43 @@ final class LogScrollDocumentView: NSView {
         theme: any AppTheme,
         fontSize: Double,
         isFollowing: Bool,
+        bookmarkedLines: Set<Int>,
+        highlightRules: [HighlightRule],
         sourceNameForID: @escaping (UUID) -> String?
     ) {
         self.isFollowing = isFollowing
+        let oldCount = self.entries.count
+        let oldLastLine = previousLastEntryLine
         let fontSizeChanged = self.fontSize != fontSize
         let themeChanged = (self.theme?.name ?? "") != theme.name
-        let countChanged = self.entries.count != entries.count
+        let countChanged = oldCount != entries.count
+        let bookmarksChanged = self.bookmarkedLines != bookmarkedLines
+        let rulesChanged = self.highlightRules != highlightRules
 
         self.entries = entries
         self.theme = theme
         self.fontSize = fontSize
+        self.bookmarkedLines = bookmarkedLines
+        if rulesChanged {
+            self.highlightRules = highlightRules
+            rebuildHighlightRegexes()
+        }
         self.sourceNameForID = sourceNameForID
+
+        // Detect trailing-append shape — same logic NSLogTableView uses to
+        // decide between `insertRows` and `reloadData` (NSLogTableView.swift:275-281).
+        // If the entry now at the previous trailing index matches the
+        // previous trailing entry's lineNumber, the prefix is unchanged
+        // and the count growth is a pure append we can invalidate
+        // surgically.
+        let isTrailingAppend: Bool = {
+            guard oldCount > 0,
+                  entries.count > oldCount,
+                  oldCount - 1 < entries.count,
+                  let oldLastLine else { return false }
+            return entries[oldCount - 1].lineNumber == oldLastLine
+        }()
+        previousLastEntryLine = entries.last?.lineNumber
 
         // Invalidate BEFORE marking dirty so the next draw rebuilds the
         // cache against the new keying tuple. Order matters: if needsDisplay
@@ -179,8 +257,21 @@ final class LogScrollDocumentView: NSView {
         // accurate the moment we ask AppKit to redraw — otherwise the
         // overlay scroller's fade-in is driven by a stale document height
         // for one frame.
+        //
+        // Exception: during a live-scroll session, pure trailing appends
+        // defer the height growth until the scroll settles. Mid-bounce
+        // height changes cause AppKit to recompute the rubber-band target
+        // on every entry, producing visible jitter. Font-size changes and
+        // non-trailing count changes still apply immediately because
+        // those genuinely change visible content.
         if countChanged || fontSizeChanged {
-            updateFrameHeight()
+            let canDefer = isLiveScrolling && isTrailingAppend && !fontSizeChanged
+            if canDefer {
+                pendingFrameHeight = CGFloat(entries.count) * rowHeight
+            } else {
+                updateFrameHeight()
+                pendingFrameHeight = nil
+            }
         }
 
         // Selection follows the entries array: if the previously-selected
@@ -193,7 +284,69 @@ final class LogScrollDocumentView: NSView {
             onSelectionChanged(nil)
         }
 
-        needsDisplay = true
+        // Surgical invalidation. Whole-view repaints mid-scroll cause
+        // visible jitter on streaming logs (UnifiedLogStream feeds
+        // entries at ~10-20 Hz) — every append used to repaint the
+        // entire visible viewport, disturbing rubber-band bounce
+        // animations and ping-ponging during pane scroll-sync. The four
+        // cases below cover each axis of change:
+        let visibleStateChanged = fontSizeChanged || themeChanged
+            || bookmarksChanged || rulesChanged
+        if visibleStateChanged {
+            // Theme/font/bookmark-set/highlight-rule changes can affect
+            // any visible row — repaint everything.
+            needsDisplay = true
+        } else if isTrailingAppend {
+            // Pure append: existing rows are pixel-identical. Only the
+            // newly-appended rows (almost always off-screen) need
+            // paint. AppKit's responsive-scrolling pre-render handles
+            // the off-screen ones when their dirty rect comes into the
+            // pre-render window. Visible content stays undisturbed,
+            // which is what lets rubber-band bounce and scroll-sync
+            // stay smooth.
+            let newRowsRect = NSRect(
+                x: 0,
+                y: CGFloat(oldCount) * rowHeight,
+                width: bounds.width,
+                height: CGFloat(entries.count - oldCount) * rowHeight
+            )
+            setNeedsDisplay(newRowsRect)
+        } else if countChanged {
+            // Non-trailing change (filter shrink, file reload, merged-view
+            // toggle, reorder). Visible content changes — repaint.
+            needsDisplay = true
+        }
+        // If nothing changed, no invalidation needed. Updates that only
+        // tweak `isFollowing` or `sourceNameForID` fall through here and
+        // correctly don't trigger a redraw.
+    }
+
+    /// Recompile the enabled highlight rules into a regex cache. Invalid
+    /// patterns (compilation failure) are silently dropped; the Settings
+    /// row shows the "invalid regex" indicator so the user already sees
+    /// the failure surface in the UI. Matches NSLogTableView semantics at
+    /// NSLogTableView.swift:673-680.
+    private func rebuildHighlightRegexes() {
+        compiledHighlights = highlightRules.compactMap { rule in
+            guard rule.isEnabled,
+                  !rule.pattern.isEmpty,
+                  let regex = try? NSRegularExpression(pattern: rule.pattern) else { return nil }
+            return (rule, regex)
+        }
+    }
+
+    /// First-match-wins color lookup for a row's message text. Returns
+    /// nil when no rule applies; the draw loop only paints an overlay
+    /// when a color comes back.
+    private func highlightColor(for entry: LogEntry) -> NSColor? {
+        guard !compiledHighlights.isEmpty else { return nil }
+        let range = NSRange(entry.message.startIndex..., in: entry.message)
+        for (rule, regex) in compiledHighlights {
+            if regex.firstMatch(in: entry.message, range: range) != nil {
+                return NSColor(rule.color)
+            }
+        }
+        return nil
     }
 
     /// Push a fresh column layout. Called by the container whenever
@@ -233,6 +386,17 @@ final class LogScrollDocumentView: NSView {
         window?.makeFirstResponder(self)
     }
 
+    /// Scroll the given row into view and mark it selected. Used by the
+    /// coordinator's go-to-line handler and (later) by ⌘F find-match
+    /// navigation. Distinct from `updateSelection` because go-to-line
+    /// always wants to scroll-into-view, whereas a mouse click is
+    /// already in view by definition.
+    func scrollAndSelect(row: Int) {
+        guard row >= 0, row < entries.count else { return }
+        updateSelection(to: row)
+        scrollToVisible(rowFrame(for: row))
+    }
+
     private func updateSelection(to newRow: Int?) {
         guard newRow != selectedRow else { return }
         let oldRow = selectedRow
@@ -250,6 +414,104 @@ final class LogScrollDocumentView: NSView {
 
         let entry: LogEntry? = newRow.flatMap { $0 < entries.count ? entries[$0] : nil }
         onSelectionChanged(entry)
+    }
+
+    // MARK: - Keyboard navigation
+
+    override func keyDown(with event: NSEvent) {
+        guard !entries.isEmpty else {
+            super.keyDown(with: event)
+            return
+        }
+        let pageStep = max(1, visibleRowCount() - 1)
+        let current = selectedRow ?? -1
+        let lastIndex = entries.count - 1
+        let newRow: Int
+
+        switch event.specialKey {
+        case .upArrow:
+            newRow = max(0, current - 1)
+        case .downArrow:
+            // From no-selection (-1), arrow-down lands on row 0.
+            newRow = min(lastIndex, current + 1)
+        case .pageUp:
+            newRow = max(0, (current >= 0 ? current : lastIndex) - pageStep)
+        case .pageDown:
+            newRow = min(lastIndex, (current >= 0 ? current : 0) + pageStep)
+        case .home:
+            newRow = 0
+        case .end:
+            newRow = lastIndex
+        default:
+            super.keyDown(with: event)
+            return
+        }
+
+        guard newRow != selectedRow else { return }
+        updateSelection(to: newRow)
+        scrollToVisible(rowFrame(for: newRow))
+    }
+
+    /// How many full rows fit in the visible viewport. Used for PgUp/PgDn
+    /// step size. Falls back to 10 if we can't reach the enclosing scroll
+    /// view (shouldn't happen in practice — the view is always inside a
+    /// LogScrollContainerView's NSScrollView).
+    private func visibleRowCount() -> Int {
+        guard let clip = enclosingScrollView?.contentView, rowHeight > 0 else { return 10 }
+        return max(1, Int(clip.bounds.height / rowHeight))
+    }
+
+    // MARK: - Right-click context menu
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let p = convert(event.locationInWindow, from: nil)
+        guard rowHeight > 0 else { return nil }
+        let row = Int(floor(p.y / rowHeight))
+        guard row >= 0, row < entries.count else { return nil }
+
+        // Cache the clicked entry so the @objc action methods (which
+        // can't carry payload through NSMenuItem.target/action) can read
+        // it. Also select the clicked row so a subsequent ⌘D keyboard
+        // shortcut operates on the same entry as the visible context.
+        contextMenuEntry = entries[row]
+        updateSelection(to: row)
+
+        let menu = NSMenu()
+        let bookmarkItem = NSMenuItem(
+            title: "Toggle Bookmark",
+            action: #selector(toggleBookmarkAction(_:)),
+            keyEquivalent: "d"
+        )
+        bookmarkItem.keyEquivalentModifierMask = .command
+        bookmarkItem.target = self
+        menu.addItem(bookmarkItem)
+
+        if let entry = contextMenuEntry, entry.sourceDocumentID != nil {
+            menu.addItem(NSMenuItem.separator())
+            let label: String = {
+                guard let id = entry.sourceDocumentID,
+                      let name = sourceNameForID(id) else { return "Open in Source Log" }
+                return "Open in \(name)"
+            }()
+            let sourceItem = NSMenuItem(
+                title: label,
+                action: #selector(openInSourceLogAction(_:)),
+                keyEquivalent: ""
+            )
+            sourceItem.target = self
+            menu.addItem(sourceItem)
+        }
+        return menu
+    }
+
+    @objc private func toggleBookmarkAction(_ sender: Any?) {
+        guard let entry = contextMenuEntry else { return }
+        onToggleBookmark(entry)
+    }
+
+    @objc private func openInSourceLogAction(_ sender: Any?) {
+        guard let entry = contextMenuEntry else { return }
+        onOpenInSourceLog(entry)
     }
 
     // MARK: - Attribute cache
@@ -381,12 +643,47 @@ final class LogScrollDocumentView: NSView {
             severityColor(for: entry.level, theme: theme).setFill()
             rowRect.intersection(dirtyRect).fill()
 
+            // Highlight rule overlay — 0.22-alpha tint over the message
+            // column's band only. Composed over the severity background
+            // so an "ERROR with ratelimit" row reads as red with an
+            // amber overlay on the message text. Matches
+            // NSLogTableView's behavior at NSLogTableView.swift:854-868.
+            if let highlightColor = highlightColor(for: entry),
+               let messageColumn = layout.first(where: { $0.id == .message }) {
+                let messageBand = NSRect(
+                    x: messageColumn.x,
+                    y: rowY,
+                    width: messageColumn.width,
+                    height: rowH
+                ).intersection(dirtyRect)
+                if !messageBand.isEmpty {
+                    highlightColor.withAlphaComponent(0.22).setFill()
+                    messageBand.fill()
+                }
+            }
+
             // Selection band — accent color at 0.20 alpha, composed over
             // the severity background. Matches NSLogTableView's selection
             // styling at NSLogTableView.swift:870-882.
             if row == selectedRow {
                 NSColor(theme.accentColor).withAlphaComponent(0.2).setFill()
                 rowRect.intersection(dirtyRect).fill()
+            }
+
+            // Bookmark stripe — 3px accent-colored band along the left
+            // edge of the row. Visible over the level tint without being
+            // loud. Matches NSLogTableView.swift:884-897.
+            if bookmarkedLines.contains(entry.lineNumber) {
+                let stripe = NSRect(
+                    x: 0,
+                    y: rowY,
+                    width: 3,
+                    height: rowH
+                ).intersection(dirtyRect)
+                if !stripe.isEmpty {
+                    NSColor(theme.accentColor).setFill()
+                    stripe.fill()
+                }
             }
 
             // Per-column text. Vertically centered via a band rect sized

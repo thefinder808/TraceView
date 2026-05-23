@@ -65,6 +65,15 @@ struct LogScrollView: NSViewRepresentable {
         container.documentView.onSelectionChanged = { [weak coordinator = context.coordinator] entry in
             coordinator?.selectedEntryBinding?.wrappedValue = entry
         }
+        // The same indirection covers the right-click menu actions: the
+        // closures are reassigned in updateNSView so the latest captured
+        // SwiftUI state is reachable on every fire.
+        container.documentView.onToggleBookmark = { [weak coordinator = context.coordinator] entry in
+            coordinator?.onToggleBookmark(entry)
+        }
+        container.documentView.onOpenInSourceLog = { [weak coordinator = context.coordinator] entry in
+            coordinator?.onOpenInSourceLog(entry)
+        }
 
         // Restore saved column widths + order on first construction so the
         // initial layout reflects prior sessions. The same UserDefaults
@@ -95,6 +104,7 @@ struct LogScrollView: NSViewRepresentable {
 
         context.coordinator.container = container
         context.coordinator.installObservers()
+        context.coordinator.installScrollSync(publisher: scrollToTimestampSignal)
 
         return container
     }
@@ -104,7 +114,11 @@ struct LogScrollView: NSViewRepresentable {
         // notification-driven paths (scroll observer, selection callback)
         // route through the latest values.
         context.coordinator.selectedEntryBinding = $selectedEntry
+        context.coordinator.pendingGoToLineBinding = $pendingGoToLine
         context.coordinator.onScrollUp = onScrollUp
+        context.coordinator.onToggleBookmark = onToggleBookmark
+        context.coordinator.onOpenInSourceLog = onOpenInSourceLog
+        context.coordinator.onVisibleTopChanged = onVisibleTopChanged
 
         let visibility = ColumnVisibility(
             showLineNumber: showLineNumbers,
@@ -120,8 +134,19 @@ struct LogScrollView: NSViewRepresentable {
             fontSize: fontSize,
             visibility: visibility,
             isFollowing: isFollowing,
+            bookmarkedLines: bookmarkedLines,
+            highlightRules: highlightRules,
             sourceNameForID: sourceNameForID
         )
+
+        // Go-to-line: if a pending line number is set, scroll + select
+        // the row whose lineNumber matches. The coordinator handles the
+        // async-clear of the binding so the mutation happens outside this
+        // view-update pass (synchronous binding writes during updateNSView
+        // trip SwiftUI's "modifying state during view update" warning).
+        if let target = pendingGoToLine {
+            context.coordinator.handleGoToLine(target)
+        }
     }
 
     // MARK: - Coordinator
@@ -129,7 +154,31 @@ struct LogScrollView: NSViewRepresentable {
     final class Coordinator {
         weak var container: LogScrollContainerView?
         var selectedEntryBinding: Binding<LogEntry?>?
+        var pendingGoToLineBinding: Binding<Int?>?
         var onScrollUp: () -> Void = {}
+        var onToggleBookmark: (LogEntry) -> Void = { _ in }
+        var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
+        var onVisibleTopChanged: (LogEntry?) -> Void = { _ in }
+
+        /// Subscription to the inbound `scrollToTimestampSignal` publisher.
+        /// Installed once in `installScrollSync(...)` and held for the
+        /// coordinator's lifetime — the publisher itself (a PassthroughSubject
+        /// on AppState) persists across LogScrollView struct churn.
+        private var scrollSyncCancellable: AnyCancellable?
+
+        // MARK: - Pane-sync state (mirrors NSLogTableView.Coordinator)
+
+        /// Throttle window for outbound visible-top reports. Last fire
+        /// time + last reported entry ID — only fires when ≥100ms has
+        /// passed AND the top entry actually changed.
+        private var lastVisibleTopReport: Date = .distantPast
+        private var lastReportedEntryID: Int?
+
+        /// After a sync-driven scroll lands, suppress outbound reports
+        /// for this long so the resulting scrollViewDidScroll doesn't
+        /// ricochet a "I just moved!" event back to the pane that drove
+        /// us here. Load-bearing per PR #33 review #1 — do not simplify.
+        private var suppressReportsUntil: Date = .distantPast
 
         deinit {
             NotificationCenter.default.removeObserver(self)
@@ -149,6 +198,30 @@ struct LogScrollView: NSViewRepresentable {
                 name: NSScrollView.didLiveScrollNotification,
                 object: container.scrollView
             )
+            // willStart / didEnd flank the entire live-scroll session —
+            // gesture, momentum, and rubber-band bounce. We use these to
+            // gate frame.size.height growth on the document view, so
+            // streaming entries don't shift the bounce target mid-flight.
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(willStartLiveScroll(_:)),
+                name: NSScrollView.willStartLiveScrollNotification,
+                object: container.scrollView
+            )
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(didEndLiveScroll(_:)),
+                name: NSScrollView.didEndLiveScrollNotification,
+                object: container.scrollView
+            )
+        }
+
+        /// Subscribe to inbound sync-driven scrolls. Called from
+        /// `makeNSView` so the subscription is set up exactly once.
+        func installScrollSync(publisher: AnyPublisher<Date, Never>) {
+            scrollSyncCancellable = publisher.sink { [weak self] target in
+                self?.scrollToTimestamp(target)
+            }
         }
 
         /// Clip-view width changed during live-resize. updateNSView won't
@@ -158,11 +231,20 @@ struct LogScrollView: NSViewRepresentable {
             container?.syncLayout()
         }
 
-        /// User-driven scroll. If they're scrolling above the tail while
-        /// follow is on, fire onScrollUp so the parent surfaces the
-        /// "Jump to Bottom" pill and pauses Following. Mirrors
-        /// NSLogTableView's logic at NSLogTableView.swift:449-469, minus
-        /// the sync-scroll suppression window (no scroll-sync until P2.4).
+        @objc private func willStartLiveScroll(_ notification: Notification) {
+            container?.documentView.isLiveScrolling = true
+        }
+
+        @objc private func didEndLiveScroll(_ notification: Notification) {
+            container?.documentView.isLiveScrolling = false
+        }
+
+        /// User-driven scroll OR sync-driven scroll lands. Distinguishes
+        /// via the suppression window: during a sync-driven scroll, the
+        /// resulting scrollViewDidScroll is gated out of scroll-up auto-
+        /// pause and out of outbound visible-top reporting, so we don't
+        /// ricochet back to the source pane. Mirrors NSLogTableView's
+        /// logic at NSLogTableView.swift:449-472.
         @objc private func scrollViewDidScroll(_ notification: Notification) {
             guard let container else { return }
             let scrollView = container.scrollView
@@ -174,9 +256,94 @@ struct LogScrollView: NSViewRepresentable {
             let visibleHeight = clipView.bounds.height
             let distanceFromBottom = contentHeight - (scrollOffset + visibleHeight)
 
-            if distanceFromBottom > 50, documentView.isFollowing {
+            let inSyncScroll = Date() < suppressReportsUntil
+
+            if distanceFromBottom > 50, documentView.isFollowing, !inSyncScroll {
                 onScrollUp()
             }
+
+            reportVisibleTopIfChanged()
+        }
+
+        /// Inbound sync-driven scroll. Find the row whose timestamp is the
+        /// largest one ≤ `target`, scroll to it, arm the suppression
+        /// window. Matches NSLogTableView.swift:495-500.
+        private func scrollToTimestamp(_ target: Date) {
+            guard let container, let row = nearestRow(forTimestamp: target) else { return }
+            suppressReportsUntil = Date().addingTimeInterval(0.25)
+            let documentView = container.documentView
+            documentView.scrollToVisible(documentView.rowFrame(for: row))
+        }
+
+        /// Compute and fire the visible-top report if the top entry
+        /// changed and we're past both the throttle gate and the
+        /// suppression window. ~10Hz max fire rate.
+        private func reportVisibleTopIfChanged() {
+            let now = Date()
+            if now < suppressReportsUntil { return }
+            if now.timeIntervalSince(lastVisibleTopReport) < 0.1 { return }
+            guard let container else { return }
+            let documentView = container.documentView
+            let visibleRect = container.scrollView.contentView.documentVisibleRect
+            let topRow = documentView.firstRow(in: visibleRect)
+            guard topRow >= 0, topRow < documentView.entries.count else { return }
+            let topEntry = documentView.entries[topRow]
+            if topEntry.id == lastReportedEntryID { return }
+            lastReportedEntryID = topEntry.id
+            lastVisibleTopReport = now
+            onVisibleTopChanged(topEntry)
+        }
+
+        /// Largest index whose entry has `timestamp ≤ target`. If no
+        /// entry qualifies (target is before any timestamped row),
+        /// returns the first row that has any timestamp. Returns nil if
+        /// no entry has a timestamp at all. Linear scan — matches the
+        /// existing NSLogTableView implementation; O(log n) bisect is a
+        /// later optimization since entries aren't guaranteed sorted by
+        /// timestamp on merged-view docs.
+        private func nearestRow(forTimestamp target: Date) -> Int? {
+            guard let container else { return nil }
+            let entries = container.documentView.entries
+            var bestIndex: Int?
+            var bestTimestamp: Date?
+            for (i, entry) in entries.enumerated() {
+                guard let ts = entry.timestamp, ts <= target else { continue }
+                if bestTimestamp == nil || ts > bestTimestamp! {
+                    bestIndex = i
+                    bestTimestamp = ts
+                }
+            }
+            if bestIndex == nil {
+                bestIndex = entries.firstIndex(where: { $0.timestamp != nil })
+            }
+            return bestIndex
+        }
+
+        /// Find the row whose `lineNumber` matches `target`, scroll +
+        /// select. Sticky-on-miss: if the entries array doesn't contain
+        /// the target yet (e.g. async filter still running), leave the
+        /// binding set so a later updateNSView retries. Async-clear via
+        /// the main queue to avoid SwiftUI's "mutating state during view
+        /// update" warning. Matches NSLogTableView.swift:314-327.
+        func handleGoToLine(_ target: Int) {
+            guard let container else { return }
+            let documentView = container.documentView
+            guard let row = documentView.entries.firstIndex(where: {
+                $0.lineNumber == target
+            }) else {
+                // Sticky on miss — leave binding alone.
+                return
+            }
+            documentView.scrollAndSelect(row: row)
+            // Pause Following so the landing spot sticks. Dispatched
+            // async so the @Published mutation fires outside this view
+            // update pass.
+            let scrollUp = onScrollUp
+            DispatchQueue.main.async { scrollUp() }
+            // Clear the binding on the next runloop tick so subsequent
+            // updateNSView passes don't keep re-scrolling.
+            let binding = pendingGoToLineBinding
+            DispatchQueue.main.async { binding?.wrappedValue = nil }
         }
     }
 }
@@ -273,6 +440,8 @@ final class LogScrollContainerView: NSView {
         fontSize: Double,
         visibility: ColumnVisibility,
         isFollowing: Bool,
+        bookmarkedLines: Set<Int>,
+        highlightRules: [HighlightRule],
         sourceNameForID: @escaping (UUID) -> String?
     ) {
         self.visibility = visibility
@@ -281,6 +450,8 @@ final class LogScrollContainerView: NSView {
             theme: theme,
             fontSize: fontSize,
             isFollowing: isFollowing,
+            bookmarkedLines: bookmarkedLines,
+            highlightRules: highlightRules,
             sourceNameForID: sourceNameForID
         )
         syncLayout()
