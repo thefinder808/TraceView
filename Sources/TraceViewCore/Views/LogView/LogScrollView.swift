@@ -13,7 +13,7 @@ import Combine
 /// right-click menu, bookmarks, and highlight rules. P2.4 will add
 /// scroll-sync, go-to-line, and visible-top reporting.
 struct LogScrollView: NSViewRepresentable {
-    let entries: [LogEntry]
+    let entries: FilteredEntries
     let theme: any AppTheme
     let fontSize: Double
     let showLineNumbers: Bool
@@ -361,7 +361,7 @@ struct LogScrollView: NSViewRepresentable {
         /// If no entry has a timestamp ≤ target (target is before all
         /// timestamps), falls back to the first timestamped entry —
         /// matches the pre-bisect linear-scan behavior.
-        static func findNearestRow(in entries: [LogEntry], forTimestamp target: Date) -> Int? {
+        static func findNearestRow<C: RandomAccessCollection>(in entries: C, forTimestamp target: Date) -> Int? where C.Element == LogEntry, C.Index == Int {
             guard !entries.isEmpty else { return nil }
 
             // Upper-bound bisect: smallest index where the predicate
@@ -506,7 +506,7 @@ final class LogScrollContainerView: NSView {
     /// non-layout state on the document view, then recomputes layout for
     /// the current clip-view width and pushes it to both children.
     func applyState(
-        entries: [LogEntry],
+        entries: FilteredEntries,
         theme: any AppTheme,
         fontSize: Double,
         visibility: ColumnVisibility,

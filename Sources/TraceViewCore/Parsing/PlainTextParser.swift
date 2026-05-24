@@ -3,6 +3,7 @@ import Foundation
 struct PlainTextParser: LogParser {
     let name = "Plain Text"
     let supportedExtensions: Set<String> = ["log", "txt", ""]
+    let isLineStateless = true
 
     func canParse(sampleLines: [String]) -> Double {
         // Fallback parser — always matches with low confidence

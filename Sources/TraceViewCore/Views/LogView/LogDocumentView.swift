@@ -304,11 +304,11 @@ struct LogDocumentView: View {
     /// AND matches one of the given levels. Used by jumpToBucket's
     /// level-aware preference to land on an actual error when an
     /// error-spike bucket is clicked.
-    private func firstEntry(
-        in entries: [LogEntry],
+    private func firstEntry<C: RandomAccessCollection>(
+        in entries: C,
         range: (start: Date, end: Date),
         levels: [LogLevel]
-    ) -> LogEntry? {
+    ) -> LogEntry? where C.Element == LogEntry {
         entries.first { entry in
             guard let ts = entry.timestamp,
                   ts >= range.start, ts < range.end else { return false }
@@ -330,7 +330,7 @@ struct LogDocumentView: View {
 // MARK: - Export Sheet
 
 struct ExportSheet: View {
-    let entries: [LogEntry]
+    let entries: FilteredEntries
     let documentName: String
     @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedFormat: ExportFormat = .plainText

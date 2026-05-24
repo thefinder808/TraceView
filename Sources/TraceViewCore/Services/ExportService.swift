@@ -29,7 +29,11 @@ enum ExportFormat: String, CaseIterable, Identifiable {
 }
 
 enum ExportService {
-    static func export(entries: [LogEntry], documentName: String, format: ExportFormat) {
+    static func export<C: RandomAccessCollection>(
+        entries: C,
+        documentName: String,
+        format: ExportFormat
+    ) where C.Element == LogEntry {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [format.contentType]
         panel.nameFieldStringValue = "\(documentName)-export.\(format.fileExtension)"
@@ -58,7 +62,7 @@ enum ExportService {
         }
     }
 
-    private static func exportCSV(entries: [LogEntry]) -> String {
+    private static func exportCSV<C: Sequence>(entries: C) -> String where C.Element == LogEntry {
         var lines = ["Line,Timestamp,Level,Component,Message"]
         for entry in entries {
             let ts = entry.timestamp.map { Formatters.formatDateTime($0) } ?? ""
@@ -69,7 +73,7 @@ enum ExportService {
         return lines.joined(separator: "\n")
     }
 
-    private static func exportJSON(entries: [LogEntry]) -> String {
+    private static func exportJSON<C: Sequence>(entries: C) -> String where C.Element == LogEntry {
         let items = entries.map { entry -> [String: Any] in
             var dict: [String: Any] = [
                 "line": entry.lineNumber,

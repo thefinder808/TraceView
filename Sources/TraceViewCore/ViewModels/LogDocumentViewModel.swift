@@ -9,7 +9,7 @@ final class LogDocumentViewModel: ObservableObject {
     let document: LogDocument
 
     @Published var filter = LogFilter()
-    @Published var filteredEntries: [LogEntry] = []
+    @Published var filteredEntries: FilteredEntries = .empty
 
     // Find mode — filter hides non-matches; find leaves them visible and
     // produces a navigable match list. Defaults to the global setting.
@@ -74,7 +74,12 @@ final class LogDocumentViewModel: ObservableObject {
         guard !matching.isEmpty else { return }
 
         let baseIndex = filteredEntries.count
-        filteredEntries.append(contentsOf: matching)
+        // In-memory mode: pass nil sourceIndices, the FilteredEntries
+        // materialized backing stores the LogEntry values directly. Phase 3
+        // indexed mode will route through a different append path because
+        // IndexedEntrySource is a static-after-build source — handleAppend
+        // is in-memory-only by construction.
+        filteredEntries.append(matching: matching)
 
         // Incrementally extend the match list with any hits inside the new
         // slice — O(batch), not O(filteredEntries). A full rescan is only
@@ -157,7 +162,7 @@ final class LogDocumentViewModel: ObservableObject {
                     self.applyFilter()
                     return
                 }
-                self.filteredEntries = visible
+                self.filteredEntries = FilteredEntries(backing: .materialized(visible))
                 self.recomputeMatches()
             }
         }

@@ -7,9 +7,19 @@ final class LogDocument: ObservableObject, Identifiable {
     let displayName: String
 
     // Storage seam for entries. Phase 1 wraps the previous `[LogEntry]`
-    // directly in InMemoryEntrySource; Phase 3 will swap in an indexed
-    // source for huge files behind the same protocol.
-    let entrySource: EntrySource = InMemoryEntrySource()
+    // directly in InMemoryEntrySource; Phase 3 swaps in an IndexedEntrySource
+    // for huge files behind the same protocol. The `var` (not `let`) is
+    // load-bearing for the swap. Only mutated from `loadFile` BEFORE any
+    // didAppend chunks publish — never reassign once subscribers exist.
+    private(set) var entrySource: EntrySource = InMemoryEntrySource() {
+        didSet {
+            // Rewire the republish sink to the new source so external
+            // didAppend subscribers don't strand against the old source.
+            // Invariant preserved: reset() still does not fire didAppend.
+            sourceAppendCancellable = entrySource.didAppend
+                .sink { [appendSubject] in appendSubject.send($0) }
+        }
+    }
 
     // Not @Published — appends happen in tight loops on high-rate streams;
     // a per-append objectWillChange would thrash every @ObservedObject in
@@ -18,9 +28,12 @@ final class LogDocument: ObservableObject, Identifiable {
 
     // Per-append signal with the newly-appended slice. Pane view models
     // incrementally filter this and append to their own filteredEntries.
-    // Forwarded from the entry source so InMemoryEntrySource's internal
-    // publishes reach existing subscribers transparently.
-    var didAppend: AnyPublisher<[LogEntry], Never> { entrySource.didAppend }
+    // Republished from the entry source through a document-owned subject
+    // so external subscribers survive a source swap (Phase 3) without
+    // re-subscribing.
+    private let appendSubject = PassthroughSubject<[LogEntry], Never>()
+    var didAppend: AnyPublisher<[LogEntry], Never> { appendSubject.eraseToAnyPublisher() }
+    private var sourceAppendCancellable: AnyCancellable?
 
     @Published var isFollowing: Bool = true
     @Published var isLive: Bool = false
@@ -137,6 +150,12 @@ final class LogDocument: ObservableObject, Identifiable {
         self.source = source
         self.displayName = displayName
         self.bookmarks = Self.loadBookmarks(for: source)
+
+        // didSet on entrySource doesn't fire from the initializer, so wire
+        // the republish sink explicitly here. PR3's source swap reuses the
+        // didSet to re-attach.
+        self.sourceAppendCancellable = entrySource.didAppend
+            .sink { [appendSubject] in appendSubject.send($0) }
 
         // Update displayLineCount and stream rate once per second
         lineCountTimer = Timer.publish(every: 1.0, on: .main, in: .common)

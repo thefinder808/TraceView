@@ -12,6 +12,12 @@ final class SettingsManager: ObservableObject {
     private static let findModeKey = "traceview.findMode"
     private static let primaryPaneWidthKey = "traceview.primaryPaneWidth"
     static let restoreTabsOnLaunchKey = "traceview.restoreTabsOnLaunch"
+    /// Phase 3 hidden flag. Set via `defaults write com.traceview.app
+    /// traceview.forceIndexedMode -bool YES` to route eligible files
+    /// (PlainText/SCCM/CSV, uncompressed) through `IndexedEntrySource`
+    /// instead of the chunked in-memory parse. Phase 5 will replace this
+    /// with size-based auto-dispatch and remove the flag. No UI surface.
+    static let forceIndexedModeKey = "traceview.forceIndexedMode"
 
     @Published var fontSize: Double {
         didSet { UserDefaults.standard.set(fontSize, forKey: Self.fontSizeKey) }

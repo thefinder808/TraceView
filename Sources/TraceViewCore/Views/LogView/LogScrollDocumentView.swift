@@ -22,7 +22,7 @@ final class LogScrollDocumentView: NSView {
 
     // MARK: - State
 
-    private(set) var entries: [LogEntry] = []
+    private(set) var entries: FilteredEntries = .empty
     private(set) var theme: (any AppTheme)?
     private(set) var fontSize: Double = 12.0
 
@@ -256,7 +256,7 @@ final class LogScrollDocumentView: NSView {
     /// the visible viewport, so the redraw cost is proportional to visible
     /// rows regardless of how many entries the document has.
     func apply(
-        entries: [LogEntry],
+        entries: FilteredEntries,
         theme: any AppTheme,
         fontSize: Double,
         isFollowing: Bool,

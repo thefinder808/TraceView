@@ -16,6 +16,14 @@ protocol LogParser {
     /// state across lines — e.g. .ips crash reports where the JSON header
     /// on line 1 carries the timestamp for every subsequent body line.
     func parseFile(lines: [String], startingEntryID: Int) -> (entries: [LogEntry], nextID: Int)?
+
+    /// True iff `parse(line:lineNumber:entryID:)` produces a complete
+    /// LogEntry from a single line in isolation — no cross-line state,
+    /// no header lookup, no whole-file context. Required for Phase 3's
+    /// `IndexedEntrySource`, which re-parses lines on demand via mmap.
+    /// Defaults to `false` (conservative). Override `true` only when the
+    /// parser is genuinely line-by-line.
+    var isLineStateless: Bool { get }
 }
 
 extension LogParser {
@@ -24,4 +32,8 @@ extension LogParser {
     func parseFile(lines: [String], startingEntryID: Int) -> (entries: [LogEntry], nextID: Int)? {
         nil
     }
+
+    /// Default: assume the parser may need cross-line context. Only the
+    /// three line-stateless parsers (PlainText, SCCM, CSV) override.
+    var isLineStateless: Bool { false }
 }

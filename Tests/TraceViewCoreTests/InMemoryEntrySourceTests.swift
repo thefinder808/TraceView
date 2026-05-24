@@ -76,4 +76,33 @@ final class InMemoryEntrySourceTests: XCTestCase {
         XCTAssertEqual(publishedAfterReplace.count, 1)
         XCTAssertEqual(publishedAfterReplace[0].map(\.id), [10, 11])
     }
+
+    // MARK: - entry(at:) — Phase 3 random-access primitive
+
+    func testEntryAtReturnsEntryForValidIndex() {
+        let source = InMemoryEntrySource()
+        source.append([makeEntry(1), makeEntry(2), makeEntry(3)])
+        XCTAssertEqual(source.entry(at: 0)?.id, 1)
+        XCTAssertEqual(source.entry(at: 2)?.id, 3)
+    }
+
+    func testEntryAtReturnsNilForOutOfBounds() {
+        let source = InMemoryEntrySource()
+        source.append([makeEntry(1)])
+        XCTAssertNil(source.entry(at: -1))
+        XCTAssertNil(source.entry(at: 1))
+        XCTAssertNil(source.entry(at: 1_000_000))
+    }
+
+    func testEntryAtAfterResetReturnsNil() {
+        let source = InMemoryEntrySource()
+        source.append([makeEntry(1)])
+        source.reset()
+        XCTAssertNil(source.entry(at: 0))
+    }
+
+    func testSupportsDerivedStatsIsTrue() {
+        let source = InMemoryEntrySource()
+        XCTAssertTrue(source.supportsDerivedStats)
+    }
 }

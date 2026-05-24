@@ -8,6 +8,7 @@ import Foundation
 struct CSVLogParser: LogParser {
     let name = "CSV"
     let supportedExtensions: Set<String> = ["csv"]
+    let isLineStateless = true
 
     private static let timestampHeaders = Set(["timestamp", "time", "datetime", "date", "ts", "@timestamp"])
     private static let levelHeaders = Set(["level", "severity", "loglevel", "log_level", "priority"])
