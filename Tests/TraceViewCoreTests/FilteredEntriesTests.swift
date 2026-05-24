@@ -85,4 +85,78 @@ final class FilteredEntriesTests: XCTestCase {
         XCTAssertEqual(fe[0].id, 30)
         XCTAssertEqual(fe[2].id, 32)
     }
+
+    // MARK: - Identity backing (Phase 3 indexed-mode no-filter case)
+
+    func testIdentityForwardsCountAndSubscript() {
+        let source = InMemoryEntrySource()
+        source.append([entry(40), entry(41), entry(42)])
+        var fe = FilteredEntries(backing: .materialized([]))
+
+        fe.replace(identity: source)
+        XCTAssertEqual(fe.count, 3)
+        XCTAssertEqual(fe[0].id, 40)
+        XCTAssertEqual(fe[1].id, 41)
+        XCTAssertEqual(fe[2].id, 42)
+    }
+
+    // MARK: - Fast lookup helpers (Phase 3 hang fix)
+
+    func testPositionForLineNumberIdentityO1() {
+        let source = InMemoryEntrySource()
+        // Mimic the IndexedEntrySource invariant: id == position and
+        // lineNumber == position + 1.
+        let entries = (0..<100).map { i in
+            LogEntry(
+                id: i, lineNumber: i + 1, timestamp: nil, level: .info,
+                message: "m \(i)", component: nil, threadID: nil,
+                source: nil, rawLine: "raw \(i)"
+            )
+        }
+        source.append(entries)
+        let fe = FilteredEntries(backing: .identity(source: source))
+
+        XCTAssertEqual(fe.position(forLineNumber: 1), 0)
+        XCTAssertEqual(fe.position(forLineNumber: 42), 41)
+        XCTAssertEqual(fe.position(forLineNumber: 100), 99)
+        XCTAssertNil(fe.position(forLineNumber: 0))
+        XCTAssertNil(fe.position(forLineNumber: 101))
+        XCTAssertNil(fe.position(forLineNumber: -5))
+    }
+
+    func testPositionForLineNumberMaterializedFallsBackToLinearScan() {
+        let entries = (0..<10).map { i in
+            LogEntry(
+                id: i, lineNumber: i * 7 + 1,  // sparse line numbers
+                timestamp: nil, level: .info,
+                message: "m \(i)", component: nil, threadID: nil,
+                source: nil, rawLine: "raw \(i)"
+            )
+        }
+        let fe = FilteredEntries(backing: .materialized(entries))
+
+        XCTAssertEqual(fe.position(forLineNumber: 1), 0)
+        XCTAssertEqual(fe.position(forLineNumber: 22), 3)   // i=3 → 3*7+1=22
+        XCTAssertEqual(fe.position(forLineNumber: 64), 9)   // i=9 → 9*7+1=64
+        XCTAssertNil(fe.position(forLineNumber: 100))
+    }
+
+    func testPositionForEntryIDIdentityO1() {
+        let source = InMemoryEntrySource()
+        let entries = (0..<100).map { i in
+            LogEntry(
+                id: i, lineNumber: i + 1, timestamp: nil, level: .info,
+                message: "m \(i)", component: nil, threadID: nil,
+                source: nil, rawLine: "raw \(i)"
+            )
+        }
+        source.append(entries)
+        let fe = FilteredEntries(backing: .identity(source: source))
+
+        XCTAssertEqual(fe.position(forEntryID: 0), 0)
+        XCTAssertEqual(fe.position(forEntryID: 42), 42)
+        XCTAssertEqual(fe.position(forEntryID: 99), 99)
+        XCTAssertNil(fe.position(forEntryID: 100))
+        XCTAssertNil(fe.position(forEntryID: -1))
+    }
 }

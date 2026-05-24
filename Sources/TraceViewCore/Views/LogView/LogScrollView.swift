@@ -399,9 +399,13 @@ struct LogScrollView: NSViewRepresentable {
         func handleGoToLine(_ target: Int) {
             guard let container else { return }
             let documentView = container.documentView
-            guard let row = documentView.entries.firstIndex(where: {
-                $0.lineNumber == target
-            }) else {
+            // Use the O(1) lineNumber → position helper. The naive
+            // `firstIndex(where: { $0.lineNumber == target })` walks
+            // every entry up to the match, which on an indexed source
+            // parses every visited line (DateFormatter is the hot
+            // syscall) — a 25M-line jump hung the main thread for >37s
+            // before the OS spilled a crash report.
+            guard let row = documentView.entries.position(forLineNumber: target) else {
                 // Sticky on miss — leave binding alone.
                 return
             }

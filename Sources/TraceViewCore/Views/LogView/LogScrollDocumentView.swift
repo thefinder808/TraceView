@@ -289,11 +289,14 @@ final class LogScrollDocumentView: NSView {
         // Inline-expansion state. The desired expansion clears if the
         // mode is off OR the previously-expanded entry is no longer in
         // `entries` (filtered out, file reloaded, merged source toggled).
+        // Resolves via the O(1) entry-id → position helper so apply()
+        // doesn't parse every line up to the expanded row on indexed
+        // sources — same hot bug as handleGoToLine.
         self.inlineExpansionEnabled = inlineExpansionEnabled
         let desiredExpandedID: Int? = inlineExpansionEnabled ? expandedEntryID : nil
         self.expandedEntryID = desiredExpandedID
         let resolvedExpandedRow: Int? = desiredExpandedID.flatMap { id in
-            entries.firstIndex(where: { $0.id == id })
+            entries.position(forEntryID: id)
         }
         self.expandedRow = resolvedExpandedRow
         let expandedRowChanged = oldExpandedRow != resolvedExpandedRow

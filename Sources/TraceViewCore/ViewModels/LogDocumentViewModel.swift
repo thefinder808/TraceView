@@ -24,13 +24,20 @@ final class LogDocumentViewModel: ObservableObject {
     private var filterTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
+    /// Surfaced for view binding (FilterBarView disables itself, status
+    /// bar shows the "Indexed mode" note). Tracks the underlying source's
+    /// stats capability — true for InMemoryEntrySource, false for
+    /// IndexedEntrySource (no histogram or level counts available).
+    var derivedStatsAvailable: Bool { document.entrySource.supportsDerivedStats }
+
     init(document: LogDocument) {
         self.document = document
         setupFilterPipeline()
         subscribeToAppends()
+        subscribeToLoadComplete()
         // Second pane opened on an already-loaded document: seed the
         // filtered list from the snapshot instead of waiting on didAppend.
-        if !document.entries.isEmpty {
+        if document.entrySource.count > 0 {
             applyFilter()
         }
     }
@@ -51,6 +58,26 @@ final class LogDocumentViewModel: ObservableObject {
         document.didAppend
             .sink { [weak self] newEntries in
                 self?.handleAppend(newEntries)
+            }
+            .store(in: &cancellables)
+    }
+
+    /// Subscribe to load-state transitions. Indexed mode does not fire
+    /// `didAppend` post-build (static-after-build invariant), so we need
+    /// a separate signal to know when to run the initial filter pass.
+    /// `.complete` is the canonical "everything's loaded" signal and
+    /// works for both modes — in-memory mode reaches `.complete` after
+    /// the last chunk's `handleAppend`, so the rekick re-runs a filter
+    /// that's already correct (no behavior change; slight redundant
+    /// work).
+    private func subscribeToLoadComplete() {
+        document.$loadState
+            .compactMap { state -> Void? in
+                if case .complete = state { return () }
+                return nil
+            }
+            .sink { [weak self] _ in
+                self?.applyFilter()
             }
             .store(in: &cancellables)
     }
@@ -131,6 +158,18 @@ final class LogDocumentViewModel: ObservableObject {
     func applyFilter() {
         filterTask?.cancel()
 
+        // Phase 3: indexed sources skip the materialize-and-filter loop
+        // entirely. Filter / find UI is disabled (gated on
+        // derivedStatsAvailable), so the result is always "all rows,
+        // unfiltered" — wrap the source as an .identity FilteredEntries
+        // so subscript forwards directly without an indices array.
+        if !document.entrySource.supportsDerivedStats {
+            filteredEntries = FilteredEntries(backing: .identity(source: document.entrySource))
+            matches = []
+            currentMatchIndex = nil
+            return
+        }
+
         let entries = document.entries
         let snapshotCount = entries.count
         let snapshotLastID = entries.last?.id
@@ -202,9 +241,12 @@ final class LogDocumentViewModel: ObservableObject {
     // MARK: - Computed
 
     var matchCountText: String {
+        // Use entrySource.count so indexed mode reports the true line
+        // count instead of zero (allEntries returns [] for indexed).
+        let total = document.entrySource.count
         if filter.isActive {
-            return "\(Formatters.formatCount(filteredEntries.count)) of \(Formatters.formatCount(document.entries.count))"
+            return "\(Formatters.formatCount(filteredEntries.count)) of \(Formatters.formatCount(total))"
         }
-        return Formatters.formatCount(document.entries.count)
+        return Formatters.formatCount(total)
     }
 }

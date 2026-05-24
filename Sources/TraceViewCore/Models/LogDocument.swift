@@ -162,7 +162,7 @@ final class LogDocument: ObservableObject, Identifiable {
             .autoconnect()
             .sink { [weak self] _ in
                 guard let self else { return }
-                let count = self.entries.count
+                let count = self.entrySource.count
                 if count != self.displayLineCount {
                     self.displayLineCount = count
                 }
@@ -201,7 +201,45 @@ final class LogDocument: ObservableObject, Identifiable {
         histogramTask?.cancel()
     }
 
-    var lineCount: Int { entries.count }
+    /// Total line count. Uses the EntrySource's `count` directly so it
+    /// works for both in-memory (where it's the array size) and indexed
+    /// (where `allEntries` returns [] but the offset count is meaningful).
+    var lineCount: Int { entrySource.count }
+
+    /// Phase 3 hidden flag. Read directly from UserDefaults to avoid
+    /// plumbing SettingsManager through LogDocument — matches the
+    /// existing pattern for SettingsManager.fontSizeKey reads elsewhere.
+    /// Phase 5 will replace this with size-based auto-dispatch and the
+    /// flag goes away.
+    private var shouldForceIndexedMode: Bool {
+        UserDefaults.standard.bool(forKey: SettingsManager.forceIndexedModeKey)
+    }
+
+    /// Decode just enough of the file to detect a parser without
+    /// materializing the whole thing as a Swift String — load paths for
+    /// 5+ GB files cannot afford `String(data: <5GB>, encoding: .utf8)`.
+    /// Reads up to 64 KB via FileHandle, splits into sample lines, and
+    /// returns the highest-confidence parser. Returns nil if the file
+    /// can't be opened, contains no UTF-8-decodable prefix, or has no
+    /// non-empty lines.
+    private static func detectParserFromPrefix(url: URL) -> (any LogParser)? {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? handle.close() }
+        let prefixData: Data
+        do {
+            prefixData = try handle.read(upToCount: 65536) ?? Data()
+        } catch {
+            return nil
+        }
+        guard !prefixData.isEmpty,
+              let text = String(data: prefixData, encoding: .utf8) else { return nil }
+        let lines = text.components(separatedBy: .newlines)
+            .prefix(50)
+            .filter { !$0.isEmpty }
+            .map { String($0) }
+        guard !lines.isEmpty else { return nil }
+        return ParserRegistry.shared.detectParser(sampleLines: lines)
+    }
 
     // MARK: - Loading
 
@@ -210,7 +248,7 @@ final class LogDocument: ObservableObject, Identifiable {
     func load() {
         switch source {
         case .file:
-            guard loadTask == nil, !isLoading, entries.isEmpty else { return }
+            guard loadTask == nil, !isLoading, entrySource.count == 0 else { return }
             loadTask = Task { @MainActor [weak self] in
                 await self?.loadFile()
                 self?.loadTask = nil
@@ -277,6 +315,19 @@ final class LogDocument: ObservableObject, Identifiable {
         #if DEBUG
         timer.mark("gzip-check")
         #endif
+
+        // Phase 3 short-circuit: indexed mode. Detect the parser from a
+        // 64 KB prefix (NOT the full file — the existing eager path's
+        // `String(data: <5GB>, encoding: .utf8)` would copy the whole
+        // file). If the resolved parser is line-stateless and the file
+        // isn't compressed, hand off to the indexed loader. Otherwise
+        // fall through to the existing eager/chunked path.
+        if shouldForceIndexedMode && !compressed,
+           let prefixParser = Self.detectParserFromPrefix(url: url),
+           prefixParser.isLineStateless {
+            await loadFileIndexed(url: url, parser: prefixParser, generation: myGen)
+            return
+        }
 
         let startID = nextEntryID
 
@@ -519,6 +570,72 @@ final class LogDocument: ObservableObject, Identifiable {
         // avoiding visible histogram thrash during the stream.
         recomputeHistogram(immediate: false)
         loadState = .streaming(rowsLoaded: priorLoaded + chunk.count)
+    }
+
+    /// Phase 3 indexed-mode load path. Build the IndexedEntrySource off
+    /// the main actor (LogIndex.build mmaps the file and warms its pages
+    /// — typically 1-3 s on a 5 GB fixture), then swap `entrySource` and
+    /// finalize on the main actor. No file watching (static after build,
+    /// no live tail in P3) and no histogram (gated on
+    /// supportsDerivedStats, false for indexed).
+    @MainActor
+    private func loadFileIndexed(url: URL, parser: any LogParser, generation: Int) async {
+        #if DEBUG
+        let timer = LoadPerfTimer(label: "\(displayName) [indexed]")
+        timer.mark("dispatch")
+        #endif
+
+        let parseTask = Task.detached(priority: .userInitiated) { [weak self] in
+            let newSource: IndexedEntrySource
+            do {
+                newSource = try IndexedEntrySource(fileURL: url, parser: parser)
+            } catch {
+                await MainActor.run { [weak self] in
+                    guard let self, self.parseGeneration == generation else { return }
+                    self.loadState = .idle
+                    #if DEBUG
+                    timer.summary()
+                    #endif
+                }
+                return
+            }
+            guard !Task.isCancelled else { return }
+            #if DEBUG
+            timer.mark("build")
+            #endif
+            let lineCount = newSource.count
+            let totalBytes = newSource.logIndex.totalBytes
+            await MainActor.run { [weak self] in
+                guard let self, self.parseGeneration == generation else { return }
+                // Source swap — the didSet wires the republish sink so
+                // existing didAppend subscribers don't strand. Indexed
+                // mode never fires didAppend post-build (static-after-
+                // build invariant) so the sink is dormant but in place.
+                self.entrySource = newSource
+                self.parser = parser
+                self.fileSize = UInt64(totalBytes)
+                self.lastReadOffset = UInt64(totalBytes)
+                // entryID == row index for indexed; the next "free" id
+                // would be lineCount if we ever appended, which we
+                // don't in P3. Mirrors the eager path's bookkeeping.
+                self.nextEntryID = lineCount
+                // Conservative — don't hide populated columns. Worst
+                // case is a column reads "—" for every row.
+                self.hasTimestamps = true
+                self.hasComponents = true
+                // No histogram / level counts in indexed mode — gated by
+                // entrySource.supportsDerivedStats throughout.
+                self.loadState = .complete
+                // No startWatching: P3 indexed mode is static-after-
+                // build. Live-tail integration is Phase 6+.
+                #if DEBUG
+                timer.mark("paint")
+                timer.summary()
+                #endif
+            }
+        }
+
+        loadParseTask = parseTask
     }
 
     /// Finalize a chunked load after the last chunk has been applied.
@@ -787,6 +904,12 @@ final class LogDocument: ObservableObject, Identifiable {
     // main and the result is published back. For 100K-row logs this avoids
     // a multi-100ms main-actor stall after parse completes.
     private func recomputeHistogram(immediate: Bool) {
+        // Phase 3: skip for sources that don't carry histogram-eligible
+        // entry contents (IndexedEntrySource — building the histogram
+        // would require parsing every line in the file, defeating lazy
+        // loading). Status-bar UI surfaces this via derivedStatsAvailable.
+        guard entrySource.supportsDerivedStats else { return }
+
         histogramTask?.cancel()
         // Three triggers for an immediate compute:
         //   1. Caller passed `immediate: true` (end of file load, etc.).

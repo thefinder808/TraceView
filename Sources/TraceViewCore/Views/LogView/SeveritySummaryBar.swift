@@ -9,6 +9,17 @@ struct SeveritySummaryBar: View {
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
+        // Indexed mode (Phase 3): levelCounts is empty by design — the
+        // index build doesn't visit entry contents. Showing "0" for
+        // every chip would be misleading; hide the entire bar. The
+        // status-bar note explains the gap.
+        if viewModel.derivedStatsAvailable {
+            severityBarBody
+        }
+    }
+
+    @ViewBuilder
+    private var severityBarBody: some View {
         let theme = themeManager.current
         let per = document.levelCounts
         let total = per.values.reduce(0, +)

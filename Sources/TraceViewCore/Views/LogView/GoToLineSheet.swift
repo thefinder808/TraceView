@@ -12,7 +12,11 @@ struct GoToLineSheet: View {
     @FocusState private var focused: Bool
 
     private var totalLines: Int {
-        appState.selectedDocument(in: appState.activePane)?.entries.count ?? 0
+        // Use lineCount (forwards to entrySource.count) rather than
+        // entries.count — indexed sources expose `allEntries` as [] by
+        // design (synthesizing it would defeat lazy loading), so
+        // entries.count is 0 in indexed mode.
+        appState.selectedDocument(in: appState.activePane)?.lineCount ?? 0
     }
 
     private var parsed: Int? {
