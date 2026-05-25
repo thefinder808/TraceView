@@ -574,10 +574,11 @@ final class LogDocument: ObservableObject, Identifiable {
 
     /// Phase 3 indexed-mode load path. Build the IndexedEntrySource off
     /// the main actor (LogIndex.build mmaps the file and warms its pages
-    /// — typically 1-3 s on a 5 GB fixture), then swap `entrySource` and
+    /// — typically 1-3 s on a 5 GB fixture, +1-3 s in Phase 4 for the
+    /// level / timestamp scanners), then swap `entrySource` and
     /// finalize on the main actor. No file watching (static after build,
-    /// no live tail in P3) and no histogram (gated on
-    /// supportsDerivedStats, false for indexed).
+    /// no live tail in P3). Phase 4 populates `levelCounts` and runs
+    /// `recomputeHistogram` here (both read source-side parallel arrays).
     @MainActor
     private func loadFileIndexed(url: URL, parser: any LogParser, generation: Int) async {
         #if DEBUG
@@ -623,8 +624,16 @@ final class LogDocument: ObservableObject, Identifiable {
                 // case is a column reads "—" for every row.
                 self.hasTimestamps = true
                 self.hasComponents = true
-                // No histogram / level counts in indexed mode — gated by
-                // entrySource.supportsDerivedStats throughout.
+                // Phase 4 PR2: populate levelCounts + histogram from the
+                // source's parallel arrays. Indexed sources expose both
+                // as O(N) reads over the `[UInt8]` / `[Double]` slabs —
+                // no parser invocation, no entries iteration. The two
+                // assignments together unblock SeveritySummaryBar +
+                // HistogramView for indexed mode.
+                self.levelCounts = newSource.derivedLevelCounts
+                if newSource.supportsHistogram {
+                    self.recomputeHistogram(immediate: true)
+                }
                 self.loadState = .complete
                 // No startWatching: P3 indexed mode is static-after-
                 // build. Live-tail integration is Phase 6+.
@@ -904,11 +913,28 @@ final class LogDocument: ObservableObject, Identifiable {
     // main and the result is published back. For 100K-row logs this avoids
     // a multi-100ms main-actor stall after parse completes.
     private func recomputeHistogram(immediate: Bool) {
-        // Phase 3: skip for sources that don't carry histogram-eligible
-        // entry contents (IndexedEntrySource — building the histogram
-        // would require parsing every line in the file, defeating lazy
-        // loading). Status-bar UI surfaces this via derivedStatsAvailable.
-        guard entrySource.supportsDerivedStats else { return }
+        guard entrySource.supportsHistogram else { return }
+
+        // Phase 4 PR2 fast path: indexed sources compute the histogram
+        // directly from their parallel `levels` + `timestamps` arrays.
+        // No entries-iteration, no spike-peak tracking (the source is
+        // static-after-build; rebucketing rounds don't happen).
+        if let indexedSource = entrySource as? IndexedEntrySource {
+            histogramTask?.cancel()
+            histogramTask = Task { @MainActor [weak self] in
+                guard let self else { return }
+                let buckets = Self.histogramBucketCount
+                let result = await Task.detached(priority: .userInitiated) {
+                    indexedSource.derivedHistogram(buckets: buckets)
+                }.value
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    self.histogram = result
+                    self.lastHistogramComputeTime = Date()
+                }
+            }
+            return
+        }
 
         histogramTask?.cancel()
         // Three triggers for an immediate compute:

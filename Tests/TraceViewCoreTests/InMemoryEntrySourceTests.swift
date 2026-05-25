@@ -101,8 +101,12 @@ final class InMemoryEntrySourceTests: XCTestCase {
         XCTAssertNil(source.entry(at: 0))
     }
 
-    func testSupportsDerivedStatsIsTrue() {
+    func testSupportsAllFeaturesIsTrue() {
+        // Phase 4 PR2: in-memory sources support all derived-stat
+        // features (level counts, histogram, filter pipeline).
         let source = InMemoryEntrySource()
-        XCTAssertTrue(source.supportsDerivedStats)
+        XCTAssertTrue(source.supportsLevelCounts)
+        XCTAssertTrue(source.supportsHistogram)
+        XCTAssertTrue(source.supportsFilter)
     }
 }

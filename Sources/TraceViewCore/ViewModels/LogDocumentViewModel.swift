@@ -24,11 +24,17 @@ final class LogDocumentViewModel: ObservableObject {
     private var filterTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
-    /// Surfaced for view binding (FilterBarView disables itself, status
-    /// bar shows the "Indexed mode" note). Tracks the underlying source's
-    /// stats capability — true for InMemoryEntrySource, false for
-    /// IndexedEntrySource (no histogram or level counts available).
-    var derivedStatsAvailable: Bool { document.entrySource.supportsDerivedStats }
+    /// Phase 4 per-feature gates, surfaced for view binding. Each
+    /// forwards to the matching `EntrySource` capability:
+    /// - `levelCountsAvailable` drives `SeveritySummaryBar` visibility.
+    /// - `histogramAvailable` drives the histogram strip's nil-check.
+    /// - `filterAvailable` drives `FilterBarView`'s `.disabled(...)`.
+    /// In-memory sources return true for all three. Indexed sources
+    /// return: levelCounts=true, histogram=(timestamps captured),
+    /// filter=false in PR2 (PR3 lights it up).
+    var levelCountsAvailable: Bool { document.entrySource.supportsLevelCounts }
+    var histogramAvailable: Bool { document.entrySource.supportsHistogram }
+    var filterAvailable: Bool { document.entrySource.supportsFilter }
 
     init(document: LogDocument) {
         self.document = document
@@ -158,12 +164,13 @@ final class LogDocumentViewModel: ObservableObject {
     func applyFilter() {
         filterTask?.cancel()
 
-        // Phase 3: indexed sources skip the materialize-and-filter loop
-        // entirely. Filter / find UI is disabled (gated on
-        // derivedStatsAvailable), so the result is always "all rows,
-        // unfiltered" — wrap the source as an .identity FilteredEntries
-        // so subscript forwards directly without an indices array.
-        if !document.entrySource.supportsDerivedStats {
+        // Phase 4 PR2: sources that don't support filter skip the
+        // materialize-and-filter loop entirely. PR3 wires the indexed
+        // scanner; until then, indexed sources land here and produce
+        // an unfiltered `.identity` view backed by the source directly
+        // (no materialized indices array). Filter UI is disabled in the
+        // same state via `filterAvailable`.
+        if !document.entrySource.supportsFilter {
             filteredEntries = FilteredEntries(backing: .identity(source: document.entrySource))
             matches = []
             currentMatchIndex = nil

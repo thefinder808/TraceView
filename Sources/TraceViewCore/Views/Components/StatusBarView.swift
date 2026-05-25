@@ -40,17 +40,15 @@ struct StatusBarView: View {
                 }
             }
 
-            // Phase 3 indexed-mode indicator. Shown only when the
-            // document's source is indexed (no histogram, no level
-            // counts, no filter). Uses the warning text color so it
-            // visually reads as "you're in a degraded mode" without
-            // shouting.
-            if !viewModel.derivedStatsAvailable {
+            // Phase 4 PR2: chips + histogram are back; only filter is
+            // still off until PR3 lights up the indexed scan. Surface
+            // that narrowly rather than the broader Phase 3 warning.
+            if !viewModel.filterAvailable {
                 statusDivider(theme: theme)
                 statusItem(theme: theme) {
                     Image(systemName: "bolt.horizontal")
                         .font(.system(size: 10, weight: .semibold))
-                    Text("Indexed mode · histogram & counts unavailable")
+                    Text("Indexed mode · filter unavailable")
                         .fontWeight(.medium)
                 }
                 .foregroundStyle(theme.warningText)

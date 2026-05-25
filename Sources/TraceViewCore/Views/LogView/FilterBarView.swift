@@ -101,12 +101,11 @@ struct FilterBarView: View {
         .padding(.horizontal, 12)
         .frame(height: 36)
         .background(theme.filterBarBackground)
-        // Indexed mode (Phase 3) does not support filter / find — there's
-        // no way to scan a 20 GB file's contents synchronously inside
-        // the filter pipeline. Disable the bar entirely; the status bar
-        // shows the "Indexed mode" note explaining why.
-        .disabled(!viewModel.derivedStatsAvailable)
-        .opacity(viewModel.derivedStatsAvailable ? 1.0 : 0.4)
+        // Phase 4 PR2 keeps the filter bar disabled for indexed sources
+        // until PR3 lights up the background raw-byte scan pipeline.
+        // `filterAvailable == false` for indexed mode reflects this.
+        .disabled(!viewModel.filterAvailable)
+        .opacity(viewModel.filterAvailable ? 1.0 : 0.4)
         .onChange(of: appState.focusSearchTick) { _, _ in
             // Both panes observe the global tick; only the active pane
             // should grab focus, otherwise primary always wins the SwiftUI

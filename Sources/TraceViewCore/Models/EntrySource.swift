@@ -29,12 +29,26 @@ protocol EntrySource: AnyObject {
     /// await.
     func entry(at index: Int) -> LogEntry?
 
-    /// True iff this source can produce the document's derived summary
-    /// statistics (histogram + level counts) by iterating `allEntries`.
-    /// `InMemoryEntrySource` returns true; `IndexedEntrySource` returns
-    /// false (the offsets-array build does not visit entry contents). The
-    /// view-model and document gate histogram/count work on this flag.
-    var supportsDerivedStats: Bool { get }
+    /// True iff this source can produce per-level summary counts for the
+    /// `SeveritySummaryBar`. In-memory sources iterate `allEntries`; the
+    /// indexed source reads its `logIndex.levels` parallel array (always
+    /// available, captured during build).
+    var supportsLevelCounts: Bool { get }
+
+    /// True iff this source can produce the minimap histogram for
+    /// `HistogramView`. In-memory sources walk `allEntries`; the indexed
+    /// source reads its `logIndex.timestamps` parallel array, which is
+    /// only captured for parser kinds whose timestamps are addressable
+    /// from raw bytes (PlainText, SCCM). CSV / unknown formats fall
+    /// outside this gate even in indexed mode.
+    var supportsHistogram: Bool { get }
+
+    /// True iff this source supports the active filter pipeline (text
+    /// search + level + component). In-memory sources can iterate and
+    /// filter directly; the indexed source's true value lights up in
+    /// Phase 4 PR3 once the background raw-byte scanner lands. PR2
+    /// keeps this `false` for indexed sources.
+    var supportsFilter: Bool { get }
 
     /// Fires after each successful append (or replace) with the slice that
     /// was just added (or the full replacement payload). Matches the
@@ -51,7 +65,9 @@ protocol EntrySource: AnyObject {
 final class InMemoryEntrySource: EntrySource {
     private(set) var allEntries: [LogEntry] = []
     var count: Int { allEntries.count }
-    let supportsDerivedStats = true
+    let supportsLevelCounts = true
+    let supportsHistogram = true
+    let supportsFilter = true
 
     private let subject = PassthroughSubject<[LogEntry], Never>()
     var didAppend: AnyPublisher<[LogEntry], Never> { subject.eraseToAnyPublisher() }
