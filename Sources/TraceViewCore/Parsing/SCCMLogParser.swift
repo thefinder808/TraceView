@@ -7,6 +7,7 @@ struct SCCMLogParser: LogParser {
     let name = "SCCM (CMTrace)"
     let supportedExtensions: Set<String> = ["log"]
     let isLineStateless = true
+    let kind: ParserKind = .sccm
 
     private static let logPattern: NSRegularExpression? = try? NSRegularExpression(
         pattern: #"<!\[LOG\[(.*?)\]LOG\]!><time="([^"]*)" date="([^"]*)" component="([^"]*)" context="[^"]*" type="(\d)" thread="(\d+)" file="([^"]*)">"#,

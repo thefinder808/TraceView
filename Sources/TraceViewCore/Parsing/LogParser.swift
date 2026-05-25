@@ -24,6 +24,11 @@ protocol LogParser {
     /// Defaults to `false` (conservative). Override `true` only when the
     /// parser is genuinely line-by-line.
     var isLineStateless: Bool { get }
+
+    /// Phase 4 hint passed into `LogIndex.build` so the byte-level level
+    /// and timestamp scanners can pick the right fast path. Defaults to
+    /// `.other`; the three line-stateless parsers override.
+    var kind: ParserKind { get }
 }
 
 extension LogParser {
@@ -36,4 +41,8 @@ extension LogParser {
     /// Default: assume the parser may need cross-line context. Only the
     /// three line-stateless parsers (PlainText, SCCM, CSV) override.
     var isLineStateless: Bool { false }
+
+    /// Default: an unspecified parser kind. Override in any parser whose
+    /// byte-level scanner support is wired up in `FastLineScanner`.
+    var kind: ParserKind { .other }
 }

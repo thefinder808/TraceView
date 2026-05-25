@@ -44,7 +44,12 @@ final class IndexedEntrySource: EntrySource {
             "IndexedEntrySource requires a line-stateless parser; got \(parser.name)"
         )
         self.parser = parser
-        self.logIndex = try LogIndex.build(fileURL: fileURL)
+        // Phase 4: pass the parser's ParserKind into LogIndex so its
+        // build pass can pick the right byte-level level + timestamp
+        // scanner. Bytes captured into logIndex.levels / .timestamps;
+        // see FastLineScanner for the equivalence boundary with
+        // parser.parse(line:).
+        self.logIndex = try LogIndex.build(fileURL: fileURL, parserKind: parser.kind)
     }
 
     func entry(at index: Int) -> LogEntry? {

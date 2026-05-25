@@ -11,6 +11,13 @@ import Foundation
 /// file size — a 5 GB file with a 290 MB offsets array plus a few hundred
 /// MB of resident pages, not a 5 GB copy.
 ///
+/// Phase 4 captures two parallel arrays during the same build pass:
+/// `levels: [UInt8]` (always; ~36 MB on 5 GB) and `timestamps: [Double]?`
+/// (PlainText / SCCM only; ~292 MB on 5 GB). These power severity chips,
+/// histogram, and level-filter in indexed mode without touching the
+/// parser or materializing entries. See `FastLineScanner` for the
+/// equivalence boundary with `parser.parse(line:)`.
+///
 /// Build cost is one full pass over the file scanning for 0x0A. On
 /// M-series the scan runs at memory bandwidth so a 5 GB file indexes in
 /// 1-2 s once the pages page in. The warm pass that follows touches one
@@ -26,6 +33,9 @@ final class LogIndex {
     let fileURL: URL
     let data: Data                  // memory-mapped, kernel-managed paging
     let offsets: [UInt64]           // byte offset of the start of each line
+    let levels: [UInt8]             // FastLevelScanner output per line
+    let timestamps: [Double]?       // FastTimestampScanner output, or nil
+    let parserKind: ParserKind
     let indexElapsed: TimeInterval
     let warmElapsed: TimeInterval
     var buildElapsed: TimeInterval { indexElapsed + warmElapsed }
@@ -37,17 +47,23 @@ final class LogIndex {
         fileURL: URL,
         data: Data,
         offsets: [UInt64],
+        levels: [UInt8],
+        timestamps: [Double]?,
+        parserKind: ParserKind,
         indexElapsed: TimeInterval,
         warmElapsed: TimeInterval
     ) {
         self.fileURL = fileURL
         self.data = data
         self.offsets = offsets
+        self.levels = levels
+        self.timestamps = timestamps
+        self.parserKind = parserKind
         self.indexElapsed = indexElapsed
         self.warmElapsed = warmElapsed
     }
 
-    static func build(fileURL: URL) throws -> LogIndex {
+    static func build(fileURL: URL, parserKind: ParserKind = .other) throws -> LogIndex {
         let start = Date()
         let data = try Data(contentsOf: fileURL, options: .mappedIfSafe)
 
@@ -62,29 +78,106 @@ final class LogIndex {
             Self.forEachNewline(in: buf) { _ in newlineCount += 1 }
         }
 
-        // Second pass: fill the offsets array in pre-allocated capacity.
-        // Line 0 starts at byte 0; subsequent lines start right after each
+        // The offsets array is at minimum 1 entry (line 0 starts at byte
+        // 0, even an empty/no-newline file has one line). Capacity is
+        // newlineCount + 1 because the final line may or may not have a
+        // trailing newline — we drop one offset in that case.
+        let lineCapacity = newlineCount + 1
+
+        // Resolve whether to capture timestamps. CSV and .other parsers
+        // don't have a usable byte-level timestamp scanner, so we save
+        // the 8 bytes/line by skipping the array entirely.
+        let captureTimestamps: Bool = (parserKind == .plainText || parserKind == .sccm)
+        let yearContext = FastTimestampScanner.YearContext.default
+
+        // Pre-allocate the parallel arrays. UInt8 storage for levels is
+        // 1 byte/line; Double storage for timestamps is 8 bytes/line. On
+        // a 5 GB BSD-syslog file with 36.5 M lines, levels are 36 MB and
+        // timestamps are 292 MB.
+        var levelsBuf = [UInt8](repeating: FastLevelScanner.encode(.info), count: lineCapacity)
+        var timestampsBuf: [Double]? = captureTimestamps
+            ? [Double](repeating: .nan, count: lineCapacity)
+            : nil
+
+        // Second pass: fill the offsets array in pre-allocated capacity,
+        // plus the levels and (optional) timestamps in lock-step. Line 0
+        // starts at byte 0; subsequent lines start right after each
         // 0x0A. We don't record an offset past the last newline when the
         // file ends with `\n` — line N-1's end is implied by data.count,
         // and the last-line branch in `line(at:)` drops the trailing LF.
         // For files that don't end with `\n`, the last newline opens line
         // N-1, which `line(at:)` reads to end-of-file.
-        let offsets = [UInt64](unsafeUninitializedCapacity: newlineCount + 1) { dst, initializedCount in
+        let offsets = [UInt64](unsafeUninitializedCapacity: lineCapacity) { dst, initializedCount in
             dst[0] = 0
             var k = 1
+            var lineStart: Int = 0
             data.withUnsafeBytes { buf in
                 let totalCount = buf.count
+
+                // Capture the head fields for line 0 (covers the case
+                // where there are no newlines, plus all single-line
+                // files). When forEachNewline iterates, we close each
+                // previous line at the newline-byte and open the next.
                 Self.forEachNewline(in: buf) { foundOffset in
+                    // Close-out the previous line (lineStart ..< foundOffset).
+                    let lineEnd = foundOffset
+                    if k - 1 < lineCapacity {
+                        levelsBuf[k - 1] = FastLevelScanner.detect(
+                            in: buf,
+                            range: lineStart..<lineEnd,
+                            kind: parserKind
+                        )
+                        if captureTimestamps {
+                            timestampsBuf![k - 1] = FastTimestampScanner.parse(
+                                in: buf,
+                                range: lineStart..<lineEnd,
+                                kind: parserKind,
+                                yearContext: yearContext
+                            )
+                        }
+                    }
                     // Skip recording an offset past the final newline
                     // when the file ends with `\n`. Mirrors the pre-
                     // memchr `i + 1 < ptr.count` guard exactly.
                     if foundOffset + 1 < totalCount {
                         dst[k] = UInt64(foundOffset + 1)
+                        lineStart = foundOffset + 1
                         k += 1
+                    } else {
+                        // The trailing-newline case — no more lines
+                        // remain. Mark lineStart so the post-loop close
+                        // doesn't write past the array.
+                        lineStart = totalCount
+                    }
+                }
+
+                // Close-out the final line if there's content past the
+                // last newline (file doesn't end with \n). When the file
+                // ends with \n, lineStart == totalCount and we skip.
+                if lineStart < totalCount && k - 1 < lineCapacity {
+                    levelsBuf[k - 1] = FastLevelScanner.detect(
+                        in: buf,
+                        range: lineStart..<totalCount,
+                        kind: parserKind
+                    )
+                    if captureTimestamps {
+                        timestampsBuf![k - 1] = FastTimestampScanner.parse(
+                            in: buf,
+                            range: lineStart..<totalCount,
+                            kind: parserKind,
+                            yearContext: yearContext
+                        )
                     }
                 }
             }
             initializedCount = k
+        }
+
+        // Trim the parallel arrays in case the file ended with \n
+        // (offsets shorter than lineCapacity by 1).
+        if offsets.count < lineCapacity {
+            levelsBuf.removeLast(lineCapacity - offsets.count)
+            timestampsBuf?.removeLast(lineCapacity - offsets.count)
         }
 
         let indexElapsed = Date().timeIntervalSince(start)
@@ -123,6 +216,9 @@ final class LogIndex {
             fileURL: fileURL,
             data: data,
             offsets: offsets,
+            levels: levelsBuf,
+            timestamps: timestampsBuf,
+            parserKind: parserKind,
             indexElapsed: indexElapsed,
             warmElapsed: warmElapsed
         )
