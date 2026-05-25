@@ -58,6 +58,26 @@ enum IndexedFilterScanner {
         let caseSensitive = filter.caseSensitive
         let hasTextFilter = !searchText.isEmpty
 
+        // Phase 4.5 PR2 component gate. Resolved up-front to a UInt16
+        // index into `logIndex.uniqueComponents`; per-row check is a
+        // single UInt16 compare. If the requested component isn't in
+        // the unique list, the filter excludes everything (matches
+        // in-memory `LogFilter.matchesLevelAndComponent` semantics —
+        // filter.component non-nil but no entry has that component
+        // → zero results).
+        let targetComponent = filter.component
+        let componentIndex = logIndex.componentIndex
+        let uniqueComponents = logIndex.uniqueComponents
+        let hasComponentFilter = targetComponent != nil && componentIndex != nil && uniqueComponents != nil
+        let targetComponentID: UInt16?
+        if let target = targetComponent,
+           let unique = uniqueComponents,
+           let id = unique.firstIndex(of: target) {
+            targetComponentID = UInt16(id)
+        } else {
+            targetComponentID = nil
+        }
+
         // Pre-compile the needle representation for byte-level search.
         // Regex path goes through NSRegularExpression on candidates only
         // (after level filter), so the cost is bounded by candidate
@@ -119,6 +139,20 @@ enum IndexedFilterScanner {
                         continue
                     }
                     if level < minimumLevel {
+                        i += 1
+                        continue
+                    }
+                }
+
+                // Component filter — UInt16 lookup against the cached
+                // per-row index. If the target component isn't in the
+                // file's unique-components table, every row is rejected.
+                if hasComponentFilter {
+                    guard let targetID = targetComponentID else {
+                        i += 1
+                        continue
+                    }
+                    if componentIndex![i] != targetID {
                         i += 1
                         continue
                     }
