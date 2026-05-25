@@ -281,6 +281,25 @@ struct LogDocumentView: View {
         let bar = histogram.bars[index]
         let entries = viewModel.filteredEntries
 
+        // Phase 4 PR2 fast path: when the underlying view is an
+        // `.identity` over an `IndexedEntrySource`, every entry access
+        // routes through `parser.parse(line:)` (DateFormatter et al).
+        // A linear `entries.first { ... }` scan can parse-storm the
+        // main thread on a 36 M-row file. Route through the source's
+        // bisect over the parallel `logIndex.timestamps` + `.levels`
+        // arrays instead — O(log N + bucketWidth), zero parser calls
+        // in the search itself.
+        if case .identity(let source) = entries.backing,
+           let indexed = source as? IndexedEntrySource {
+            let entry = indexedHistogramJump(
+                source: indexed, range: range, bar: bar
+            )
+            guard let entry else { return }
+            appState.setFollowing(pane: pane, following: false)
+            appState.goToLine(entry.lineNumber, in: pane)
+            return
+        }
+
         var target: LogEntry?
         if bar.err > 0 {
             target = firstEntry(in: entries, range: range, levels: [.error, .critical])
@@ -298,6 +317,40 @@ struct LogDocumentView: View {
         guard let entry = target else { return }
         appState.setFollowing(pane: pane, following: false)
         appState.goToLine(entry.lineNumber, in: pane)
+    }
+
+    /// Indexed-mode histogram-click resolution. Same precedence as the
+    /// general path (err → warn → first-in-range), but every lookup is
+    /// a single bisect + bucket-walk over the source's parallel arrays
+    /// — at most one parser invocation (the final `entry(at:)`).
+    private func indexedHistogramJump(
+        source: IndexedEntrySource,
+        range: (start: Date, end: Date),
+        bar: LogHistogram.Bar
+    ) -> LogEntry? {
+        let startEpoch = range.start.timeIntervalSince1970
+        let endEpoch = range.end.timeIntervalSince1970
+        var rowIdx: Int?
+        if bar.err > 0 {
+            rowIdx = source.firstRowInTimeRange(
+                startEpoch: startEpoch, endEpoch: endEpoch,
+                matchingLevels: [.error, .critical]
+            )
+        }
+        if rowIdx == nil && bar.warn > 0 {
+            rowIdx = source.firstRowInTimeRange(
+                startEpoch: startEpoch, endEpoch: endEpoch,
+                matchingLevels: [.warning]
+            )
+        }
+        if rowIdx == nil {
+            rowIdx = source.firstRowInTimeRange(
+                startEpoch: startEpoch, endEpoch: endEpoch,
+                matchingLevels: nil
+            )
+        }
+        guard let rowIdx else { return nil }
+        return source.entry(at: rowIdx)
     }
 
     /// First entry whose timestamp falls within `[range.start, range.end)`

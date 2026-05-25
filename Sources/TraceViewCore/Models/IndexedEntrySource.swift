@@ -127,6 +127,68 @@ final class IndexedEntrySource: EntrySource {
         )
     }
 
+    /// Find the first row whose timestamp falls in
+    /// `[startEpoch, endEpoch)` and whose level (decoded from
+    /// `logIndex.levels`) is in `matchingLevels` — or any row when
+    /// `matchingLevels` is nil. Returns the row index or nil if no row
+    /// qualifies.
+    ///
+    /// O(log N + bucketWidth) — bisect `logIndex.timestamps` for the
+    /// first index whose timestamp is `>= startEpoch`, then walk
+    /// forward through the bucket checking the level byte directly.
+    /// No parser invocation occurs in the search itself; the caller
+    /// can `entry(at:)` the returned index for a single parse.
+    ///
+    /// Replaces the in-memory pattern
+    /// `entries.first { ... timestamp + level predicate ... }` for
+    /// indexed mode, which would otherwise route every probe through
+    /// `entry(at:)` → `parser.parse` and parse-storm the main thread
+    /// on a 36 M-row file (5GB BSD-syslog: ~37 s hang before the OS
+    /// spills a stackshot — confirmed via the histogram-click bug in
+    /// Phase 4 PR2 smoke).
+    func firstRowInTimeRange(
+        startEpoch: Double,
+        endEpoch: Double,
+        matchingLevels: Set<LogLevel>?
+    ) -> Int? {
+        guard let timestamps = logIndex.timestamps, !timestamps.isEmpty else {
+            return nil
+        }
+        // Bisect for the smallest i with timestamps[i] >= startEpoch.
+        // NaN entries fail the >= comparison so they sink to the "less
+        // than" side; bisect skips past long NaN prefixes correctly.
+        var lo = 0
+        var hi = timestamps.count
+        while lo < hi {
+            let mid = (lo + hi) / 2
+            let ts = timestamps[mid]
+            if ts.isFinite && ts >= startEpoch {
+                hi = mid
+            } else {
+                lo = mid + 1
+            }
+        }
+        // Walk forward through the bucket checking levels directly.
+        var i = lo
+        let limit = timestamps.count
+        while i < limit {
+            let ts = timestamps[i]
+            if ts.isFinite && ts >= endEpoch { break }
+            if ts.isFinite && ts >= startEpoch {
+                if let matchingLevels {
+                    let level = FastLevelScanner.decode(logIndex.levels[i])
+                    if matchingLevels.contains(level) {
+                        return i
+                    }
+                } else {
+                    return i
+                }
+            }
+            i += 1
+        }
+        return nil
+    }
+
     private static let histogramLabelFormatterShort: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
