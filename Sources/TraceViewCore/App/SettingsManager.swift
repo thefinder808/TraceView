@@ -12,12 +12,26 @@ final class SettingsManager: ObservableObject {
     private static let findModeKey = "traceview.findMode"
     private static let primaryPaneWidthKey = "traceview.primaryPaneWidth"
     static let restoreTabsOnLaunchKey = "traceview.restoreTabsOnLaunch"
-    /// Phase 3 hidden flag. Set via `defaults write com.traceview.app
-    /// traceview.forceIndexedMode -bool YES` to route eligible files
-    /// (PlainText/SCCM/CSV, uncompressed) through `IndexedEntrySource`
-    /// instead of the chunked in-memory parse. Phase 5 will replace this
-    /// with size-based auto-dispatch and remove the flag. No UI surface.
-    static let forceIndexedModeKey = "traceview.forceIndexedMode"
+    /// Phase 5 hidden emergency opt-out. Set via `defaults write
+    /// com.traceview.app traceview.disableIndexedMode -bool YES` to
+    /// force every file through the eager in-memory loader regardless
+    /// of size. For users who hit an indexed-mode bug and need to
+    /// recover before a fix ships. No UI surface — documented in
+    /// CLAUDE.md.
+    static let disableIndexedModeKey = "traceview.disableIndexedMode"
+    /// Phase 5 hidden test-and-tuning override. Set via `defaults write
+    /// com.traceview.app traceview.indexedModeThresholdBytes -int N`
+    /// to use indexed mode for files ≥ N bytes. Default 100 MB. Used
+    /// by tests to drive indexed mode on small fixtures (set to 1) and
+    /// by power users who want a different cutoff than the default.
+    /// No UI surface.
+    static let indexedModeThresholdKey = "traceview.indexedModeThresholdBytes"
+    /// Phase 5 default threshold: 100 MB. Files at or above this size
+    /// (and parser-eligible) go through `IndexedEntrySource`; smaller
+    /// files use the eager chunked parse. 100 MB is roughly the point
+    /// where the in-memory `LogEntry` array's RAM cost starts to feel
+    /// real on typical Macs.
+    static let indexedModeDefaultThresholdBytes: Int64 = 100 * 1024 * 1024
 
     @Published var fontSize: Double {
         didSet { UserDefaults.standard.set(fontSize, forKey: Self.fontSizeKey) }

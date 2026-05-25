@@ -11,12 +11,15 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        // Make sure no prior test left the flag on.
-        UserDefaults.standard.removeObject(forKey: SettingsManager.forceIndexedModeKey)
+        // Explicit reset — XCTest's UserDefaults sometimes leaks values
+        // across test methods in ways removeObject doesn't clear.
+        UserDefaults.standard.set(0, forKey: SettingsManager.indexedModeThresholdKey)
+        UserDefaults.standard.set(false, forKey: SettingsManager.disableIndexedModeKey)
     }
 
     override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: SettingsManager.forceIndexedModeKey)
+        UserDefaults.standard.set(0, forKey: SettingsManager.indexedModeThresholdKey)
+        UserDefaults.standard.set(false, forKey: SettingsManager.disableIndexedModeKey)
         for url in temporaryFiles {
             try? FileManager.default.removeItem(at: url)
         }
@@ -58,7 +61,7 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
         let lines = (0..<200).map { "Jan 01 10:00:00 host proc[1]: msg \($0)" }
         let url = writeTempFile(contents: lines.joined(separator: "\n") + "\n")
 
-        UserDefaults.standard.set(true, forKey: SettingsManager.forceIndexedModeKey)
+        UserDefaults.standard.set(1, forKey: SettingsManager.indexedModeThresholdKey)
         let doc = loadAndWait(url: url)
 
         XCTAssertTrue(
@@ -99,7 +102,7 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
         }
         let url = writeTempFile(contents: lines.joined(separator: "\n") + "\n", suffix: "jsonl")
 
-        UserDefaults.standard.set(true, forKey: SettingsManager.forceIndexedModeKey)
+        UserDefaults.standard.set(1, forKey: SettingsManager.indexedModeThresholdKey)
         let doc = loadAndWait(url: url)
 
         XCTAssertTrue(
@@ -109,6 +112,49 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
         XCTAssertTrue(doc.entrySource.supportsLevelCounts)
         XCTAssertTrue(doc.entrySource.supportsHistogram)
         XCTAssertTrue(doc.entrySource.supportsFilter)
+    }
+
+    // MARK: - Phase 5 auto-dispatch
+
+    func testSmallFileUsesEagerByDefault() throws {
+        // Phase 5: no override, small fixture → eager. The default
+        // 100 MB threshold rules out indexed mode for any test
+        // fixture we can reasonably generate inline.
+        let lines = (0..<200).map { "Jan 01 10:00:00 host proc[1]: msg \($0)" }
+        let url = writeTempFile(contents: lines.joined(separator: "\n") + "\n")
+
+        let doc = loadAndWait(url: url)
+
+        XCTAssertTrue(
+            doc.entrySource is InMemoryEntrySource,
+            "Small fixture should use eager loader by default"
+        )
+    }
+
+    func testDisableOverrideForcesEagerEvenWithThresholdOverride() throws {
+        // disable=true wins over threshold override. Verifies the
+        // emergency opt-out works.
+        let lines = (0..<200).map { "Jan 01 10:00:00 host proc[1]: msg \($0)" }
+        let url = writeTempFile(contents: lines.joined(separator: "\n") + "\n")
+
+        UserDefaults.standard.set(1, forKey: SettingsManager.indexedModeThresholdKey)
+        UserDefaults.standard.set(true, forKey: SettingsManager.disableIndexedModeKey)
+        let doc = loadAndWait(url: url)
+
+        XCTAssertTrue(
+            doc.entrySource is InMemoryEntrySource,
+            "disable flag should win over threshold override"
+        )
+    }
+
+    func testDefaultThresholdIs100MB() {
+        // Lock the default in a test so an accidental constant flip
+        // doesn't ship without a visible test failure.
+        XCTAssertEqual(
+            SettingsManager.indexedModeDefaultThresholdBytes,
+            100 * 1024 * 1024,
+            "Phase 5 default threshold should be 100 MB"
+        )
     }
 
     // MARK: - Indexed-mode side effects
@@ -124,7 +170,7 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
         let lines = (0..<200).map { "Jan 01 10:00:0\($0 % 10) host proc[1]: msg \($0)" }
         let url = writeTempFile(contents: lines.joined(separator: "\n") + "\n")
 
-        UserDefaults.standard.set(true, forKey: SettingsManager.forceIndexedModeKey)
+        UserDefaults.standard.set(1, forKey: SettingsManager.indexedModeThresholdKey)
         let doc = loadAndWait(url: url)
 
         XCTAssertEqual(doc.lineCount, 200)

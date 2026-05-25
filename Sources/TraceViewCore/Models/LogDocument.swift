@@ -206,13 +206,38 @@ final class LogDocument: ObservableObject, Identifiable {
     /// (where `allEntries` returns [] but the offset count is meaningful).
     var lineCount: Int { entrySource.count }
 
-    /// Phase 3 hidden flag. Read directly from UserDefaults to avoid
-    /// plumbing SettingsManager through LogDocument — matches the
-    /// existing pattern for SettingsManager.fontSizeKey reads elsewhere.
-    /// Phase 5 will replace this with size-based auto-dispatch and the
-    /// flag goes away.
-    private var shouldForceIndexedMode: Bool {
-        UserDefaults.standard.bool(forKey: SettingsManager.forceIndexedModeKey)
+    /// Phase 5 auto-dispatch. Indexed mode is the default for files at
+    /// or above `SettingsManager.indexedModeDefaultThresholdBytes` (100
+    /// MB) when the parser is line-stateless and the file is
+    /// uncompressed. Two hidden UserDefaults overrides exist for
+    /// recovery and testing:
+    /// - `traceview.disableIndexedMode == true` forces the eager path
+    ///   regardless of size (emergency opt-out).
+    /// - `traceview.indexedModeThresholdBytes == N` overrides the
+    ///   100 MB default (tests set N=1 to drive indexed mode on small
+    ///   fixtures).
+    private static func shouldUseIndexedMode(fileSize: Int64) -> Bool {
+        let defaults = UserDefaults.standard
+        if defaults.bool(forKey: SettingsManager.disableIndexedModeKey) {
+            return false
+        }
+        let override = defaults.integer(forKey: SettingsManager.indexedModeThresholdKey)
+        let threshold: Int64 = override > 0
+            ? Int64(override)
+            : SettingsManager.indexedModeDefaultThresholdBytes
+        return fileSize >= threshold
+    }
+
+    /// File size lookup via FileManager attributes. Returns 0 on any
+    /// failure — callers treat 0 as "too small for indexed mode", which
+    /// is the safe default (eager path handles empty/unreadable files
+    /// gracefully).
+    private static func fileSizeBytes(url: URL) -> Int64 {
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let size = attrs[.size] as? NSNumber else {
+            return 0
+        }
+        return size.int64Value
     }
 
     /// Decode just enough of the file to detect a parser without
@@ -316,13 +341,14 @@ final class LogDocument: ObservableObject, Identifiable {
         timer.mark("gzip-check")
         #endif
 
-        // Phase 3 short-circuit: indexed mode. Detect the parser from a
-        // 64 KB prefix (NOT the full file — the existing eager path's
+        // Phase 5 auto-dispatch: indexed mode for files ≥ 100 MB with a
+        // line-stateless parser. Detect the parser from a 64 KB prefix
+        // (NOT the full file — the eager path's
         // `String(data: <5GB>, encoding: .utf8)` would copy the whole
-        // file). If the resolved parser is line-stateless and the file
-        // isn't compressed, hand off to the indexed loader. Otherwise
-        // fall through to the existing eager/chunked path.
-        if shouldForceIndexedMode && !compressed,
+        // file). All other files fall through to the chunked in-memory
+        // parse.
+        let fileSize = Self.fileSizeBytes(url: url)
+        if Self.shouldUseIndexedMode(fileSize: fileSize) && !compressed,
            let prefixParser = Self.detectParserFromPrefix(url: url),
            prefixParser.isLineStateless {
             await loadFileIndexed(url: url, parser: prefixParser, generation: myGen)

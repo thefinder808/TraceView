@@ -237,8 +237,8 @@ final class ParseStormGuardTests: XCTestCase {
         }
         let url = writeTempFile(contents: fixture.joined(separator: "\n") + "\n")
 
-        UserDefaults.standard.set(true, forKey: SettingsManager.forceIndexedModeKey)
-        defer { UserDefaults.standard.removeObject(forKey: SettingsManager.forceIndexedModeKey) }
+        UserDefaults.standard.set(1, forKey: SettingsManager.indexedModeThresholdKey)
+        defer { UserDefaults.standard.removeObject(forKey: SettingsManager.indexedModeThresholdKey) }
 
         let doc = LogDocument(source: .file(url), displayName: url.lastPathComponent)
         let vm = LogDocumentViewModel(document: doc)

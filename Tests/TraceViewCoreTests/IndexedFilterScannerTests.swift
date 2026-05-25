@@ -217,8 +217,8 @@ final class IndexedFilterScannerTests: XCTestCase {
         """
         let url = writeTempFile(contents: fixture)
 
-        UserDefaults.standard.set(true, forKey: SettingsManager.forceIndexedModeKey)
-        defer { UserDefaults.standard.removeObject(forKey: SettingsManager.forceIndexedModeKey) }
+        UserDefaults.standard.set(1, forKey: SettingsManager.indexedModeThresholdKey)
+        defer { UserDefaults.standard.removeObject(forKey: SettingsManager.indexedModeThresholdKey) }
 
         let doc = LogDocument(source: .file(url), displayName: url.lastPathComponent)
         let vm = LogDocumentViewModel(document: doc)
