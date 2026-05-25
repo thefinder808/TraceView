@@ -35,6 +35,12 @@ final class LogIndex {
     let offsets: [UInt64]           // byte offset of the start of each line
     let levels: [UInt8]             // FastLevelScanner output per line
     let timestamps: [Double]?       // FastTimestampScanner output, or nil
+    /// Phase 4.5 PR2 component capture. `componentIndex[i]` is an index
+    /// into `uniqueComponents` for row i. `uniqueComponents[0]` is the
+    /// sentinel empty string ("no component captured"). Populated when
+    /// `parserKind` is PlainText or SCCM; nil otherwise.
+    let componentIndex: [UInt16]?
+    let uniqueComponents: [String]?
     let parserKind: ParserKind
     let indexElapsed: TimeInterval
     let warmElapsed: TimeInterval
@@ -49,6 +55,8 @@ final class LogIndex {
         offsets: [UInt64],
         levels: [UInt8],
         timestamps: [Double]?,
+        componentIndex: [UInt16]?,
+        uniqueComponents: [String]?,
         parserKind: ParserKind,
         indexElapsed: TimeInterval,
         warmElapsed: TimeInterval
@@ -58,6 +66,8 @@ final class LogIndex {
         self.offsets = offsets
         self.levels = levels
         self.timestamps = timestamps
+        self.componentIndex = componentIndex
+        self.uniqueComponents = uniqueComponents
         self.parserKind = parserKind
         self.indexElapsed = indexElapsed
         self.warmElapsed = warmElapsed
@@ -88,16 +98,25 @@ final class LogIndex {
         // don't have a usable byte-level timestamp scanner, so we save
         // the 8 bytes/line by skipping the array entirely.
         let captureTimestamps: Bool = (parserKind == .plainText || parserKind == .sccm)
+        let captureComponents: Bool = (parserKind == .plainText || parserKind == .sccm)
         let yearContext = FastTimestampScanner.YearContext.default
 
         // Pre-allocate the parallel arrays. UInt8 storage for levels is
-        // 1 byte/line; Double storage for timestamps is 8 bytes/line. On
-        // a 5 GB BSD-syslog file with 36.5 M lines, levels are 36 MB and
-        // timestamps are 292 MB.
+        // 1 byte/line; Double storage for timestamps is 8 bytes/line;
+        // UInt16 per row for component indices. On a 5 GB BSD-syslog
+        // file with 36.5 M lines: levels 36 MB, timestamps 292 MB,
+        // componentIndex 73 MB.
         var levelsBuf = [UInt8](repeating: FastLevelScanner.encode(.info), count: lineCapacity)
         var timestampsBuf: [Double]? = captureTimestamps
             ? [Double](repeating: .nan, count: lineCapacity)
             : nil
+        var componentIndexBuf: [UInt16]? = captureComponents
+            ? [UInt16](repeating: 0, count: lineCapacity)
+            : nil
+        // Index 0 reserved for empty/"no component captured" so a UInt16
+        // of 0 means "no component" without burning a real entry.
+        var componentTable: [String: UInt16]? = captureComponents ? ["": 0] : nil
+        var uniqueComponentsBuf: [String]? = captureComponents ? [""] : nil
 
         // Second pass: fill the offsets array in pre-allocated capacity,
         // plus the levels and (optional) timestamps in lock-step. Line 0
@@ -135,6 +154,12 @@ final class LogIndex {
                                 yearContext: yearContext
                             )
                         }
+                        if captureComponents {
+                            componentIndexBuf![k - 1] = Self.componentIndex(
+                                for: lineStart..<lineEnd, in: buf, kind: parserKind,
+                                table: &componentTable!, unique: &uniqueComponentsBuf!
+                            )
+                        }
                     }
                     // Skip recording an offset past the final newline
                     // when the file ends with `\n`. Mirrors the pre-
@@ -168,6 +193,12 @@ final class LogIndex {
                             yearContext: yearContext
                         )
                     }
+                    if captureComponents {
+                        componentIndexBuf![k - 1] = Self.componentIndex(
+                            for: lineStart..<totalCount, in: buf, kind: parserKind,
+                            table: &componentTable!, unique: &uniqueComponentsBuf!
+                        )
+                    }
                 }
             }
             initializedCount = k
@@ -178,25 +209,146 @@ final class LogIndex {
         if offsets.count < lineCapacity {
             levelsBuf.removeLast(lineCapacity - offsets.count)
             timestampsBuf?.removeLast(lineCapacity - offsets.count)
+            componentIndexBuf?.removeLast(lineCapacity - offsets.count)
         }
 
         let indexElapsed = Date().timeIntervalSince(start)
 
-        // Warm pass: the indexing scan above touched every byte to find
-        // newlines, but the kernel can evict pages aggressively under any
-        // memory pressure and the early-file pages may already be cold
-        // by the time later pages were scanned. Without this pass,
-        // random-access reads from cell rendering hit page faults on the
-        // main thread → spinner-cursor freezes during momentum scroll,
-        // even on machines with plenty of free RAM.
-        //
-        // Two-step:
-        //   1. madvise(MADV_WILLNEED) — advisory prefetch hint. May or
-        //      may not be honored on macOS.
-        //   2. Touch one byte per 16 KB page — forces resident state
-        //      regardless. The `blackHole(sum)` call prevents the
-        //      optimizer from eliminating the reads.
+        // Warm pass — see `warmPages` below for why this is load-bearing.
         let warmStart = Date()
+        Self.warmPages(of: data)
+        let warmElapsed = Date().timeIntervalSince(warmStart)
+
+        return LogIndex(
+            fileURL: fileURL,
+            data: data,
+            offsets: offsets,
+            levels: levelsBuf,
+            timestamps: timestampsBuf,
+            componentIndex: componentIndexBuf,
+            uniqueComponents: uniqueComponentsBuf,
+            parserKind: parserKind,
+            indexElapsed: indexElapsed,
+            warmElapsed: warmElapsed
+        )
+    }
+
+    /// Dedup helper called from the build pass. Extracts a component
+    /// byte range from the line via FastComponentScanner, decodes to
+    /// String, and assigns it a stable UInt16 ID via the running
+    /// `table` dictionary. Index 0 is reserved for empty/no-component;
+    /// every subsequent unique component gets the next available ID.
+    /// Returns 0 when extraction fails so the row reports "no
+    /// component" to the filter pipeline.
+    private static func componentIndex(
+        for range: Range<Int>,
+        in buf: UnsafeRawBufferPointer,
+        kind: ParserKind,
+        table: inout [String: UInt16],
+        unique: inout [String]
+    ) -> UInt16 {
+        guard let compRange = FastComponentScanner.extractRange(
+            in: buf, range: range, kind: kind
+        ) else {
+            return 0
+        }
+        // Decode the slice once per unique component. Use the existing
+        // dictionary lookup to coalesce repeats (typical syslog has
+        // ~10-100 unique components across millions of lines, so
+        // post-warmup most lookups hit the cache without allocating).
+        guard let base = buf.baseAddress else { return 0 }
+        let length = compRange.upperBound - compRange.lowerBound
+        let data = Data(bytes: base.advanced(by: compRange.lowerBound), count: length)
+        guard let string = String(data: data, encoding: .utf8), !string.isEmpty else {
+            return 0
+        }
+        if let existing = table[string] { return existing }
+        // Cap at UInt16.max - 1 unique components. In practice we
+        // never get close (real syslog files have <1000), but bound
+        // defensively rather than risk an overflow in a runaway file.
+        guard unique.count < Int(UInt16.max) else { return 0 }
+        let nextID = UInt16(unique.count)
+        unique.append(string)
+        table[string] = nextID
+        return nextID
+    }
+
+    /// Phase 4.5 entry point: try the on-disk cache before falling back
+    /// to a fresh build. On cache miss the new build's results are
+    /// written back atomically, so subsequent opens of the same source
+    /// file hit the cache.
+    ///
+    /// The cache is invalidated when the source file's size or mtime
+    /// changes (see `LogIndexCache.tryLoad`) — re-saves of the log file
+    /// trigger an automatic rebuild.
+    static func buildOrLoad(fileURL: URL, parserKind: ParserKind = .other) throws -> LogIndex {
+        // Phase 5.5: respect the "Cache indexes to disk" setting. When
+        // false, skip the cache read AND the post-build write so
+        // nothing touches disk. Every open pays the full byte-scan
+        // cost. Default true when the key has never been set.
+        let cacheEnabled: Bool = {
+            let defaults = UserDefaults.standard
+            if defaults.object(forKey: SettingsManager.indexedModeCacheEnabledKey) == nil {
+                return true
+            }
+            return defaults.bool(forKey: SettingsManager.indexedModeCacheEnabledKey)
+        }()
+
+        if cacheEnabled,
+           let cached = LogIndexCache.tryLoad(forSourceURL: fileURL, parserKind: parserKind) {
+            let start = Date()
+            // The source file is still mmap'd separately — its page
+            // residency is independent of the cache file. The warmup
+            // here pre-touches the source so on-demand line reads from
+            // the renderer don't page-fault on the main thread.
+            let data = try Data(contentsOf: fileURL, options: .mappedIfSafe)
+            let indexElapsed = Date().timeIntervalSince(start)
+            let warmStart = Date()
+            warmPages(of: data)
+            let warmElapsed = Date().timeIntervalSince(warmStart)
+            return LogIndex(
+                fileURL: fileURL,
+                data: data,
+                offsets: cached.offsets,
+                levels: cached.levels,
+                timestamps: cached.timestamps,
+                componentIndex: cached.componentIndex,
+                uniqueComponents: cached.uniqueComponents,
+                parserKind: cached.parserKind,
+                indexElapsed: indexElapsed,
+                warmElapsed: warmElapsed
+            )
+        }
+
+        // Cache miss (or cache disabled) → full build. Only persist
+        // when caching is enabled.
+        let index = try build(fileURL: fileURL, parserKind: parserKind)
+        if cacheEnabled {
+            LogIndexCache.write(
+                sourceURL: fileURL,
+                offsets: index.offsets,
+                levels: index.levels,
+                timestamps: index.timestamps,
+                componentIndex: index.componentIndex,
+                uniqueComponents: index.uniqueComponents,
+                parserKind: parserKind
+            )
+        }
+        return index
+    }
+
+    /// Warm the kernel's page cache for the given mmap'd source file.
+    /// Two-step:
+    ///   1. `madvise(MADV_WILLNEED)` — advisory prefetch hint. May or
+    ///      may not be honored on macOS depending on memory pressure.
+    ///   2. Touch one byte per 16 KB page — forces resident state
+    ///      regardless. The `blackHole(sum)` call prevents the
+    ///      optimizer from eliminating the reads.
+    ///
+    /// Without this pass, random-access reads from cell rendering hit
+    /// page faults on the main thread → spinner-cursor freezes during
+    /// momentum scroll, even on machines with plenty of free RAM.
+    private static func warmPages(of data: Data) {
         data.withUnsafeBytes { (buf: UnsafeRawBufferPointer) in
             guard let base = buf.baseAddress else { return }
             let count = buf.count
@@ -210,18 +362,6 @@ final class LogIndex {
             }
             blackHole(sum)
         }
-        let warmElapsed = Date().timeIntervalSince(warmStart)
-
-        return LogIndex(
-            fileURL: fileURL,
-            data: data,
-            offsets: offsets,
-            levels: levelsBuf,
-            timestamps: timestampsBuf,
-            parserKind: parserKind,
-            indexElapsed: indexElapsed,
-            warmElapsed: warmElapsed
-        )
     }
 
     /// memchr-based newline iterator. Invokes `body` with the byte

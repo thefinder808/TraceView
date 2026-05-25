@@ -74,6 +74,9 @@ struct LogScrollView: NSViewRepresentable {
         container.documentView.onOpenInSourceLog = { [weak coordinator = context.coordinator] entry in
             coordinator?.onOpenInSourceLog(entry)
         }
+        container.documentView.onFilterToComponent = { [weak coordinator = context.coordinator] entry in
+            coordinator?.onFilterToComponent(entry)
+        }
         // Expansion toggle writes back through the binding.
         container.documentView.onExpansionToggled = { [weak coordinator = context.coordinator] id in
             coordinator?.expandedEntryIDBinding?.wrappedValue = id

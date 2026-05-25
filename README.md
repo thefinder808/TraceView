@@ -110,6 +110,25 @@ The log table is a custom AppKit-backed virtual-scroll view (`LogScrollView`) wr
 
 Full design + feature spec in [spec.md](spec.md).
 
+## Big files (indexed mode)
+
+Files at or above 100 MB are loaded with a memory-mapped index instead of read into RAM. A 5 GB BSD-syslog file goes from "can't open" to:
+
+- First open: ~5 s (one-shot byte-level scan + index cache write)
+- Subsequent opens: ~200 ms (cache hit)
+- Scrolling: 60 fps anywhere in the file
+- Filter (text + level + component): ~2 s with progress
+- Severity chips + histogram: instant; click any histogram bar to jump
+
+Everything else still works the same — the indexed path just doesn't need the file to fit in memory.
+
+The 100 MB threshold and the cache live behind **Settings → Performance**:
+- *Use indexed mode for large files* — toggle off to force the old in-memory path for everything.
+- *Threshold* — adjust the cutoff (10 MB to 10 GB).
+- *Index cache* — view current cache size and clear it. Cache files live in `~/Library/Caches/com.traceview.app/indexes/`; macOS also evicts them automatically under disk pressure.
+
+Supported formats: PlainText (BSD-syslog, dated-syslog), SCCM (CMTrace), CSV. IPS crash reports, `.diag` reports, Unified Log JSON, and gzipped files fall back to the in-memory path regardless of size.
+
 ## Performance targets
 
 | Scenario | Target |
@@ -120,6 +139,8 @@ Full design + feature spec in [spec.md](spec.md).
 | Filter 100K lines | < 500ms |
 | Memory (100K loaded) | < 150 MB |
 | Open multi-GB file (indexed) | < 3s to first render |
+| Open 5 GB indexed (cached) | < 500 ms |
+| Scroll 36 M rows | 60 fps |
 | Memory (indexed mode) | index + LRU only; file stays `mmap`'d |
 
 ## Status
