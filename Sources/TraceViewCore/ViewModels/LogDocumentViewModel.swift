@@ -200,14 +200,24 @@ final class LogDocumentViewModel: ObservableObject {
     /// task; calling `.cancel()` on it sets `Task.isCancelled == true`
     /// inside the scan loop, which polls every 65 K rows.
     private func applyFilterIndexed(source: IndexedEntrySource) {
-        // Inactive filter: no scan needed, just publish the identity
-        // view. Avoids both the wasted ~2 s scan AND the
-        // `.indexed`-backing scroll-to-line parse storm — position
-        // helpers fast-path on `.identity` because lineNumber ==
-        // position + 1 by IndexedEntrySource invariant. Filter mode
-        // only — find mode reaches the scan path even with an empty
-        // filter to populate the matches list.
-        if !filter.isActive && findMode != .find {
+        // Short-circuit when no scan is meaningful:
+        // - Filter mode + inactive filter → all rows visible, no work.
+        // - Find mode + empty searchText → matches is always empty;
+        //   running the scan with no text would return ALL source
+        //   indices (290 MB array on a 36.5 M-row file). Mirrors
+        //   in-memory `recomputeMatches`'s empty-searchText guard.
+        //
+        // Either way we publish the identity view, drop matches, and
+        // skip the scan entirely. The `.identity` backing is also
+        // what keeps `position(forLineNumber:)` / `.position(forEntryID:)`
+        // on the O(1) fast path — without this, scroll-to-line and
+        // inline-expansion would parse-storm.
+        let needsScan: Bool
+        switch findMode {
+        case .filter: needsScan = filter.isActive
+        case .find:   needsScan = !filter.searchText.isEmpty
+        }
+        if !needsScan {
             filteredEntries = FilteredEntries(backing: .identity(source: source))
             matches = []
             currentMatchIndex = nil
