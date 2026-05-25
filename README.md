@@ -6,7 +6,7 @@
 
 A native macOS log viewer for admins, developers, and anyone who reads too many log files. Inspired by Microsoft's CMTrace.
 
-Real-time file following, severity-aware highlighting, built-in error-code lookup, and a Console.app-style browser for system reports — all in a SwiftUI interface that feels at home on macOS 14+.
+Real-time file following, severity-aware highlighting, built-in error-code lookup, and a Console.app-style browser for system reports — all in a SwiftUI interface that feels at home on macOS 14+. A memory-mapped index keeps multi-gigabyte logs scrolling at 60 fps without ever loading them into RAM.
 
 <p align="center">
   <img src="docs/screenshot.gif" alt="TraceView in motion: split view live-tailing two log files side-by-side with severity summary chips, density histograms, and a sidebar browsing /var/log plus crash/diagnostic/spin reports" width="900"/>
@@ -15,11 +15,12 @@ Real-time file following, severity-aware highlighting, built-in error-code looku
 ## Features
 
 - **Real-time following** — new lines auto-scroll into view. Scroll up to investigate, scroll back down to resume. Kernel-level file watching (`DispatchSource`), no polling.
+- **Multi-gigabyte files** — files at or above 100 MB open in a memory-mapped *indexed mode*: the file is `mmap`'d and an offset index is built up front, so rows are decoded and parsed lazily on demand (LRU-cached) instead of loading the whole file into RAM. Severity counts and the density histogram come from compact parallel index arrays, and text/level filtering runs on a background raw-byte scanner — so a 5 GB syslog stays at 60 fps. The mode is auto-selected by file size; smaller files use the eager in-memory path. Available for line-stateless formats (PlainText, SCCM, CSV).
 - **Severity highlighting** — errors get red row backgrounds, warnings get yellow, critical rows are deeper red. Detected from structured formats (`messageType`, JSON `level`, SCCM `type`) and fallback keyword heuristics for plain text.
 - **Severity summary chips** — live per-level counts (`Critical 4 · Error 127 · Warning 342 · …`). Click to filter.
 - **Event histogram** — 60-bucket density strip above the table, stacked error/warn bars, trailing "now" marker. **Click any bucket to jump to that moment** — the click lands on the highest-severity entry in the bucket so a click on a red spike actually opens an error. **Spike preservation** keeps live-tail histograms readable: as the time range stretches, earlier spikes leave a faint shadow at their original height instead of fading into the noise floor. Auto-hides when timestamps aren't parseable.
 - **Expand-in-place drawer** — single-click any row to expand it with metadata, full message, and action pills (`Copy`, `Filter to component`, `Lookup error code`). Switchable to a bottom detail pane in Settings.
-- **Error-code lookup inspector** — built-in database for `errno`, `OSStatus`, `IOReturn`, Mach `kern_return_t`, and HTTP status codes. Accepts decimal, hex, symbolic, or auto-detect input. Inline error codes in log messages are tappable.
+- **Error-code lookup inspector** — built-in database spanning 13 domains: `errno`, `OSStatus`, `IOReturn`, Mach `kern_return_t`, HTTP status, CFNetwork, Cocoa (`NSError`), Security (`errSec`), POSIX signals, SQLite result codes, gRPC status, Bonjour / DNS-SD, and POSIX exit codes (`sysexits.h`). Accepts decimal, hex, symbolic, or auto-detect input, with conservative cross-domain prioritization when the input is ambiguous. Inline error codes in log messages are tappable.
 - **Saved filter presets** — snapshot the current filter to a named pill in the filter bar. Persisted.
 - **Tabs** — multiple logs open in tabs with live-stream pulse dot.
 - **Split view with scroll-sync** — open two logs side by side, with optional pane scroll-sync (⇧⌘S) so scrolling one pane drives the other to the closest matching timestamp. Following state mirrors across panes when sync is on. Active pane is marked with a 2px theme-tinted top accent strip; menu shortcuts (⌘F, ⌘G, ⇧⌘G, ⌘D, ⌘⌥R) route to whichever pane has focus — set via row click, tab click, or filter-bar focus.
@@ -27,9 +28,9 @@ Real-time file following, severity-aware highlighting, built-in error-code looku
 - **Console-style sidebar** — browse `/var/log`, `~/Library/Logs`, `/Library/Logs`, plus `.ips` reports split into Crash / Diagnostic / Spin buckets by filename classification (same rule Console.app uses). Right-click any report to open it directly in the left or right pane.
 - **Bookmarks** — ⌘D bookmarks the selected row. The sidebar's Bookmarks section aggregates across every open doc, grouped by file, so you can jump back to any marked line regardless of which tab is active. Hover any bookmark for a one-click ✕ remove.
 - **Live unified log** — wraps `log stream --style ndjson` for real-time system log capture with optional predicate filtering.
-- **Multiple parsers** — PlainText, UnifiedLog (`log show/stream` JSON), JSONLines (including whole-file arrays), CSV, SCCM, IPS crash reports, and `.diag` diagnostic reports. Auto-detected by scoring the first ~50 lines of each file.
+- **Multiple parsers** — PlainText, UnifiedLog (`log show/stream` JSON), JSONLines (including whole-file arrays), CSV, SCCM, IPS crash reports, and `.diag` diagnostic reports. Auto-detected by scoring the first ~50 lines of each file. `.gz` rotated logs are decompressed transparently on open.
 - **Themes** — Console (default), Light, Dark, Neon.
-- **Keyboard shortcuts** — `Cmd+O` open · `Cmd+Shift+O` open in right pane · `Cmd+F` search · `Cmd+G` / `Cmd+Shift+G` next/previous match · `Cmd+D` toggle bookmark · `Cmd+Opt+R` toggle regex matching · `Cmd+Shift+L` error lookup · `Cmd+Shift+S` toggle pane sync · `Cmd+Shift+E` export · `Cmd+K` command palette · `Cmd+T` cycle theme. Full list in [spec.md](spec.md#keyboard-shortcuts).
+- **Keyboard shortcuts** — `Cmd+O` open · `Cmd+Shift+O` open in right pane · `Cmd+F` search · `Cmd+G` / `Cmd+Shift+G` next/previous match · `Cmd+L` go to line · `Cmd+D` toggle bookmark · `Cmd+Opt+R` toggle regex matching · `Cmd+Shift+L` error lookup · `Cmd+\` toggle split view · `Cmd+Shift+S` toggle pane sync · `Cmd+Shift+E` export · `Cmd+K` command palette · `Cmd+T` cycle theme. Full list in [spec.md](spec.md#keyboard-shortcuts).
 
 ## Screenshots
 
@@ -80,26 +81,32 @@ Real-time file following, severity-aware highlighting, built-in error-code looku
 ## Architecture
 
 ```
-Sources/TraceView/
-  App/               @main, scenes, commands, AppState, SettingsManager
-  Models/            LogEntry, LogLevel, LogDocument, LogFilter, LogFilterPreset
-  Parsing/           LogParser protocol + seven built-in parsers + auto-detect
-  Services/          FileWatcher, UnifiedLogStream, ErrorCodeLookup,
-                     LogBrowserService, ExportService
-  ViewModels/        LogDocumentViewModel, ErrorLookupViewModel
-  Theme/             AppTheme protocol, ThemeManager, Console/Light/Dark/Neon
-  Views/
-    Components/      CommandPalette, StatusBarView, LogLevelBadge
-    Sidebar/         SidebarView (Open Files / Reports / System Logs)
-    LogView/         NSLogTableView (AppKit-backed for perf), LogRowView,
-                     FilterBarView, SeveritySummaryBar, HistogramView,
-                     TabBarView, FilterPresetsView, InlineRowDetailView,
-                     DetailPaneView
-    ErrorLookup/     ErrorLookupPanel
-    ContentView, WelcomeView, SettingsView
+Sources/
+  TraceViewApp/          @main thin executable shell
+  TraceViewCore/         all app logic, built as a unit-testable library
+    App/                 scenes, commands, AppState, SettingsManager
+    Models/              LogEntry, LogLevel, LogDocument, LogFilter, LogFilterPreset,
+                         EntrySource (+ InMemoryEntrySource), IndexedEntrySource,
+                         FilteredEntries, LogHistogram, HighlightRule, ErrorDomain
+    Parsing/             LogParser protocol + seven built-in parsers + auto-detect
+    Services/            FileWatcher, UnifiedLogStream, ErrorCodeLookup,
+                         LogBrowserService, ExportService, GzipDecompressor,
+                         LogIndex, IndexedFilterScanner, FastLineScanner
+    ViewModels/          LogDocumentViewModel, ErrorLookupViewModel
+    Theme/               AppTheme protocol, ThemeManager, Console/Light/Dark/Neon
+    Utilities/           LRUCache, Formatters, Color+Hex, LoadPerfTimer
+    Views/
+      Components/        CommandPalette, StatusBarView, LogLevelBadge, HoverTooltip
+      Sidebar/           SidebarView (Open Files / Reports / System Logs)
+      LogView/           LogScrollView (custom AppKit virtual-scroll renderer),
+                         FilterBarView, SeveritySummaryBar, HistogramView,
+                         TabBarView, FilterPresetsView, InlineRowDetailView,
+                         DetailPaneView, GoToLineSheet
+      ErrorLookup/       ErrorLookupPanel
+      ContentView, WelcomeView, SettingsView, CreateMergedViewSheet
 ```
 
-The log table is an `NSTableView` wrapped via `NSViewRepresentable` — SwiftUI's `LazyVStack` can't keep up with 100K+ line files or live-tail bursts. Everything else is pure SwiftUI.
+The log table is a custom AppKit-backed virtual-scroll view (`LogScrollView`) wrapped via `NSViewRepresentable` — SwiftUI's `LazyVStack` can't keep up with 100K+ line files or live-tail bursts, so only the visible rows are ever realized. For files at or above 100 MB, `LogDocument` auto-dispatches to an `IndexedEntrySource` (memory map + offset index, see `LogIndex`) so rows parse on demand rather than all up front. App logic lives in the `TraceViewCore` library so it can be unit-tested; `TraceViewApp` is a thin `@main` shell. Everything else is pure SwiftUI.
 
 Full design + feature spec in [spec.md](spec.md).
 
@@ -112,10 +119,12 @@ Full design + feature spec in [spec.md](spec.md).
 | Live tail at 100 lines/sec | Smooth, no lag |
 | Filter 100K lines | < 500ms |
 | Memory (100K loaded) | < 150 MB |
+| Open multi-GB file (indexed) | < 3s to first render |
+| Memory (indexed mode) | index + LRU only; file stays `mmap`'d |
 
 ## Status
 
-Phase 1 of the Console Dense redesign is shipped. Phase 2 (Clean Native / Observability / Editorial as selectable theme skins) is queued.
+**v1.1.0** lands the large-file engine: a custom virtual-scroll renderer that replaces the SwiftUI list, plus a memory-mapped *indexed mode* that auto-engages for files ≥ 100 MB, alongside an expanded 13-domain error-code database. Phase 1 of the Console Dense redesign is shipped; Phase 2 (Clean Native / Observability / Editorial as selectable theme skins) remains queued.
 
 ## License
 
