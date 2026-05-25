@@ -32,18 +32,28 @@ import Foundation
 /// logged and the in-memory index keeps working.
 enum LogIndexCache {
     static let magic: UInt32 = 0x5456_4C49  // 'TVLI'
-    static let version: UInt32 = 1
+    /// Bumped to 2 in Phase 4.5 PR2 to add the components section. Any
+    /// version mismatch invalidates the cache so the rebuild populates
+    /// the new fields.
+    static let version: UInt32 = 2
     static let headerSize = 40
+
+    /// Flag bits packed into the header's `flags: UInt32`.
+    private static let flagHasTimestamps: UInt32 = 0x1
+    private static let flagHasComponents: UInt32 = 0x2
 
     /// Snapshot returned from `tryLoad` — the bytes are read out of the
     /// mmap'd cache file into Swift Arrays so LogIndex's existing
-    /// `let offsets/levels/timestamps` properties accept them directly.
-    /// Allocation + memcpy on a 5 GB-source-fixture cache is ~30 ms
-    /// (memory-bandwidth bound), vs ~5 s to rebuild from scratch.
+    /// `let offsets/levels/timestamps/componentIndex/uniqueComponents`
+    /// properties accept them directly. Allocation + memcpy on a 5 GB-
+    /// source-fixture cache is ~30 ms (memory-bandwidth bound), vs
+    /// ~5 s to rebuild from scratch.
     struct CachedIndex {
         let offsets: [UInt64]
         let levels: [UInt8]
         let timestamps: [Double]?
+        let componentIndex: [UInt16]?
+        let uniqueComponents: [String]?
         let parserKind: ParserKind
     }
 
@@ -93,6 +103,8 @@ enum LogIndexCache {
         offsets: [UInt64],
         levels: [UInt8],
         timestamps: [Double]?,
+        componentIndex: [UInt16]?,
+        uniqueComponents: [String]?,
         parserKind: ParserKind
     ) -> Bool {
         guard let cacheURL = cacheURL(forSourceURL: sourceURL) else { return false }
@@ -105,11 +117,15 @@ enum LogIndexCache {
             defer { try? handle.close() }
 
             // Header.
+            var flags: UInt32 = 0
+            if timestamps != nil { flags |= flagHasTimestamps }
+            if componentIndex != nil && uniqueComponents != nil { flags |= flagHasComponents }
+
             var header = Data(capacity: headerSize)
             appendUInt32(&header, magic)
             appendUInt32(&header, version)
             appendUInt32(&header, encodeParserKind(parserKind))
-            appendUInt32(&header, timestamps != nil ? 0x1 : 0x0)
+            appendUInt32(&header, flags)
             appendInt64(&header, attrs.size)
             appendDouble(&header, attrs.mtime)
             appendUInt64(&header, UInt64(offsets.count))
@@ -129,6 +145,24 @@ enum LogIndexCache {
             if let timestamps {
                 try timestamps.withUnsafeBufferPointer { buf in
                     let data = Data(bytes: buf.baseAddress!, count: buf.count * MemoryLayout<Double>.size)
+                    try handle.write(contentsOf: data)
+                }
+            }
+            // Components (optional). Layout:
+            //   uniqueCount: UInt32
+            //   foreach component: length (UInt32) + UTF-8 bytes
+            //   componentIndex: lineCount × UInt16
+            if let componentIndex, let uniqueComponents {
+                var section = Data()
+                appendUInt32(&section, UInt32(uniqueComponents.count))
+                for comp in uniqueComponents {
+                    let bytes = Data(comp.utf8)
+                    appendUInt32(&section, UInt32(bytes.count))
+                    section.append(bytes)
+                }
+                try handle.write(contentsOf: section)
+                try componentIndex.withUnsafeBufferPointer { buf in
+                    let data = Data(bytes: buf.baseAddress!, count: buf.count * MemoryLayout<UInt16>.size)
                     try handle.write(contentsOf: data)
                 }
             }
@@ -170,17 +204,20 @@ enum LogIndexCache {
         guard sourceSizeHeader == sourceSize else { return nil }
         // mtime tolerance: 1 ms covers floating-point round-trip noise.
         guard abs(sourceMtimeHeader - sourceMtime) < 0.001 else { return nil }
-        let hasTimestamps = (flags & 0x1) != 0
+        let hasTimestamps = (flags & flagHasTimestamps) != 0
+        let hasComponents = (flags & flagHasComponents) != 0
 
-        // Expected total size: header + 8N + N + (8N if timestamps).
+        // Slice the fixed-size sections first; components section is
+        // variable-length so we parse it from where the fixed sections
+        // end.
+        let offsetsBytes = lineCount * MemoryLayout<UInt64>.size
+        let levelsBytes = lineCount
         let timestampsBytes = hasTimestamps ? lineCount * MemoryLayout<Double>.size : 0
-        let expected = headerSize + lineCount * MemoryLayout<UInt64>.size + lineCount + timestampsBytes
-        guard data.count == expected else { return nil }
+        let fixedEnd = headerSize + offsetsBytes + levelsBytes + timestampsBytes
+        guard data.count >= fixedEnd else { return nil }
 
-        // Slice into the three arrays. Use unsafeUninitializedCapacity
-        // to avoid zero-init before the memcpy from the mmap'd cache.
-        let offsetsRange = headerSize..<(headerSize + lineCount * MemoryLayout<UInt64>.size)
-        let levelsRange = offsetsRange.upperBound..<(offsetsRange.upperBound + lineCount)
+        let offsetsRange = headerSize..<(headerSize + offsetsBytes)
+        let levelsRange = offsetsRange.upperBound..<(offsetsRange.upperBound + levelsBytes)
 
         let offsets = [UInt64](unsafeUninitializedCapacity: lineCount) { buf, count in
             data.copyBytes(to: buf, from: offsetsRange)
@@ -200,10 +237,45 @@ enum LogIndexCache {
             }
         }
 
+        var componentIndex: [UInt16]? = nil
+        var uniqueComponents: [String]? = nil
+        if hasComponents {
+            // Parse the variable-length unique-components table, then
+            // the fixed-size componentIndex array.
+            var cursor = fixedEnd
+            guard cursor + MemoryLayout<UInt32>.size <= data.count else { return nil }
+            let uniqueCount = Int(readUInt32(data, offset: cursor))
+            cursor += MemoryLayout<UInt32>.size
+            var components: [String] = []
+            components.reserveCapacity(uniqueCount)
+            for _ in 0..<uniqueCount {
+                guard cursor + MemoryLayout<UInt32>.size <= data.count else { return nil }
+                let length = Int(readUInt32(data, offset: cursor))
+                cursor += MemoryLayout<UInt32>.size
+                guard cursor + length <= data.count else { return nil }
+                let bytes = data.subdata(in: cursor..<(cursor + length))
+                components.append(String(data: bytes, encoding: .utf8) ?? "")
+                cursor += length
+            }
+            let componentBytes = lineCount * MemoryLayout<UInt16>.size
+            guard cursor + componentBytes == data.count else { return nil }
+            let componentRange = cursor..<(cursor + componentBytes)
+            componentIndex = [UInt16](unsafeUninitializedCapacity: lineCount) { buf, count in
+                data.copyBytes(to: buf, from: componentRange)
+                count = lineCount
+            }
+            uniqueComponents = components
+        } else {
+            // No components — expected size matches the fixed sections only.
+            guard data.count == fixedEnd else { return nil }
+        }
+
         return CachedIndex(
             offsets: offsets,
             levels: levels,
             timestamps: timestamps,
+            componentIndex: componentIndex,
+            uniqueComponents: uniqueComponents,
             parserKind: decodeParserKind(parserKindRead) ?? expectedKind
         )
     }

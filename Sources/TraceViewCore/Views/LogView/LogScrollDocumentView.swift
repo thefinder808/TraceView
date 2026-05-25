@@ -103,6 +103,7 @@ final class LogScrollDocumentView: NSView {
     /// Right-click handlers. Wired from LogScrollView.
     var onToggleBookmark: (LogEntry) -> Void = { _ in }
     var onOpenInSourceLog: (LogEntry) -> Void = { _ in }
+    var onFilterToComponent: (LogEntry) -> Void = { _ in }
 
     /// Entry the right-click context menu was built for. NSMenu doesn't
     /// pass the originating event into the menu-item action, so we cache
@@ -679,6 +680,22 @@ final class LogScrollDocumentView: NSView {
         bookmarkItem.target = self
         menu.addItem(bookmarkItem)
 
+        // Phase 4.5 PR2: "Filter to Component" is shown when the
+        // clicked row has a component value AND no component filter is
+        // currently pinned. The inline detail pill still works as
+        // before; this just makes the action discoverable from a
+        // right-click without expanding the row first.
+        if let entry = contextMenuEntry, let component = entry.component, !component.isEmpty {
+            menu.addItem(NSMenuItem.separator())
+            let filterItem = NSMenuItem(
+                title: "Filter to Component: \(component)",
+                action: #selector(filterToComponentAction(_:)),
+                keyEquivalent: ""
+            )
+            filterItem.target = self
+            menu.addItem(filterItem)
+        }
+
         if let entry = contextMenuEntry, entry.sourceDocumentID != nil {
             menu.addItem(NSMenuItem.separator())
             let label: String = {
@@ -705,6 +722,11 @@ final class LogScrollDocumentView: NSView {
     @objc private func openInSourceLogAction(_ sender: Any?) {
         guard let entry = contextMenuEntry else { return }
         onOpenInSourceLog(entry)
+    }
+
+    @objc private func filterToComponentAction(_ sender: Any?) {
+        guard let entry = contextMenuEntry else { return }
+        onFilterToComponent(entry)
     }
 
     // MARK: - Attribute cache

@@ -773,3 +773,162 @@ enum FastTimestampScanner {
         return era * 146097 + doe - 719468
     }
 }
+
+/// Phase 4.5 PR2: byte-level component extraction so the indexed-mode
+/// filter can gate on `filter.component`. The extracted string must
+/// match `parser.parse(line:).component` for the supported parser
+/// kinds (PlainText BSD-syslog / dated-syslog, SCCM) — otherwise the
+/// right-click "Filter to component" workflow would produce zero
+/// matches. CSV and other parsers return nil; the filter pipeline
+/// treats nil as "no component captured" and skips the gate for that
+/// row.
+///
+/// Output is a `Range<Int>` of absolute byte offsets into the buffer
+/// so the caller can decode to String once for the dedup table.
+/// Returns nil when the line doesn't conform to the expected shape
+/// (e.g. bare-text PlainText fallback patterns) or when the parser
+/// kind doesn't support byte-level extraction.
+enum FastComponentScanner {
+    /// Extract a component byte range for the given line. Caller is
+    /// responsible for materializing the String (typically into a
+    /// dedupe dictionary so 36 M lines don't allocate 36 M Strings).
+    static func extractRange(
+        in buf: UnsafeRawBufferPointer,
+        range: Range<Int>,
+        kind: ParserKind
+    ) -> Range<Int>? {
+        guard range.lowerBound < range.upperBound,
+              range.upperBound <= buf.count,
+              let base = buf.baseAddress else {
+            return nil
+        }
+        switch kind {
+        case .plainText: return extractPlainText(base: base, range: range)
+        case .sccm:      return extractSCCM(base: base, range: range)
+        case .csv, .other: return nil
+        }
+    }
+
+    // MARK: - PlainText
+
+    /// Mirror of `PlainTextParser`'s BSD-syslog / dated-syslog branch:
+    /// component is the process-name segment that ends right before
+    /// `[pid]`, ` <Level>`, or the message `:`. We walk backward from
+    /// the message-body colon-space and reverse-engineer the layout.
+    private static func extractPlainText(base: UnsafeRawPointer, range: Range<Int>) -> Range<Int>? {
+        guard let colonPos = findColonSpaceBackwards(base: base, range: range) else { return nil }
+
+        // Position the cursor just before the `:` and walk back over
+        // optional ` <Level>` and `[pid]` annotations until the
+        // component's last character is under the cursor.
+        var cursor = colonPos - 1
+        guard cursor >= range.lowerBound else { return nil }
+
+        // Skip optional ` <Word>` tag.
+        if base.load(fromByteOffset: cursor, as: UInt8.self) == 0x3E {  // '>'
+            // Walk back to '<'.
+            var k = cursor - 1
+            while k >= range.lowerBound, base.load(fromByteOffset: k, as: UInt8.self) != 0x3C {
+                k -= 1
+            }
+            guard k >= range.lowerBound else { return nil }
+            // Skip whitespace before '<'.
+            cursor = k - 1
+            while cursor >= range.lowerBound {
+                let b = base.load(fromByteOffset: cursor, as: UInt8.self)
+                if b != 0x20 && b != 0x09 { break }
+                cursor -= 1
+            }
+            guard cursor >= range.lowerBound else { return nil }
+        }
+
+        // Skip optional `[pid]`.
+        if base.load(fromByteOffset: cursor, as: UInt8.self) == 0x5D {  // ']'
+            var k = cursor - 1
+            while k >= range.lowerBound, base.load(fromByteOffset: k, as: UInt8.self) != 0x5B {
+                k -= 1
+            }
+            guard k >= range.lowerBound else { return nil }
+            cursor = k - 1
+            guard cursor >= range.lowerBound else { return nil }
+        }
+
+        // cursor now points at the last byte of the component. Walk
+        // back to the preceding whitespace.
+        let compEnd = cursor + 1
+        var k = cursor
+        while k >= range.lowerBound {
+            let b = base.load(fromByteOffset: k, as: UInt8.self)
+            if b == 0x20 || b == 0x09 { break }
+            k -= 1
+        }
+        let compStart = k + 1
+        guard compStart < compEnd else { return nil }
+
+        // Sanity: component must not contain a `:` (would mean we
+        // started inside the timestamp's HH:mm:ss). PlainText
+        // components are alphanumeric / dot / underscore / dash by the
+        // parser's regex, so reject anything outside that vocabulary.
+        for i in compStart..<compEnd {
+            let b = base.load(fromByteOffset: i, as: UInt8.self)
+            if !isComponentByte(b) { return nil }
+        }
+        return compStart..<compEnd
+    }
+
+    /// Find the position of the message-body colon (the `:` immediately
+    /// before the message). The `: ` (colon-space) heuristic from the
+    /// level scanner works in reverse too — colons inside the timestamp
+    /// are followed by digits, not spaces.
+    private static func findColonSpaceBackwards(base: UnsafeRawPointer, range: Range<Int>) -> Int? {
+        // We use the same forward memmem search as the level scanner —
+        // backwards parity isn't needed for correctness, and the forward
+        // search hits the right colon since it's always the first one.
+        let length = range.upperBound - range.lowerBound
+        guard length >= 2 else { return nil }
+        let haystack = base.advanced(by: range.lowerBound)
+        let needle: StaticString = ": "
+        guard let found = memmem(haystack, length, needle.utf8Start, 2) else {
+            return nil
+        }
+        return base.distance(to: UnsafeRawPointer(found))
+    }
+
+    @inline(__always)
+    private static func isComponentByte(_ b: UInt8) -> Bool {
+        // PlainTextParser's dated-syslog regex character class for
+        // process: `[A-Za-z0-9][A-Za-z0-9._-]*`. Same vocabulary works
+        // for BSD-syslog's `\S+?` since real-world process names
+        // conform to this. Anything outside (e.g. `:`, `[`, `]`,
+        // whitespace) means we walked into the wrong region.
+        if (b >= 0x30 && b <= 0x39) { return true }  // 0-9
+        if (b >= 0x41 && b <= 0x5A) { return true }  // A-Z
+        if (b >= 0x61 && b <= 0x7A) { return true }  // a-z
+        if b == 0x2E || b == 0x2D || b == 0x5F { return true }  // . - _
+        return false
+    }
+
+    // MARK: - SCCM
+
+    /// Locate `component="..."` and return its byte range (exclusive of
+    /// the surrounding quotes).
+    private static func extractSCCM(base: UnsafeRawPointer, range: Range<Int>) -> Range<Int>? {
+        let needle: StaticString = "component=\""
+        let needleLen = 11
+        let length = range.upperBound - range.lowerBound
+        guard length > needleLen,
+              let found = memmem(base.advanced(by: range.lowerBound), length, needle.utf8Start, needleLen) else {
+            return nil
+        }
+        let start = base.distance(to: UnsafeRawPointer(found)) + needleLen
+        // Walk forward to the closing quote.
+        var i = start
+        while i < range.upperBound {
+            if base.load(fromByteOffset: i, as: UInt8.self) == 0x22 { break }  // '"'
+            i += 1
+        }
+        guard i > start, i < range.upperBound else { return nil }
+        return start..<i
+    }
+}
+
