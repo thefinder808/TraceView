@@ -52,14 +52,14 @@ final class LogIndex {
         let data = try Data(contentsOf: fileURL, options: .mappedIfSafe)
 
         // First pass: count newlines so we can size the offsets array
-        // exactly. Counting is much faster than appending; saves repeated
-        // reallocations.
+        // exactly. Uses `memchr` (libsystem, SIMD-vectorized) instead of
+        // a Swift per-byte loop. In release the two are similar; in
+        // debug builds the Swift loop pays a bounds-check per iteration,
+        // making it ~50× slower on multi-GB files (5 GB went from
+        // minutes-of-hang to ~1 s on M-series).
         var newlineCount = 0
-        data.withUnsafeBytes { (buf: UnsafeRawBufferPointer) in
-            let ptr = buf.bindMemory(to: UInt8.self)
-            for i in 0..<ptr.count {
-                if ptr[i] == 0x0A { newlineCount += 1 }
-            }
+        data.withUnsafeBytes { buf in
+            Self.forEachNewline(in: buf) { _ in newlineCount += 1 }
         }
 
         // Second pass: fill the offsets array in pre-allocated capacity.
@@ -69,14 +69,17 @@ final class LogIndex {
         // and the last-line branch in `line(at:)` drops the trailing LF.
         // For files that don't end with `\n`, the last newline opens line
         // N-1, which `line(at:)` reads to end-of-file.
-        let offsets = [UInt64](unsafeUninitializedCapacity: newlineCount + 1) { buf, initializedCount in
-            buf[0] = 0
+        let offsets = [UInt64](unsafeUninitializedCapacity: newlineCount + 1) { dst, initializedCount in
+            dst[0] = 0
             var k = 1
-            data.withUnsafeBytes { (raw: UnsafeRawBufferPointer) in
-                let ptr = raw.bindMemory(to: UInt8.self)
-                for i in 0..<ptr.count {
-                    if ptr[i] == 0x0A && i + 1 < ptr.count {
-                        buf[k] = UInt64(i + 1)
+            data.withUnsafeBytes { buf in
+                let totalCount = buf.count
+                Self.forEachNewline(in: buf) { foundOffset in
+                    // Skip recording an offset past the final newline
+                    // when the file ends with `\n`. Mirrors the pre-
+                    // memchr `i + 1 < ptr.count` guard exactly.
+                    if foundOffset + 1 < totalCount {
+                        dst[k] = UInt64(foundOffset + 1)
                         k += 1
                     }
                 }
@@ -123,6 +126,30 @@ final class LogIndex {
             indexElapsed: indexElapsed,
             warmElapsed: warmElapsed
         )
+    }
+
+    /// memchr-based newline iterator. Invokes `body` with the byte
+    /// offset of every `\n` in `buf`. Used by `build` for both the
+    /// count-pass and the offset-fill pass. `memchr` is highly
+    /// vectorized in libsystem and is dramatically faster than a Swift
+    /// per-byte loop, especially in debug builds where Swift's
+    /// `UnsafeBufferPointer` subscript pays a bounds check per access.
+    private static func forEachNewline(
+        in buf: UnsafeRawBufferPointer,
+        body: (Int) -> Void
+    ) {
+        guard let base = buf.baseAddress else { return }
+        let totalCount = buf.count
+        var consumed = 0
+        while consumed < totalCount {
+            let cursor = base.advanced(by: consumed)
+            let remaining = totalCount - consumed
+            // memchr returns nil when no more `\n` exist in the slice.
+            guard let found = memchr(cursor, Int32(0x0A), remaining) else { return }
+            let foundOffset = base.distance(to: UnsafeRawPointer(found))
+            body(foundOffset)
+            consumed = foundOffset + 1
+        }
     }
 
     /// Returns the line at the given row index, excluding any trailing

@@ -101,4 +101,28 @@ final class LogIndexTests: XCTestCase {
         XCTAssertEqual(idx.line(at: count - 1), "log line \(count - 1)")
         XCTAssertEqual(idx.line(at: 5000), "log line 5000")
     }
+
+    /// Mixed line lengths + sparse empty lines + non-LF terminator —
+    /// the kind of shape that's most likely to expose drift between
+    /// the prior Swift-loop scan and the current memchr scan. Asserts
+    /// every line round-trips exactly.
+    func testMixedLineLengthsAndEmptyLines() throws {
+        let lines: [String] = [
+            "short",
+            "a much longer line with multiple words and some punctuation, etc.",
+            "",
+            "another short",
+            "",
+            "",
+            String(repeating: "x", count: 4096),
+            "tail"
+        ]
+        // No trailing LF — exercises the last-line code path.
+        let url = writeTempFile(contents: lines.joined(separator: "\n"))
+        let idx = try LogIndex.build(fileURL: url)
+        XCTAssertEqual(idx.lineCount, lines.count)
+        for (i, expected) in lines.enumerated() {
+            XCTAssertEqual(idx.line(at: i), expected, "row \(i) mismatch")
+        }
+    }
 }

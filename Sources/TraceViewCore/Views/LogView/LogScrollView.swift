@@ -387,7 +387,20 @@ struct LogScrollView: NSViewRepresentable {
             if candidate >= 0, entries[candidate].timestamp != nil {
                 return candidate
             }
-            return entries.firstIndex(where: { $0.timestamp != nil })
+            // Cap the nil-fallback scan. The naive
+            // `entries.firstIndex(where: { $0.timestamp != nil })`
+            // walks until it finds a timestamped entry — on an indexed
+            // source with all-nil-timestamp prefix that would re-parse
+            // every line via DateFormatter, the same kind of main-
+            // thread hang that bit go-to-line. Scroll-sync UX is fine
+            // with "couldn't find one"; 256 entries is enough to find a
+            // timestamp in any reasonable log file.
+            let fallbackCap = 256
+            let scanEnd = Swift.min(entries.count, fallbackCap)
+            for i in 0..<scanEnd where entries[i].timestamp != nil {
+                return i
+            }
+            return nil
         }
 
         /// Find the row whose `lineNumber` matches `target`, scroll +
