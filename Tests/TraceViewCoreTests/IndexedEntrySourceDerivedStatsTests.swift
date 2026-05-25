@@ -185,6 +185,55 @@ final class IndexedEntrySourceDerivedStatsTests: XCTestCase {
         XCTAssertNil(row)
     }
 
+    func testFirstRowInTimeRangeRestrictedToFilteredSubset() throws {
+        // 30 rows alternating info/error. Filtered subset = error rows
+        // only (indices 1, 3, 5, ..., 29). Bisect with restrictTo
+        // should find the first error row in the time window.
+        var lines: [String] = []
+        for i in 0..<30 {
+            let tag = (i % 2 == 0) ? "<Info>" : "<Error>"
+            let s = String(format: "%02d", i)
+            lines.append("Apr 22 10:30:\(s) host proc[1] \(tag): row \(i)")
+        }
+        let url = writeTempFile(contents: lines.joined(separator: "\n") + "\n")
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        guard let timestamps = source.logIndex.timestamps else {
+            XCTFail("Expected timestamps array")
+            return
+        }
+        // Filtered: error rows only.
+        let errorIndices = Array(stride(from: 1, to: 30, by: 2))
+
+        // Window covers rows 10-15. First error row in that window is
+        // row 11.
+        let start = timestamps[10]
+        let end = timestamps[15] + 0.5
+        let row = source.firstRowInTimeRange(
+            startEpoch: start, endEpoch: end,
+            matchingLevels: nil,
+            restrictTo: errorIndices
+        )
+        XCTAssertEqual(row, 11)
+    }
+
+    func testFirstRowInTimeRangeRestrictedToEmptyFilter() throws {
+        // restrictTo: [] (filter excludes everything) → nil.
+        let fixture = (0..<5).map { "Apr 22 10:30:0\($0) host proc[1] <Info>: row \($0)" }
+        let url = writeTempFile(contents: fixture.joined(separator: "\n") + "\n")
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        guard let timestamps = source.logIndex.timestamps else {
+            XCTFail("Expected timestamps")
+            return
+        }
+        let row = source.firstRowInTimeRange(
+            startEpoch: timestamps[0],
+            endEpoch: timestamps[4] + 1,
+            matchingLevels: nil,
+            restrictTo: []
+        )
+        XCTAssertNil(row)
+    }
+
     func testFirstRowInTimeRangeReturnsNilWhenNoTimestamps() throws {
         // CSV parserKind skips timestamp capture → bisect returns nil.
         let fixture = "timestamp,level,msg\n2026-04-22 10:30:15,error,boom\n"

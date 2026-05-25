@@ -21,6 +21,13 @@ final class LogDocumentViewModel: ObservableObject {
     @Published private(set) var matches: [Int] = []
     @Published var currentMatchIndex: Int? = nil
 
+    /// Phase 4 PR3 progress signal for the indexed-mode filter pipeline.
+    /// 0 ... 1 while a background scan is running; nil when idle or
+    /// in-memory mode (which doesn't need a progress UI — its filter is
+    /// effectively synchronous). FilterBarView reads this to render the
+    /// "Scanning · N%" overlay.
+    @Published private(set) var filterScanProgress: Double? = nil
+
     private var filterTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
@@ -164,19 +171,100 @@ final class LogDocumentViewModel: ObservableObject {
     func applyFilter() {
         filterTask?.cancel()
 
-        // Phase 4 PR2: sources that don't support filter skip the
-        // materialize-and-filter loop entirely. PR3 wires the indexed
-        // scanner; until then, indexed sources land here and produce
-        // an unfiltered `.identity` view backed by the source directly
-        // (no materialized indices array). Filter UI is disabled in the
-        // same state via `filterAvailable`.
+        // Sources that genuinely can't filter (no current case — Phase 4
+        // PR3 enabled indexed sources — but kept as defense-in-depth
+        // for any future source type added behind this flag).
         if !document.entrySource.supportsFilter {
             filteredEntries = FilteredEntries(backing: .identity(source: document.entrySource))
             matches = []
             currentMatchIndex = nil
+            filterScanProgress = nil
             return
         }
 
+        if let indexed = document.entrySource as? IndexedEntrySource {
+            applyFilterIndexed(source: indexed)
+        } else {
+            applyFilterInMemory()
+        }
+    }
+
+    /// Phase 4 PR3: indexed-mode filter dispatches a `Task.detached`
+    /// scan via `IndexedFilterScanner`. The scanner walks the mmap'd
+    /// data line-by-line — level check against `logIndex.levels`, text
+    /// check via `memmem`-style byte loop over the line range. Returns
+    /// `[Int]` of source-row indices for `FilteredEntries.indexed`
+    /// (filter mode) or for the `matches` list (find mode).
+    ///
+    /// Cancellation propagates because `filterTask` IS the detached
+    /// task; calling `.cancel()` on it sets `Task.isCancelled == true`
+    /// inside the scan loop, which polls every 65 K rows.
+    private func applyFilterIndexed(source: IndexedEntrySource) {
+        // Inactive filter: no scan needed, just publish the identity
+        // view. Avoids both the wasted ~2 s scan AND the
+        // `.indexed`-backing scroll-to-line parse storm — position
+        // helpers fast-path on `.identity` because lineNumber ==
+        // position + 1 by IndexedEntrySource invariant. Filter mode
+        // only — find mode reaches the scan path even with an empty
+        // filter to populate the matches list.
+        if !filter.isActive && findMode != .find {
+            filteredEntries = FilteredEntries(backing: .identity(source: source))
+            matches = []
+            currentMatchIndex = nil
+            filterScanProgress = nil
+            return
+        }
+
+        let currentFilter = filter
+        let mode = findMode
+        filterScanProgress = 0
+
+        filterTask = Task.detached(priority: .userInitiated) { [weak self] in
+            let result = IndexedFilterScanner.scan(
+                source: source,
+                filter: currentFilter
+            ) { p in
+                // Coalesce per-tick progress onto main. The scanner
+                // throttles to 1% boundaries (~100 calls per scan) so
+                // the micro-task overhead is bounded.
+                Task { @MainActor [weak self] in
+                    self?.filterScanProgress = p
+                }
+            }
+
+            // nil from scan == cancelled mid-scan. Leave state alone so
+            // the next applyFilter call can overwrite cleanly.
+            guard let indices = result else { return }
+
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                // Bail if the source was swapped (a new file opened
+                // mid-scan, etc.). Identity comparison: both branches
+                // hold the same reference iff no swap occurred.
+                guard self.document.entrySource === source else { return }
+
+                if mode == .find {
+                    // Find mode: don't hide rows; populate matches.
+                    // For .identity backing, position == source index
+                    // (per IndexedEntrySource's id/lineNumber
+                    // invariants), so the scan output IS the matches
+                    // list. Known divergence from in-memory find mode:
+                    // level filter doesn't hide rows in indexed find
+                    // mode — it narrows the matches list instead.
+                    self.filteredEntries = FilteredEntries(backing: .identity(source: source))
+                    self.matches = indices
+                    self.currentMatchIndex = indices.isEmpty ? nil : 0
+                } else {
+                    self.filteredEntries = FilteredEntries(backing: .indexed(indices: indices, source: source))
+                    self.matches = []
+                    self.currentMatchIndex = nil
+                }
+                self.filterScanProgress = nil
+            }
+        }
+    }
+
+    private func applyFilterInMemory() {
         let entries = document.entries
         let snapshotCount = entries.count
         let snapshotLastID = entries.last?.id

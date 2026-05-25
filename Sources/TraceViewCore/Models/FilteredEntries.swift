@@ -117,29 +117,38 @@ struct FilteredEntries: RandomAccessCollection {
 
     // MARK: - Fast lookups
 
-    /// O(1) lookup for backings with a stable line-number → position
-    /// mapping (.identity over IndexedEntrySource, where the source
-    /// sets `LogEntry.lineNumber = position + 1` by construction).
-    /// Falls back to a linear scan for `.materialized` and `.indexed`.
+    /// O(1) (or O(log N) for filtered) lookup for backings with a
+    /// stable line-number → source-row mapping. `.identity` over an
+    /// `IndexedEntrySource` is O(1) (the source sets `LogEntry.lineNumber
+    /// = position + 1`). `.indexed` over an indexed source becomes
+    /// O(log N) via a bisect on the sorted indices array (the scanner
+    /// always emits in source-row order). Falls back to a linear scan
+    /// for `.materialized`.
     ///
     /// Used by go-to-line — a `firstIndex(where: { $0.lineNumber == target })`
-    /// over an .identity backing would parse every line up to the
-    /// target on the main thread. For a 25M-line jump that's 25M
-    /// DateFormatter calls and a multi-minute hang.
+    /// over a `.identity` or `.indexed` backing would parse every line
+    /// up to the target on the main thread. For a 25 M-line jump that's
+    /// 25 M DateFormatter calls and a multi-minute hang.
     func position(forLineNumber lineNumber: Int) -> Int? {
         switch backing {
         case .identity(let src):
             let candidate = lineNumber - 1
             return (candidate >= 0 && candidate < src.count) ? candidate : nil
-        case .materialized, .indexed:
+        case .indexed(let indices, _):
+            // lineNumber → source index conversion holds for
+            // IndexedEntrySource (id == position == source index).
+            let target = lineNumber - 1
+            return binarySearchPosition(in: indices, for: target)
+        case .materialized:
             return firstIndex(where: { $0.lineNumber == lineNumber })
         }
     }
 
-    /// O(1) lookup for backings with a stable entry-id → position
-    /// mapping (.identity over IndexedEntrySource, where the source
-    /// sets `LogEntry.id = position` by construction). Falls back to a
-    /// linear scan otherwise.
+    /// O(1) (or O(log N) for filtered) lookup for backings with a
+    /// stable entry-id → source-row mapping. `.identity` is O(1);
+    /// `.indexed` is O(log N) via the same bisect as
+    /// `position(forLineNumber:)`. Falls back to a linear scan
+    /// otherwise.
     ///
     /// Used by the renderer's expanded-row resolution. Without the
     /// shortcut, expanding any row in indexed mode triggers the same
@@ -149,8 +158,30 @@ struct FilteredEntries: RandomAccessCollection {
         switch backing {
         case .identity(let src):
             return (id >= 0 && id < src.count) ? id : nil
-        case .materialized, .indexed:
+        case .indexed(let indices, _):
+            return binarySearchPosition(in: indices, for: id)
+        case .materialized:
             return firstIndex(where: { $0.id == id })
         }
+    }
+
+    /// Binary search for `target` in a sorted `indices` array. Returns
+    /// the position of the match or nil if `target` is not present.
+    /// The `IndexedFilterScanner.scan` always emits indices in
+    /// monotonically-increasing order, which is what makes this bisect
+    /// correct.
+    private func binarySearchPosition(in indices: [Int], for target: Int) -> Int? {
+        guard !indices.isEmpty, target >= indices.first!, target <= indices.last! else {
+            return nil
+        }
+        var lo = 0
+        var hi = indices.count - 1
+        while lo <= hi {
+            let mid = (lo + hi) / 2
+            let v = indices[mid]
+            if v == target { return mid }
+            if v < target { lo = mid + 1 } else { hi = mid - 1 }
+        }
+        return nil
     }
 }

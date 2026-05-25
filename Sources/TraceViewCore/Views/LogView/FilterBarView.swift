@@ -89,7 +89,20 @@ struct FilterBarView: View {
 
             Spacer()
 
-            if viewModel.findMode == .find && !viewModel.filter.searchText.isEmpty {
+            // Phase 4 PR3: indexed-mode scan progress. Shown when a
+            // background filter scan is in flight (filterScanProgress is
+            // non-nil). Replaces the match-count text temporarily so the
+            // bar doesn't expand.
+            if let progress = viewModel.filterScanProgress {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .controlSize(.mini)
+                    Text("Scanning · \(Int(progress * 100))%")
+                        .font(.system(size: 11))
+                        .foregroundStyle(theme.secondaryText)
+                        .monospacedDigit()
+                }
+            } else if viewModel.findMode == .find && !viewModel.filter.searchText.isEmpty {
                 findNavControls(theme: theme)
             } else {
                 Text(viewModel.matchCountText)
@@ -101,9 +114,9 @@ struct FilterBarView: View {
         .padding(.horizontal, 12)
         .frame(height: 36)
         .background(theme.filterBarBackground)
-        // Phase 4 PR2 keeps the filter bar disabled for indexed sources
-        // until PR3 lights up the background raw-byte scan pipeline.
-        // `filterAvailable == false` for indexed mode reflects this.
+        // Phase 4 PR3 lights up `filterAvailable == true` for indexed
+        // sources. The bar stays enabled in both modes; per-control
+        // gating (e.g. component dropdown) handles the narrower cases.
         .disabled(!viewModel.filterAvailable)
         .opacity(viewModel.filterAvailable ? 1.0 : 0.4)
         .onChange(of: appState.focusSearchTick) { _, _ in
