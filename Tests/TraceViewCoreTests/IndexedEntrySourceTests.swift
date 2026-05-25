@@ -78,14 +78,14 @@ final class IndexedEntrySourceTests: XCTestCase {
     }
 
     func testCapabilityFlagsForPlainText() throws {
-        // Phase 4 PR2: PlainText backed indexed source exposes
-        // levelCounts + histogram (timestamps captured). Filter is
-        // still off in PR2; PR3 lights it up.
+        // Phase 4 PR3: PlainText backed indexed source exposes all
+        // three capabilities. supportsFilter flipped to true once the
+        // IndexedFilterScanner pipeline shipped.
         let url = writeTempFile(contents: "a\n")
         let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
         XCTAssertTrue(source.supportsLevelCounts)
         XCTAssertTrue(source.supportsHistogram)
-        XCTAssertFalse(source.supportsFilter)
+        XCTAssertTrue(source.supportsFilter)
     }
 
     func testAllEntriesReturnsEmpty() throws {

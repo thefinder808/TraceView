@@ -36,7 +36,13 @@ final class IndexedEntrySource: EntrySource {
     var count: Int { logIndex.lineCount }
     let supportsLevelCounts = true
     var supportsHistogram: Bool { logIndex.timestamps != nil }
-    let supportsFilter = false
+    /// Phase 4 PR3: indexed sources now back the filter pipeline via
+    /// `IndexedFilterScanner` — a `Task.detached` raw-byte scan that
+    /// reads `logIndex.levels` for the level pass and a `memmem`-style
+    /// byte loop over the line ranges for the text pass. Component
+    /// filter is still ignored for indexed mode; the UI keeps that
+    /// dropdown disabled.
+    let supportsFilter = true
 
     /// Documented "do not use" — synthesizing the full array defeats lazy
     /// loading. Returns []. Callers that need to iterate every entry in
@@ -130,14 +136,21 @@ final class IndexedEntrySource: EntrySource {
     /// Find the first row whose timestamp falls in
     /// `[startEpoch, endEpoch)` and whose level (decoded from
     /// `logIndex.levels`) is in `matchingLevels` — or any row when
-    /// `matchingLevels` is nil. Returns the row index or nil if no row
-    /// qualifies.
+    /// `matchingLevels` is nil. Returns the source-row index or nil if
+    /// no row qualifies.
     ///
-    /// O(log N + bucketWidth) — bisect `logIndex.timestamps` for the
-    /// first index whose timestamp is `>= startEpoch`, then walk
-    /// forward through the bucket checking the level byte directly.
-    /// No parser invocation occurs in the search itself; the caller
-    /// can `entry(at:)` the returned index for a single parse.
+    /// When `restrictTo` is non-nil, the search is scoped to that
+    /// subset of source indices (used for the post-filter
+    /// `.indexed(indices:source:)` `FilteredEntries` backing — without
+    /// this restriction, the histogram-click jump would land on a
+    /// hidden row). The subset MUST be sorted in source-row order
+    /// (which `IndexedFilterScanner.scan` always produces).
+    ///
+    /// O(log N + bucketWidth) — bisect for the first position whose
+    /// timestamp is `>= startEpoch`, then walk forward checking the
+    /// level byte directly. No parser invocation occurs in the search
+    /// itself; the caller can `entry(at:)` the returned index for a
+    /// single parse.
     ///
     /// Replaces the in-memory pattern
     /// `entries.first { ... timestamp + level predicate ... }` for
@@ -145,23 +158,33 @@ final class IndexedEntrySource: EntrySource {
     /// `entry(at:)` → `parser.parse` and parse-storm the main thread
     /// on a 36 M-row file (5GB BSD-syslog: ~37 s hang before the OS
     /// spills a stackshot — confirmed via the histogram-click bug in
-    /// Phase 4 PR2 smoke).
+    /// Phase 4 PR2 smoke, and the post-filter recurrence found in PR3).
     func firstRowInTimeRange(
         startEpoch: Double,
         endEpoch: Double,
-        matchingLevels: Set<LogLevel>?
+        matchingLevels: Set<LogLevel>?,
+        restrictTo filteredIndices: [Int]? = nil
     ) -> Int? {
-        guard let timestamps = logIndex.timestamps, !timestamps.isEmpty else {
-            return nil
+        guard let timestamps = logIndex.timestamps else { return nil }
+        let count = filteredIndices?.count ?? timestamps.count
+        guard count > 0 else { return nil }
+
+        // Position-to-source-index resolver. When unfiltered, position
+        // == source index; when filtered, position is an offset into
+        // the filteredIndices array which holds source indices.
+        @inline(__always) func sourceIndex(at position: Int) -> Int {
+            filteredIndices?[position] ?? position
         }
-        // Bisect for the smallest i with timestamps[i] >= startEpoch.
-        // NaN entries fail the >= comparison so they sink to the "less
-        // than" side; bisect skips past long NaN prefixes correctly.
+
+        // Bisect for the smallest position whose mapped timestamp is
+        // >= startEpoch. NaN entries fail the >= comparison so they
+        // sink to the "less than" side; bisect skips past long NaN
+        // prefixes correctly.
         var lo = 0
-        var hi = timestamps.count
+        var hi = count
         while lo < hi {
             let mid = (lo + hi) / 2
-            let ts = timestamps[mid]
+            let ts = timestamps[sourceIndex(at: mid)]
             if ts.isFinite && ts >= startEpoch {
                 hi = mid
             } else {
@@ -169,22 +192,22 @@ final class IndexedEntrySource: EntrySource {
             }
         }
         // Walk forward through the bucket checking levels directly.
-        var i = lo
-        let limit = timestamps.count
-        while i < limit {
-            let ts = timestamps[i]
+        var j = lo
+        while j < count {
+            let srcIdx = sourceIndex(at: j)
+            let ts = timestamps[srcIdx]
             if ts.isFinite && ts >= endEpoch { break }
             if ts.isFinite && ts >= startEpoch {
                 if let matchingLevels {
-                    let level = FastLevelScanner.decode(logIndex.levels[i])
+                    let level = FastLevelScanner.decode(logIndex.levels[srcIdx])
                     if matchingLevels.contains(level) {
-                        return i
+                        return srcIdx
                     }
                 } else {
-                    return i
+                    return srcIdx
                 }
             }
-            i += 1
+            j += 1
         }
         return nil
     }

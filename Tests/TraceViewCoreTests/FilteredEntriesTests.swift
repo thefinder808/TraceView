@@ -159,4 +159,84 @@ final class FilteredEntriesTests: XCTestCase {
         XCTAssertNil(fe.position(forEntryID: 100))
         XCTAssertNil(fe.position(forEntryID: -1))
     }
+
+    // MARK: - .indexed backing position bisect (Phase 4 PR3 hang fix)
+
+    /// Mock EntrySource that returns parsed entries from a fixed array.
+    /// Used here to test FilteredEntries' position helpers without
+    /// touching IndexedEntrySource — we only need a source whose
+    /// `entry(at:)` returns LogEntry with lineNumber == position + 1.
+    private final class StubSource: EntrySource {
+        let entries: [LogEntry]
+        init(entries: [LogEntry]) { self.entries = entries }
+        var allEntries: [LogEntry] { entries }
+        var count: Int { entries.count }
+        let supportsLevelCounts = true
+        let supportsHistogram = true
+        let supportsFilter = true
+        let didAppend: AnyPublisher<[LogEntry], Never> = Empty().eraseToAnyPublisher()
+        func entry(at index: Int) -> LogEntry? {
+            guard index >= 0, index < entries.count else { return nil }
+            return entries[index]
+        }
+        func append(_ entries: [LogEntry]) { fatalError("not supported") }
+        func reset() { }
+        func replace(with entries: [LogEntry]) { fatalError("not supported") }
+    }
+
+    func testPositionForLineNumberIndexedBisects() {
+        // Source has 100 rows; filter keeps every 3rd one (indices
+        // 0, 3, 6, ..., 99). Lookup must return the position in the
+        // filtered indices array, not the source row.
+        let entries = (0..<100).map { i in
+            LogEntry(
+                id: i, lineNumber: i + 1, timestamp: nil, level: .info,
+                message: "m \(i)", component: nil, threadID: nil,
+                source: nil, rawLine: "raw \(i)"
+            )
+        }
+        let source = StubSource(entries: entries)
+        let filtered = Array(stride(from: 0, to: 100, by: 3))  // 34 entries
+        let fe = FilteredEntries(backing: .indexed(indices: filtered, source: source))
+
+        // lineNumber 1 → source idx 0 → position 0 in filtered.
+        XCTAssertEqual(fe.position(forLineNumber: 1), 0)
+        // lineNumber 4 → source idx 3 → position 1.
+        XCTAssertEqual(fe.position(forLineNumber: 4), 1)
+        // lineNumber 100 → source idx 99 → position 33 (last).
+        XCTAssertEqual(fe.position(forLineNumber: 100), 33)
+        // lineNumber 2 → source idx 1 → NOT in filter → nil.
+        XCTAssertNil(fe.position(forLineNumber: 2))
+        // lineNumber 5 → source idx 4 → NOT in filter → nil.
+        XCTAssertNil(fe.position(forLineNumber: 5))
+        // Out of range.
+        XCTAssertNil(fe.position(forLineNumber: 101))
+        XCTAssertNil(fe.position(forLineNumber: 0))
+    }
+
+    func testPositionForEntryIDIndexedBisects() {
+        let entries = (0..<100).map { i in
+            LogEntry(
+                id: i, lineNumber: i + 1, timestamp: nil, level: .info,
+                message: "m \(i)", component: nil, threadID: nil,
+                source: nil, rawLine: "raw \(i)"
+            )
+        }
+        let source = StubSource(entries: entries)
+        let filtered = Array(stride(from: 0, to: 100, by: 3))
+        let fe = FilteredEntries(backing: .indexed(indices: filtered, source: source))
+
+        XCTAssertEqual(fe.position(forEntryID: 0), 0)
+        XCTAssertEqual(fe.position(forEntryID: 3), 1)
+        XCTAssertEqual(fe.position(forEntryID: 99), 33)
+        XCTAssertNil(fe.position(forEntryID: 1))
+        XCTAssertNil(fe.position(forEntryID: 100))
+    }
+
+    func testPositionForLineNumberIndexedEmptyFilter() {
+        let source = StubSource(entries: [])
+        let fe = FilteredEntries(backing: .indexed(indices: [], source: source))
+        XCTAssertNil(fe.position(forLineNumber: 1))
+        XCTAssertNil(fe.position(forEntryID: 0))
+    }
 }

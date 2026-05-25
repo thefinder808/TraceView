@@ -281,18 +281,32 @@ struct LogDocumentView: View {
         let bar = histogram.bars[index]
         let entries = viewModel.filteredEntries
 
-        // Phase 4 PR2 fast path: when the underlying view is an
-        // `.identity` over an `IndexedEntrySource`, every entry access
-        // routes through `parser.parse(line:)` (DateFormatter et al).
-        // A linear `entries.first { ... }` scan can parse-storm the
-        // main thread on a 36 M-row file. Route through the source's
-        // bisect over the parallel `logIndex.timestamps` + `.levels`
-        // arrays instead — O(log N + bucketWidth), zero parser calls
-        // in the search itself.
-        if case .identity(let source) = entries.backing,
-           let indexed = source as? IndexedEntrySource {
+        // Phase 4 PR2+PR3 fast path: when the underlying view is an
+        // `.identity` or `.indexed` over an `IndexedEntrySource`, every
+        // entry access routes through `parser.parse(line:)`
+        // (DateFormatter et al). A linear `entries.first { ... }`
+        // scan can parse-storm the main thread on a 36 M-row file.
+        // Route through the source's bisect over the parallel
+        // `logIndex.timestamps` + `.levels` arrays instead —
+        // O(log N + bucketWidth), zero parser calls in the search
+        // itself. For `.indexed` (post-filter), the bisect runs over
+        // the filtered indices array so the jump lands on a visible
+        // row, not a hidden one.
+        let indexedTarget: (source: IndexedEntrySource, filter: [Int]?)?
+        switch entries.backing {
+        case .identity(let src):
+            indexedTarget = (src as? IndexedEntrySource).map { ($0, nil) }
+        case .indexed(let indices, let src):
+            indexedTarget = (src as? IndexedEntrySource).map { ($0, indices) }
+        case .materialized:
+            indexedTarget = nil
+        }
+        if let indexedTarget {
             let entry = indexedHistogramJump(
-                source: indexed, range: range, bar: bar
+                source: indexedTarget.source,
+                range: range,
+                bar: bar,
+                restrictTo: indexedTarget.filter
             )
             guard let entry else { return }
             appState.setFollowing(pane: pane, following: false)
@@ -323,10 +337,14 @@ struct LogDocumentView: View {
     /// general path (err → warn → first-in-range), but every lookup is
     /// a single bisect + bucket-walk over the source's parallel arrays
     /// — at most one parser invocation (the final `entry(at:)`).
+    /// `restrictTo` scopes the search to a filtered subset of source
+    /// indices when the filtered view's backing is `.indexed` (active
+    /// filter) — without it the click would land on a hidden row.
     private func indexedHistogramJump(
         source: IndexedEntrySource,
         range: (start: Date, end: Date),
-        bar: LogHistogram.Bar
+        bar: LogHistogram.Bar,
+        restrictTo filteredIndices: [Int]?
     ) -> LogEntry? {
         let startEpoch = range.start.timeIntervalSince1970
         let endEpoch = range.end.timeIntervalSince1970
@@ -334,19 +352,22 @@ struct LogDocumentView: View {
         if bar.err > 0 {
             rowIdx = source.firstRowInTimeRange(
                 startEpoch: startEpoch, endEpoch: endEpoch,
-                matchingLevels: [.error, .critical]
+                matchingLevels: [.error, .critical],
+                restrictTo: filteredIndices
             )
         }
         if rowIdx == nil && bar.warn > 0 {
             rowIdx = source.firstRowInTimeRange(
                 startEpoch: startEpoch, endEpoch: endEpoch,
-                matchingLevels: [.warning]
+                matchingLevels: [.warning],
+                restrictTo: filteredIndices
             )
         }
         if rowIdx == nil {
             rowIdx = source.firstRowInTimeRange(
                 startEpoch: startEpoch, endEpoch: endEpoch,
-                matchingLevels: nil
+                matchingLevels: nil,
+                restrictTo: filteredIndices
             )
         }
         guard let rowIdx else { return nil }

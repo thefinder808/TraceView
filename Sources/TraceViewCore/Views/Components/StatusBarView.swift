@@ -40,19 +40,14 @@ struct StatusBarView: View {
                 }
             }
 
-            // Phase 4 PR2: chips + histogram are back; only filter is
-            // still off until PR3 lights up the indexed scan. Surface
-            // that narrowly rather than the broader Phase 3 warning.
-            if !viewModel.filterAvailable {
-                statusDivider(theme: theme)
-                statusItem(theme: theme) {
-                    Image(systemName: "bolt.horizontal")
-                        .font(.system(size: 10, weight: .semibold))
-                    Text("Indexed mode · filter unavailable")
-                        .fontWeight(.medium)
-                }
-                .foregroundStyle(theme.warningText)
-            }
+            // Phase 4 PR3 finished filling in the indexed-mode UI gaps
+            // — chips, histogram, filter, find all work. Status-bar
+            // warning is no longer needed; the "Scanning" indicator in
+            // the filter bar covers the rare-but-non-instant indexed
+            // filter operation. (Kept the if-block for symmetry; if any
+            // future source type genuinely loses filter support, we'd
+            // restore a note here.)
+            EmptyView()
 
             Spacer()
 

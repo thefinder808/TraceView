@@ -66,11 +66,11 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
             "Expected IndexedEntrySource with flag set + line-stateless parser"
         )
         XCTAssertEqual(doc.entrySource.count, 200)
-        // Phase 4 PR2: indexed PlainText now supports levelCounts +
-        // histogram; only filter remains off until PR3.
+        // Phase 4 PR3: indexed PlainText supports all three derived
+        // capabilities (levelCounts, histogram, filter).
         XCTAssertTrue(doc.entrySource.supportsLevelCounts)
         XCTAssertTrue(doc.entrySource.supportsHistogram)
-        XCTAssertFalse(doc.entrySource.supportsFilter)
+        XCTAssertTrue(doc.entrySource.supportsFilter)
     }
 
     func testFlagOffUsesInMemoryEvenForEligibleParser() throws {
