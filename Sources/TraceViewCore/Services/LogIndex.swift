@@ -282,7 +282,20 @@ final class LogIndex {
     /// changes (see `LogIndexCache.tryLoad`) — re-saves of the log file
     /// trigger an automatic rebuild.
     static func buildOrLoad(fileURL: URL, parserKind: ParserKind = .other) throws -> LogIndex {
-        if let cached = LogIndexCache.tryLoad(forSourceURL: fileURL, parserKind: parserKind) {
+        // Phase 5.5: respect the "Cache indexes to disk" setting. When
+        // false, skip the cache read AND the post-build write so
+        // nothing touches disk. Every open pays the full byte-scan
+        // cost. Default true when the key has never been set.
+        let cacheEnabled: Bool = {
+            let defaults = UserDefaults.standard
+            if defaults.object(forKey: SettingsManager.indexedModeCacheEnabledKey) == nil {
+                return true
+            }
+            return defaults.bool(forKey: SettingsManager.indexedModeCacheEnabledKey)
+        }()
+
+        if cacheEnabled,
+           let cached = LogIndexCache.tryLoad(forSourceURL: fileURL, parserKind: parserKind) {
             let start = Date()
             // The source file is still mmap'd separately — its page
             // residency is independent of the cache file. The warmup
@@ -307,17 +320,20 @@ final class LogIndex {
             )
         }
 
-        // Cache miss → full build → persist for next time.
+        // Cache miss (or cache disabled) → full build. Only persist
+        // when caching is enabled.
         let index = try build(fileURL: fileURL, parserKind: parserKind)
-        LogIndexCache.write(
-            sourceURL: fileURL,
-            offsets: index.offsets,
-            levels: index.levels,
-            timestamps: index.timestamps,
-            componentIndex: index.componentIndex,
-            uniqueComponents: index.uniqueComponents,
-            parserKind: parserKind
-        )
+        if cacheEnabled {
+            LogIndexCache.write(
+                sourceURL: fileURL,
+                offsets: index.offsets,
+                levels: index.levels,
+                timestamps: index.timestamps,
+                componentIndex: index.componentIndex,
+                uniqueComponents: index.uniqueComponents,
+                parserKind: parserKind
+            )
+        }
         return index
     }
 

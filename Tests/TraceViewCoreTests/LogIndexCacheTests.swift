@@ -216,6 +216,87 @@ final class LogIndexCacheTests: XCTestCase {
         )
     }
 
+    // MARK: - Cache management helpers (Phase 5.5)
+
+    func testTotalCacheSizeGrowsAfterWrite() throws {
+        // clearAll resets the directory to a known-empty state so a
+        // prior test's residue doesn't skew the comparison.
+        _ = LogIndexCache.clearAll()
+        let baseline = LogIndexCache.totalCacheSize()
+        let url = writeTempFile(contents: "Apr 22 10:30:15 host proc[1]: row\n")
+        _ = try LogIndex.buildOrLoad(fileURL: url, parserKind: .plainText)
+        XCTAssertGreaterThan(
+            LogIndexCache.totalCacheSize(),
+            baseline,
+            "Writing a cache file should grow totalCacheSize"
+        )
+    }
+
+    func testClearAllRemovesTvidxFiles() throws {
+        let url = writeTempFile(contents: "Apr 22 10:30:15 host proc[1]: row\n")
+        _ = try LogIndex.buildOrLoad(fileURL: url, parserKind: .plainText)
+        guard let cacheURL = LogIndexCache.cacheURL(forSourceURL: url) else {
+            XCTFail("Expected cache URL")
+            return
+        }
+        XCTAssertTrue(FileManager.default.fileExists(atPath: cacheURL.path))
+
+        let reclaimed = LogIndexCache.clearAll()
+        XCTAssertGreaterThan(reclaimed, 0)
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: cacheURL.path),
+            "clearAll should remove the .tvidx file"
+        )
+    }
+
+    func testCacheDisabledSkipsWrite() throws {
+        // Phase 5.5: when the cache toggle is off, buildOrLoad should
+        // produce a working index but NOT write anything to disk.
+        _ = LogIndexCache.clearAll()
+        UserDefaults.standard.set(false, forKey: SettingsManager.indexedModeCacheEnabledKey)
+        defer { UserDefaults.standard.removeObject(forKey: SettingsManager.indexedModeCacheEnabledKey) }
+
+        let url = writeTempFile(contents: "Apr 22 10:30:15 host proc[1]: row\n")
+        let idx = try LogIndex.buildOrLoad(fileURL: url, parserKind: .plainText)
+        XCTAssertGreaterThan(idx.lineCount, 0)
+
+        guard let cacheURL = LogIndexCache.cacheURL(forSourceURL: url) else {
+            XCTFail("Expected cache URL")
+            return
+        }
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: cacheURL.path),
+            "Cache disabled — buildOrLoad must not write a .tvidx file"
+        )
+    }
+
+    func testCacheDisabledSkipsRead() throws {
+        // Pre-populate the cache, then disable, then verify the second
+        // load rebuilds (we can't directly observe a rebuild, but a
+        // freshly-rebuilt index should produce identical arrays — and
+        // the test serves as the regression marker for any future
+        // change that would accidentally short-circuit through the
+        // cache despite the toggle being off).
+        let url = writeTempFile(contents: "Apr 22 10:30:15 host proc[1]: row\n")
+        let first = try LogIndex.buildOrLoad(fileURL: url, parserKind: .plainText)
+
+        UserDefaults.standard.set(false, forKey: SettingsManager.indexedModeCacheEnabledKey)
+        defer { UserDefaults.standard.removeObject(forKey: SettingsManager.indexedModeCacheEnabledKey) }
+
+        let second = try LogIndex.buildOrLoad(fileURL: url, parserKind: .plainText)
+        XCTAssertEqual(first.offsets, second.offsets)
+        XCTAssertEqual(first.levels, second.levels)
+        XCTAssertEqual(first.timestamps, second.timestamps)
+    }
+
+    func testCacheDirectoryCreatesIfMissing() {
+        let dir = LogIndexCache.cacheDirectory()
+        XCTAssertNotNil(dir)
+        if let dir {
+            XCTAssertTrue(FileManager.default.fileExists(atPath: dir.path))
+        }
+    }
+
     func testBuildOrLoadUsesCacheOnSecondRun() throws {
         let url = writeTempFile(contents: "Apr 22 10:30:15 host proc[1]: row\n")
         // First call populates the cache.

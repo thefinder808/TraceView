@@ -57,9 +57,11 @@ enum LogIndexCache {
         let parserKind: ParserKind
     }
 
-    /// Compute the cache file location for a given source file URL.
-    /// Returns nil if the cache directory can't be located.
-    static func cacheURL(forSourceURL sourceURL: URL) -> URL? {
+    /// Resolve the indexes-cache directory itself. Returns nil if the
+    /// system Caches directory can't be located. Creates the directory
+    /// if it doesn't yet exist. Used by `cacheURL(forSourceURL:)` and
+    /// by the Settings "Clear Index Cache" + size-report helpers.
+    static func cacheDirectory() -> URL? {
         guard let cachesDir = try? FileManager.default.url(
             for: .cachesDirectory,
             in: .userDomainMask,
@@ -70,6 +72,53 @@ enum LogIndexCache {
         }
         let appDir = cachesDir.appendingPathComponent("com.traceview.app/indexes", isDirectory: true)
         try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
+        return appDir
+    }
+
+    /// Sum the on-disk size of every cache file in the indexes
+    /// directory. Used by the Settings UI to surface "your cache is
+    /// using X MB" so the user can decide whether to clear it.
+    static func totalCacheSize() -> Int64 {
+        guard let dir = cacheDirectory() else { return 0 }
+        let fm = FileManager.default
+        guard let enumerator = fm.enumerator(
+            at: dir,
+            includingPropertiesForKeys: [.fileSizeKey],
+            options: [.skipsHiddenFiles]
+        ) else { return 0 }
+        var total: Int64 = 0
+        for case let url as URL in enumerator {
+            if let resources = try? url.resourceValues(forKeys: [.fileSizeKey]),
+               let size = resources.fileSize {
+                total += Int64(size)
+            }
+        }
+        return total
+    }
+
+    /// Delete every cache file in the indexes directory and return the
+    /// number of bytes reclaimed. Subsequent opens will rebuild and
+    /// repopulate. Used by the Settings UI "Clear Index Cache" button.
+    /// We walk and remove individual `.tvidx` / `.tmp` files rather
+    /// than the directory itself so an in-flight `write` doesn't race
+    /// against directory recreate.
+    @discardableResult
+    static func clearAll() -> Int64 {
+        let reclaimed = totalCacheSize()
+        guard let dir = cacheDirectory() else { return 0 }
+        let fm = FileManager.default
+        if let entries = try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
+            for url in entries where url.pathExtension == "tvidx" || url.pathExtension == "tmp" {
+                try? fm.removeItem(at: url)
+            }
+        }
+        return reclaimed
+    }
+
+    /// Compute the cache file location for a given source file URL.
+    /// Returns nil if the cache directory can't be located.
+    static func cacheURL(forSourceURL sourceURL: URL) -> URL? {
+        guard let appDir = cacheDirectory() else { return nil }
         let key = sha1Hex(of: sourceURL.path)
         return appDir.appendingPathComponent("\(key).tvidx")
     }
