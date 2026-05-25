@@ -66,7 +66,11 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
             "Expected IndexedEntrySource with flag set + line-stateless parser"
         )
         XCTAssertEqual(doc.entrySource.count, 200)
-        XCTAssertFalse(doc.entrySource.supportsDerivedStats)
+        // Phase 4 PR2: indexed PlainText now supports levelCounts +
+        // histogram; only filter remains off until PR3.
+        XCTAssertTrue(doc.entrySource.supportsLevelCounts)
+        XCTAssertTrue(doc.entrySource.supportsHistogram)
+        XCTAssertFalse(doc.entrySource.supportsFilter)
     }
 
     func testFlagOffUsesInMemoryEvenForEligibleParser() throws {
@@ -80,7 +84,9 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
             doc.entrySource is InMemoryEntrySource,
             "Expected InMemoryEntrySource when flag is off"
         )
-        XCTAssertTrue(doc.entrySource.supportsDerivedStats)
+        XCTAssertTrue(doc.entrySource.supportsLevelCounts)
+        XCTAssertTrue(doc.entrySource.supportsHistogram)
+        XCTAssertTrue(doc.entrySource.supportsFilter)
     }
 
     func testForceFlagFallsBackForIneligibleParser() throws {
@@ -100,20 +106,39 @@ final class LogDocumentIndexedLoadTests: XCTestCase {
             doc.entrySource is InMemoryEntrySource,
             "Expected fallback to InMemoryEntrySource for non-line-stateless parser"
         )
-        XCTAssertTrue(doc.entrySource.supportsDerivedStats)
+        XCTAssertTrue(doc.entrySource.supportsLevelCounts)
+        XCTAssertTrue(doc.entrySource.supportsHistogram)
+        XCTAssertTrue(doc.entrySource.supportsFilter)
     }
 
     // MARK: - Indexed-mode side effects
 
-    func testIndexedDocumentDoesNotComputeHistogramOrLevelCounts() throws {
-        let lines = (0..<200).map { "Jan 01 10:00:00 host proc[1]: msg \($0)" }
+    func testIndexedDocumentPopulatesLevelCountsAndHistogram() throws {
+        // Phase 4 PR2 replaces the Phase 3 "no histogram or counts in
+        // indexed mode" semantics — the source now exposes
+        // `derivedLevelCounts` (always) and `derivedHistogram(buckets:)`
+        // (when timestamps captured). LogDocument copies the counts and
+        // kicks an immediate histogram compute as part of
+        // `loadFileIndexed`. 200 BSD-syslog rows is enough to clear the
+        // 10-timestamp threshold inside `derivedHistogram`.
+        let lines = (0..<200).map { "Jan 01 10:00:0\($0 % 10) host proc[1]: msg \($0)" }
         let url = writeTempFile(contents: lines.joined(separator: "\n") + "\n")
 
         UserDefaults.standard.set(true, forKey: SettingsManager.forceIndexedModeKey)
         let doc = loadAndWait(url: url)
 
-        XCTAssertNil(doc.histogram, "Indexed-mode load must not compute a histogram")
-        XCTAssertTrue(doc.levelCounts.isEmpty, "Indexed-mode load must leave levelCounts empty")
         XCTAssertEqual(doc.lineCount, 200)
+        XCTAssertFalse(doc.levelCounts.isEmpty, "Phase 4: indexed mode populates levelCounts")
+        let totalCounted = doc.levelCounts.values.reduce(0, +)
+        XCTAssertEqual(totalCounted, 200, "Every row contributes a level")
+
+        // Histogram is computed off-main; spin briefly until it lands or
+        // give up after a short timeout. The compute path is fast
+        // (single-pass over 200 doubles).
+        let deadline = Date().addingTimeInterval(2)
+        while doc.histogram == nil && Date() < deadline {
+            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.01))
+        }
+        XCTAssertNotNil(doc.histogram, "Phase 4: indexed mode populates the histogram")
     }
 }

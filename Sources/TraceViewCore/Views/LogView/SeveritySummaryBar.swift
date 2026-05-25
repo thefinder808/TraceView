@@ -9,11 +9,12 @@ struct SeveritySummaryBar: View {
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
-        // Indexed mode (Phase 3): levelCounts is empty by design — the
-        // index build doesn't visit entry contents. Showing "0" for
-        // every chip would be misleading; hide the entire bar. The
-        // status-bar note explains the gap.
-        if viewModel.derivedStatsAvailable {
+        // Phase 4: chips render in both modes. Indexed sources now
+        // populate `document.levelCounts` from `IndexedEntrySource.
+        // derivedLevelCounts` at load-time. The flag survives so any
+        // future source type that genuinely has no level data (e.g. a
+        // streaming source mid-build) can hide the bar.
+        if viewModel.levelCountsAvailable {
             severityBarBody
         }
     }
