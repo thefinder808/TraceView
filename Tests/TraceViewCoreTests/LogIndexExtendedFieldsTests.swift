@@ -274,4 +274,37 @@ final class LogIndexExtendedFieldsTests: XCTestCase {
         XCTAssertGreaterThan(idx.lineCount, 1_000_000)
         XCTAssertNotNil(idx.timestamps)
     }
+
+    /// Phase 4.5 PR1: end-to-end build → cache → reload measurement.
+    /// First call builds + persists; second call should hit the cache
+    /// and reconstruct the index in a tiny fraction of the build time.
+    /// Opt-in via env var.
+    func testBigFixtureCacheReloadSmokeOptIn() throws {
+        try XCTSkipUnless(
+            ProcessInfo.processInfo.environment["TRACEVIEW_BIG_FIXTURE_SMOKE"] != nil,
+            "Set TRACEVIEW_BIG_FIXTURE_SMOKE=1 to run cache reload smoke"
+        )
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let fixture = home.appendingPathComponent("Downloads/big-logs/big-syslog-5gb.log")
+        try XCTSkipUnless(
+            FileManager.default.fileExists(atPath: fixture.path),
+            "5 GB fixture not present"
+        )
+        // First run populates cache (or hits a prior cache).
+        let firstStart = Date()
+        let first = try LogIndex.buildOrLoad(fileURL: fixture, parserKind: .plainText)
+        let firstElapsed = Date().timeIntervalSince(firstStart)
+        // Second run should be a cache hit.
+        let secondStart = Date()
+        let second = try LogIndex.buildOrLoad(fileURL: fixture, parserKind: .plainText)
+        let secondElapsed = Date().timeIntervalSince(secondStart)
+        print("[5GB cache] first=\(firstElapsed)s second=\(secondElapsed)s lineCount=\(second.lineCount)")
+        // Both should produce the same line count.
+        XCTAssertEqual(first.lineCount, second.lineCount)
+        // Second run should be at least 2× faster than first if cache hit;
+        // we don't assert a hard upper bound because the warm pass is
+        // still proportional to total bytes.
+        XCTAssertLessThan(secondElapsed, firstElapsed,
+                          "Second buildOrLoad should be faster than first (cache hit)")
+    }
 }

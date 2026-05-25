@@ -182,21 +182,79 @@ final class LogIndex {
 
         let indexElapsed = Date().timeIntervalSince(start)
 
-        // Warm pass: the indexing scan above touched every byte to find
-        // newlines, but the kernel can evict pages aggressively under any
-        // memory pressure and the early-file pages may already be cold
-        // by the time later pages were scanned. Without this pass,
-        // random-access reads from cell rendering hit page faults on the
-        // main thread → spinner-cursor freezes during momentum scroll,
-        // even on machines with plenty of free RAM.
-        //
-        // Two-step:
-        //   1. madvise(MADV_WILLNEED) — advisory prefetch hint. May or
-        //      may not be honored on macOS.
-        //   2. Touch one byte per 16 KB page — forces resident state
-        //      regardless. The `blackHole(sum)` call prevents the
-        //      optimizer from eliminating the reads.
+        // Warm pass — see `warmPages` below for why this is load-bearing.
         let warmStart = Date()
+        Self.warmPages(of: data)
+        let warmElapsed = Date().timeIntervalSince(warmStart)
+
+        return LogIndex(
+            fileURL: fileURL,
+            data: data,
+            offsets: offsets,
+            levels: levelsBuf,
+            timestamps: timestampsBuf,
+            parserKind: parserKind,
+            indexElapsed: indexElapsed,
+            warmElapsed: warmElapsed
+        )
+    }
+
+    /// Phase 4.5 entry point: try the on-disk cache before falling back
+    /// to a fresh build. On cache miss the new build's results are
+    /// written back atomically, so subsequent opens of the same source
+    /// file hit the cache.
+    ///
+    /// The cache is invalidated when the source file's size or mtime
+    /// changes (see `LogIndexCache.tryLoad`) — re-saves of the log file
+    /// trigger an automatic rebuild.
+    static func buildOrLoad(fileURL: URL, parserKind: ParserKind = .other) throws -> LogIndex {
+        if let cached = LogIndexCache.tryLoad(forSourceURL: fileURL, parserKind: parserKind) {
+            let start = Date()
+            // The source file is still mmap'd separately — its page
+            // residency is independent of the cache file. The warmup
+            // here pre-touches the source so on-demand line reads from
+            // the renderer don't page-fault on the main thread.
+            let data = try Data(contentsOf: fileURL, options: .mappedIfSafe)
+            let indexElapsed = Date().timeIntervalSince(start)
+            let warmStart = Date()
+            warmPages(of: data)
+            let warmElapsed = Date().timeIntervalSince(warmStart)
+            return LogIndex(
+                fileURL: fileURL,
+                data: data,
+                offsets: cached.offsets,
+                levels: cached.levels,
+                timestamps: cached.timestamps,
+                parserKind: cached.parserKind,
+                indexElapsed: indexElapsed,
+                warmElapsed: warmElapsed
+            )
+        }
+
+        // Cache miss → full build → persist for next time.
+        let index = try build(fileURL: fileURL, parserKind: parserKind)
+        LogIndexCache.write(
+            sourceURL: fileURL,
+            offsets: index.offsets,
+            levels: index.levels,
+            timestamps: index.timestamps,
+            parserKind: parserKind
+        )
+        return index
+    }
+
+    /// Warm the kernel's page cache for the given mmap'd source file.
+    /// Two-step:
+    ///   1. `madvise(MADV_WILLNEED)` — advisory prefetch hint. May or
+    ///      may not be honored on macOS depending on memory pressure.
+    ///   2. Touch one byte per 16 KB page — forces resident state
+    ///      regardless. The `blackHole(sum)` call prevents the
+    ///      optimizer from eliminating the reads.
+    ///
+    /// Without this pass, random-access reads from cell rendering hit
+    /// page faults on the main thread → spinner-cursor freezes during
+    /// momentum scroll, even on machines with plenty of free RAM.
+    private static func warmPages(of data: Data) {
         data.withUnsafeBytes { (buf: UnsafeRawBufferPointer) in
             guard let base = buf.baseAddress else { return }
             let count = buf.count
@@ -210,18 +268,6 @@ final class LogIndex {
             }
             blackHole(sum)
         }
-        let warmElapsed = Date().timeIntervalSince(warmStart)
-
-        return LogIndex(
-            fileURL: fileURL,
-            data: data,
-            offsets: offsets,
-            levels: levelsBuf,
-            timestamps: timestampsBuf,
-            parserKind: parserKind,
-            indexElapsed: indexElapsed,
-            warmElapsed: warmElapsed
-        )
     }
 
     /// memchr-based newline iterator. Invokes `body` with the byte

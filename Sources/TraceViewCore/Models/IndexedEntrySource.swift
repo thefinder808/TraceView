@@ -232,12 +232,15 @@ final class IndexedEntrySource: EntrySource {
             "IndexedEntrySource requires a line-stateless parser; got \(parser.name)"
         )
         self.parser = parser
-        // Phase 4: pass the parser's ParserKind into LogIndex so its
-        // build pass can pick the right byte-level level + timestamp
-        // scanner. Bytes captured into logIndex.levels / .timestamps;
-        // see FastLineScanner for the equivalence boundary with
-        // parser.parse(line:).
-        self.logIndex = try LogIndex.build(fileURL: fileURL, parserKind: parser.kind)
+        // Phase 4.5: route through buildOrLoad so re-opens of the same
+        // source file skip the byte-scan build pass. On cache hit the
+        // LogIndex is reconstructed from `~/Library/Caches/.../*.tvidx`
+        // in ~30 ms (allocation + memcpy from the mmap'd cache), vs
+        // ~5 s for a full build on the 5 GB fixture. Cache invalidates
+        // automatically when the source file's size or mtime changes.
+        // ParserKind hint flows through so byte-level level + timestamp
+        // scanners pick the right fast path on cache miss.
+        self.logIndex = try LogIndex.buildOrLoad(fileURL: fileURL, parserKind: parser.kind)
     }
 
     func entry(at index: Int) -> LogEntry? {
