@@ -1,0 +1,3 @@
+import TraceViewCore
+
+TraceViewApp.main()
