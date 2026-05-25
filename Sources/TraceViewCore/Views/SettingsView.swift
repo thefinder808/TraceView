@@ -4,6 +4,11 @@ struct SettingsView: View {
     @EnvironmentObject var settingsManager: SettingsManager
     @EnvironmentObject var themeManager: ThemeManager
 
+    /// Phase 5.5: refreshed on every settings panel open so the
+    /// "Cache size" label shows current usage. Recomputed when the user
+    /// clicks "Clear Index Cache".
+    @State private var cacheSizeBytes: Int64 = 0
+
     var body: some View {
         let theme = themeManager.current
 
@@ -51,6 +56,56 @@ struct SettingsView: View {
                     .foregroundStyle(theme.secondaryText)
             }
 
+            // Performance / indexed loading
+            Section("Performance") {
+                Toggle("Use indexed mode for large files", isOn: $settingsManager.indexedModeEnabled)
+
+                HStack {
+                    Text("Threshold")
+                    Spacer()
+                    Text("\(settingsManager.indexedModeThresholdMB) MB")
+                        .foregroundStyle(theme.secondaryText)
+                        .monospacedDigit()
+                    Stepper("", value: $settingsManager.indexedModeThresholdMB, in: 10...10_000, step: 10)
+                        .labelsHidden()
+                }
+                .disabled(!settingsManager.indexedModeEnabled)
+
+                Text("Files at or above the threshold are loaded with a memory-mapped index instead of read into RAM. Severity chips, histogram, and filter still work — the file just doesn't need to fit in memory.")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
+
+                Toggle("Cache indexes to disk", isOn: $settingsManager.indexedModeCacheEnabled)
+                    .disabled(!settingsManager.indexedModeEnabled)
+                    .onChange(of: settingsManager.indexedModeCacheEnabled) { _, newValue in
+                        // Flipping off implies "I don't want a cache on
+                        // disk" — wipe what's already there so the
+                        // toggle's effect is immediate.
+                        if !newValue {
+                            _ = LogIndexCache.clearAll()
+                            cacheSizeBytes = 0
+                        }
+                    }
+
+                HStack {
+                    Text("Index cache")
+                    Spacer()
+                    Text(formattedCacheSize(cacheSizeBytes))
+                        .foregroundStyle(theme.secondaryText)
+                        .monospacedDigit()
+                    Button("Clear") {
+                        _ = LogIndexCache.clearAll()
+                        cacheSizeBytes = LogIndexCache.totalCacheSize()
+                    }
+                    .disabled(cacheSizeBytes == 0)
+                }
+                .disabled(!settingsManager.indexedModeCacheEnabled)
+
+                Text("Cached indexes live in ~/Library/Caches/com.traceview.app/. macOS evicts them automatically under disk pressure. Turning the cache off means every open of a large file rebuilds the index from scratch (~5 s per 5 GB) but uses zero disk.")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
+            }
+
             // Session
             Section("Session") {
                 Toggle("Restore open tabs on launch", isOn: $settingsManager.restoreTabsOnLaunch)
@@ -84,7 +139,17 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 480, height: 560)
+        .frame(width: 480, height: 640)
+        .onAppear {
+            cacheSizeBytes = LogIndexCache.totalCacheSize()
+        }
+    }
+
+    private func formattedCacheSize(_ bytes: Int64) -> String {
+        if bytes < 1024 { return "\(bytes) B" }
+        if bytes < 1024 * 1024 { return String(format: "%.1f KB", Double(bytes) / 1024) }
+        if bytes < 1024 * 1024 * 1024 { return String(format: "%.1f MB", Double(bytes) / (1024 * 1024)) }
+        return String(format: "%.2f GB", Double(bytes) / (1024 * 1024 * 1024))
     }
 }
 

@@ -26,6 +26,12 @@ final class SettingsManager: ObservableObject {
     /// by power users who want a different cutoff than the default.
     /// No UI surface.
     static let indexedModeThresholdKey = "traceview.indexedModeThresholdBytes"
+    /// Phase 5.5 toggle (surfaced in Settings → Performance). When
+    /// false, `LogIndex.buildOrLoad` skips cache reads and writes, so
+    /// every open pays the full byte-scan cost but nothing persists to
+    /// disk. Default true (cache enabled). Toggling off from the UI
+    /// auto-clears any existing cache files.
+    static let indexedModeCacheEnabledKey = "traceview.indexedModeCacheEnabled"
     /// Phase 5 default threshold: 100 MB. Files at or above this size
     /// (and parser-eligible) go through `IndexedEntrySource`; smaller
     /// files use the eager chunked parse. 100 MB is roughly the point
@@ -93,6 +99,38 @@ final class SettingsManager: ObservableObject {
         }
     }
 
+    /// Phase 5.5 visible toggle for the indexed-mode dispatch. Mirror of
+    /// `disableIndexedModeKey` with inverted semantics (UI surfaces the
+    /// affirmative phrasing). Default true (indexed mode enabled).
+    @Published var indexedModeEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(!indexedModeEnabled, forKey: Self.disableIndexedModeKey)
+        }
+    }
+
+    /// Phase 5.5 visible threshold for the indexed-mode dispatch, in MB.
+    /// Backed by `indexedModeThresholdKey` (which stores bytes). Default
+    /// 100 MB (mirrors `indexedModeDefaultThresholdBytes`). Stored in MB
+    /// for UI ergonomics; converted to bytes on write.
+    @Published var indexedModeThresholdMB: Int {
+        didSet {
+            let bytes = Int64(indexedModeThresholdMB) * 1024 * 1024
+            UserDefaults.standard.set(Int(bytes), forKey: Self.indexedModeThresholdKey)
+        }
+    }
+
+    /// Phase 5.5 toggle for the on-disk index cache. When false, every
+    /// open rebuilds the index from scratch — same UX as Phase 4
+    /// before persistence shipped, with the disk-usage cost gone.
+    /// Default true. The Settings UI auto-clears existing cache files
+    /// when the user flips this off so "off" actually means "no cache
+    /// on disk".
+    @Published var indexedModeCacheEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(indexedModeCacheEnabled, forKey: Self.indexedModeCacheEnabledKey)
+        }
+    }
+
     init() {
         let defaults = UserDefaults.standard
 
@@ -150,6 +188,21 @@ final class SettingsManager: ObservableObject {
         // here (200pt) just to reject genuinely broken saved values.
         let savedPaneWidth = defaults.double(forKey: Self.primaryPaneWidthKey)
         self.primaryPaneWidth = savedPaneWidth >= 200 ? savedPaneWidth : 640
+
+        // Phase 5.5 indexed-mode controls.
+        self.indexedModeEnabled = !defaults.bool(forKey: Self.disableIndexedModeKey)
+        let savedThresholdBytes = defaults.integer(forKey: Self.indexedModeThresholdKey)
+        if savedThresholdBytes > 0 {
+            self.indexedModeThresholdMB = max(1, savedThresholdBytes / (1024 * 1024))
+        } else {
+            self.indexedModeThresholdMB = Int(Self.indexedModeDefaultThresholdBytes / (1024 * 1024))
+        }
+        // Default true when the key has never been set.
+        if defaults.object(forKey: Self.indexedModeCacheEnabledKey) == nil {
+            self.indexedModeCacheEnabled = true
+        } else {
+            self.indexedModeCacheEnabled = defaults.bool(forKey: Self.indexedModeCacheEnabledKey)
+        }
     }
 }
 
