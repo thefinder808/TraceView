@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+    <channel>
+        <title>TraceView</title>
+        <link>https://thefinder808.github.io/TraceView/appcast.xml</link>
+        <description>Update feed for TraceView, a native macOS log viewer.</description>
+        <language>en</language>
+    </channel>
+</rss>
