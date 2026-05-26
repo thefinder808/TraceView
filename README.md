@@ -145,7 +145,9 @@ Supported formats: PlainText (BSD-syslog, dated-syslog), SCCM (CMTrace), CSV. IP
 
 ## Status
 
-**v1.1.0** lands the large-file engine: a custom virtual-scroll renderer that replaces the SwiftUI list, plus a memory-mapped *indexed mode* that auto-engages for files ≥ 100 MB, alongside an expanded 13-domain error-code database. Phase 1 of the Console Dense redesign is shipped; Phase 2 (Clean Native / Observability / Editorial as selectable theme skins) remains queued.
+**v1.1.1** adds in-app auto-update via [Sparkle](https://sparkle-project.org/). TraceView checks for new versions on launch and every 24 hours, downloads + verifies (Developer ID + EdDSA) updates in the background, and applies them after a confirm-and-relaunch prompt. Toggle in Settings → Updates.
+
+**v1.1.0** landed the large-file engine: a custom virtual-scroll renderer that replaces the SwiftUI list, plus a memory-mapped *indexed mode* that auto-engages for files ≥ 100 MB, alongside an expanded 13-domain error-code database. Phase 1 of the Console Dense redesign is shipped; Phase 2 (Clean Native / Observability / Editorial as selectable theme skins) remains queued.
 
 ## License
 

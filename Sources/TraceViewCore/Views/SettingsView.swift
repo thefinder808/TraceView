@@ -3,6 +3,13 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var settingsManager: SettingsManager
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var updater: UpdaterService
+
+    /// Local mirror of Sparkle's automaticallyChecksForUpdates — Sparkle
+    /// owns the persisted value (UserDefaults key SUEnableAutomaticChecks),
+    /// but its getter isn't @Published, so the toggle needs a SwiftUI-aware
+    /// state to drive view updates. Initialized from Sparkle on appear.
+    @State private var autoCheckEnabled: Bool = true
 
     /// Phase 5.5: refreshed on every settings panel open so the
     /// "Cache size" label shows current usage. Recomputed when the user
@@ -115,6 +122,30 @@ struct SettingsView: View {
                     .foregroundStyle(theme.secondaryText)
             }
 
+            // Updates
+            Section("Updates") {
+                Toggle("Automatically check for updates", isOn: $autoCheckEnabled)
+                    .onChange(of: autoCheckEnabled) { _, newValue in
+                        updater.automaticallyChecksForUpdates = newValue
+                    }
+
+                HStack {
+                    Text("Current version")
+                    Spacer()
+                    Text(currentVersion)
+                        .foregroundStyle(theme.secondaryText)
+                        .monospacedDigit()
+                    Button("Check Now") {
+                        updater.checkForUpdates()
+                    }
+                    .disabled(!updater.canCheckForUpdates)
+                }
+
+                Text("Checks GitHub once on launch and every 24 hours while running. Updates are downloaded, verified (Developer ID + EdDSA), and installed automatically when you approve the prompt.")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
+            }
+
             // Highlight rules
             Section("Highlight Rules") {
                 ForEach($settingsManager.highlightRules) { $rule in
@@ -142,7 +173,14 @@ struct SettingsView: View {
         .frame(width: 480, height: 640)
         .onAppear {
             cacheSizeBytes = LogIndexCache.totalCacheSize()
+            autoCheckEnabled = updater.automaticallyChecksForUpdates
         }
+    }
+
+    private var currentVersion: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "?"
+        return "v\(short)"
     }
 
     private func formattedCacheSize(_ bytes: Int64) -> String {
