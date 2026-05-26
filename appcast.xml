@@ -1,9 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>TraceView</title>
-        <link>https://thefinder808.github.io/TraceView/appcast.xml</link>
-        <description>Update feed for TraceView, a native macOS log viewer.</description>
-        <language>en</language>
+        <item>
+            <title>1.1.1</title>
+            <pubDate>Tue, 26 May 2026 08:12:46 -0500</pubDate>
+            <sparkle:version>1.1.1</sparkle:version>
+            <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://thefinder808.github.io/TraceView/TraceView-1.1.1.dmg" length="2208241" type="application/octet-stream" sparkle:edSignature="jq5aX2HuEJl1jWz+ARCiBKE8zliuo21sK+Y2LorD8UnjmPU9h4hTtaiAHDghneshFMy+MiGtyp71MjqcMkLCBg=="/>
+        </item>
     </channel>
 </rss>
