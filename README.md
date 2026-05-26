@@ -30,6 +30,7 @@ Real-time file following, severity-aware highlighting, built-in error-code looku
 - **Live unified log** — wraps `log stream --style ndjson` for real-time system log capture with optional predicate filtering.
 - **Multiple parsers** — PlainText, UnifiedLog (`log show/stream` JSON), JSONLines (including whole-file arrays), CSV, SCCM, IPS crash reports, and `.diag` diagnostic reports. Auto-detected by scoring the first ~50 lines of each file. `.gz` rotated logs are decompressed transparently on open.
 - **Themes** — Console (default), Light, Dark, Neon.
+- **Auto-update** — checks for new versions on launch and every 24 hours via [Sparkle](https://sparkle-project.org/), downloads + verifies them (Developer ID + EdDSA signatures), installs after a confirm prompt, and relaunches. Toggle in Settings → Updates, or check manually from the *About TraceView* menu.
 - **Keyboard shortcuts** — `Cmd+O` open · `Cmd+Shift+O` open in right pane · `Cmd+F` search · `Cmd+G` / `Cmd+Shift+G` next/previous match · `Cmd+L` go to line · `Cmd+D` toggle bookmark · `Cmd+Opt+R` toggle regex matching · `Cmd+Shift+L` error lookup · `Cmd+\` toggle split view · `Cmd+Shift+S` toggle pane sync · `Cmd+Shift+E` export · `Cmd+K` command palette · `Cmd+T` cycle theme. Full list in [spec.md](spec.md#keyboard-shortcuts).
 
 ## Screenshots
