@@ -22,6 +22,7 @@ public struct TraceViewApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var settingsManager = SettingsManager()
+    @StateObject private var updater = UpdaterService()
 
     public var body: some Scene {
         WindowGroup {
@@ -29,6 +30,7 @@ public struct TraceViewApp: App {
                 .environmentObject(appState)
                 .environmentObject(themeManager)
                 .environmentObject(settingsManager)
+                .environmentObject(updater)
                 .background(themeManager.current.windowBackground)
                 .preferredColorScheme(colorScheme)
                 .onDrop(of: [.fileURL], isTargeted: nil) { providers in
@@ -55,6 +57,16 @@ public struct TraceViewApp: App {
         .defaultSize(width: 1100, height: 700)
         .windowResizability(.contentMinSize)
         .commands {
+            // "Check for Updates…" under "About TraceView" — macOS convention.
+            // Sparkle owns the user-facing flow; canCheckForUpdates gates the
+            // menu item while a check is already in flight.
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") {
+                    updater.checkForUpdates()
+                }
+                .disabled(!updater.canCheckForUpdates)
+            }
+
             // File menu
             CommandGroup(replacing: .newItem) {
                 Button("Open Log File...") { appState.openFile(into: .primary) }
