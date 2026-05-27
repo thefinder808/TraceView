@@ -238,6 +238,7 @@ public struct TraceViewApp: App {
             SettingsView()
                 .environmentObject(settingsManager)
                 .environmentObject(themeManager)
+                .environmentObject(updater)
         }
     }
 
