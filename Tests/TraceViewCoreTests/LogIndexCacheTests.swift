@@ -58,6 +58,7 @@ final class LogIndexCacheTests: XCTestCase {
             timestamps: built.timestamps,
             componentIndex: built.componentIndex,
             uniqueComponents: built.uniqueComponents,
+            sortedByTimestamp: built.sortedByTimestamp,
             parserKind: .plainText
         ))
 
@@ -82,7 +83,7 @@ final class LogIndexCacheTests: XCTestCase {
 
         XCTAssertTrue(LogIndexCache.write(
             sourceURL: url, offsets: built.offsets, levels: built.levels,
-            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, parserKind: .csv
+            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, sortedByTimestamp: built.sortedByTimestamp, parserKind: .csv
         ))
         guard let loaded = LogIndexCache.tryLoad(forSourceURL: url, parserKind: .csv) else {
             XCTFail("Expected cache hit for CSV")
@@ -100,7 +101,7 @@ final class LogIndexCacheTests: XCTestCase {
         let built = try LogIndex.build(fileURL: url, parserKind: .plainText)
         XCTAssertTrue(LogIndexCache.write(
             sourceURL: url, offsets: built.offsets, levels: built.levels,
-            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, parserKind: .plainText
+            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, sortedByTimestamp: built.sortedByTimestamp, parserKind: .plainText
         ))
 
         // Sleep briefly + touch the file so its mtime advances past
@@ -119,7 +120,7 @@ final class LogIndexCacheTests: XCTestCase {
         let built = try LogIndex.build(fileURL: url, parserKind: .plainText)
         XCTAssertTrue(LogIndexCache.write(
             sourceURL: url, offsets: built.offsets, levels: built.levels,
-            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, parserKind: .plainText
+            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, sortedByTimestamp: built.sortedByTimestamp, parserKind: .plainText
         ))
 
         // Replace with a much larger file so size differs.
@@ -139,7 +140,7 @@ final class LogIndexCacheTests: XCTestCase {
         let built = try LogIndex.build(fileURL: url, parserKind: .plainText)
         XCTAssertTrue(LogIndexCache.write(
             sourceURL: url, offsets: built.offsets, levels: built.levels,
-            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, parserKind: .plainText
+            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, sortedByTimestamp: built.sortedByTimestamp, parserKind: .plainText
         ))
 
         // Caller asks for a different parserKind → reject.
@@ -156,7 +157,7 @@ final class LogIndexCacheTests: XCTestCase {
         let built = try LogIndex.build(fileURL: url, parserKind: .plainText)
         _ = LogIndexCache.write(
             sourceURL: url, offsets: built.offsets, levels: built.levels,
-            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, parserKind: .plainText
+            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, sortedByTimestamp: built.sortedByTimestamp, parserKind: .plainText
         )
         guard let cacheURL = LogIndexCache.cacheURL(forSourceURL: url) else {
             XCTFail("Expected cache URL")
@@ -176,7 +177,7 @@ final class LogIndexCacheTests: XCTestCase {
         let built = try LogIndex.build(fileURL: url, parserKind: .plainText)
         _ = LogIndexCache.write(
             sourceURL: url, offsets: built.offsets, levels: built.levels,
-            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, parserKind: .plainText
+            timestamps: built.timestamps, componentIndex: built.componentIndex, uniqueComponents: built.uniqueComponents, sortedByTimestamp: built.sortedByTimestamp, parserKind: .plainText
         )
         guard let cacheURL = LogIndexCache.cacheURL(forSourceURL: url) else {
             XCTFail("Expected cache URL")

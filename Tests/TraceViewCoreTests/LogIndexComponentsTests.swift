@@ -180,6 +180,7 @@ final class LogIndexComponentsTests: XCTestCase {
             timestamps: built.timestamps,
             componentIndex: built.componentIndex,
             uniqueComponents: built.uniqueComponents,
+            sortedByTimestamp: built.sortedByTimestamp,
             parserKind: .plainText
         ))
         guard let loaded = LogIndexCache.tryLoad(forSourceURL: url, parserKind: .plainText) else {
