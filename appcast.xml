@@ -3,20 +3,30 @@
     <channel>
         <title>TraceView</title>
         <item>
+            <title>1.1.3</title>
+            <pubDate>Wed, 27 May 2026 10:49:24 -0500</pubDate>
+            <sparkle:version>1.1.3</sparkle:version>
+            <sparkle:shortVersionString>1.1.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://thefinder808.github.io/TraceView/releases/TraceView-1.1.3.dmg" length="2211524" type="application/octet-stream" sparkle:edSignature="55sz201ZIcaFzOnKU3qvTimFqgypnyauB5Q9p9Xhx94XJeige1tCqDYsrJ0yH4W8WZYFLLM5R4VEOHyoMRvKDw=="/>
+            <sparkle:deltas>
+                <enclosure url="https://thefinder808.github.io/TraceView/releases/TraceView1.1.3-1.1.2.delta" sparkle:deltaFrom="1.1.2" length="138306" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="zUcHlX6jrf3wgJuvpJLF6Qi6RxWq/UHFG6ZAtcog+TvVvJQgX3s7r7VYExiPuATX2SiJ6pQsMjN2RuasB3dECw=="/>
+                <enclosure url="https://thefinder808.github.io/TraceView/releases/TraceView1.1.3-1.1.1.delta" sparkle:deltaFrom="1.1.1" length="143442" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="ccFmTGZ7Ugiyypk2qOwaldJkXbK7w4Fhob/yVyeX6eUp/y2OH2sa8nw/14HLn8hPYwhfF9O+e25Vo/FctdPXAw=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.1.2</title>
-            <pubDate>Wed, 27 May 2026 10:30:39 -0500</pubDate>
+            <pubDate>Wed, 27 May 2026 10:49:24 -0500</pubDate>
             <sparkle:version>1.1.2</sparkle:version>
             <sparkle:shortVersionString>1.1.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
             <enclosure url="https://thefinder808.github.io/TraceView/releases/TraceView-1.1.2.dmg" length="2208599" type="application/octet-stream" sparkle:edSignature="D66e6V/4pRSDHIdOE+hgdHPn2bza6p/1ETLmvcRUkqezDIiSdV+DAX7n+1x4LwIRK38oXnipYirPrOYpVUhsCw=="/>
-            <sparkle:deltas>
-                <enclosure url="https://thefinder808.github.io/TraceView/releases/TraceView1.1.2-1.1.1.delta" sparkle:deltaFrom="1.1.1" length="95350" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="dwrmFXBPH8InlyU+7odFw/CAkcnkTdv7cWoMtBG9aT7f2bm0ihdad0QALLZUmuWuz2pSNaUNCrmw98g2Tzk3Ag=="/>
-            </sparkle:deltas>
         </item>
         <item>
             <title>1.1.1</title>
-            <pubDate>Wed, 27 May 2026 10:30:39 -0500</pubDate>
+            <pubDate>Wed, 27 May 2026 10:49:24 -0500</pubDate>
             <sparkle:version>1.1.1</sparkle:version>
             <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
