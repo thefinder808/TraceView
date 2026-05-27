@@ -26,8 +26,8 @@ set -euo pipefail
 
 APP_NAME="TraceView"
 BUNDLE_ID="com.traceview.app"
-BUNDLE_VERSION="1.1.3"
-BUNDLE_SHORT_VERSION="1.1.3"
+BUNDLE_VERSION="1.1.4"
+BUNDLE_SHORT_VERSION="1.1.4"
 OUT_DIR="build"
 APP_BUNDLE="${OUT_DIR}/${APP_NAME}.app"
 ICON_SRC="Resources/AppIcon.icns"
