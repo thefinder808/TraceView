@@ -8,7 +8,16 @@ final class IndexedEntrySourceTests: XCTestCase {
     private var temporaryFiles: [URL] = []
 
     override func tearDown() {
+        // Clean up the temp source files AND the index-cache blobs they
+        // produced — `IndexedEntrySource` routes through
+        // `LogIndex.buildOrLoad`, which persists into the user's
+        // `~/Library/Caches/com.traceview.app/indexes/` keyed on a SHA-1
+        // of the source path. Without this, every test run leaves a
+        // stale .tvidx file that no live code path will ever collect.
         for url in temporaryFiles {
+            if let cacheURL = LogIndexCache.cacheURL(forSourceURL: url) {
+                try? FileManager.default.removeItem(at: cacheURL)
+            }
             try? FileManager.default.removeItem(at: url)
         }
         temporaryFiles.removeAll()
@@ -156,6 +165,203 @@ final class IndexedEntrySourceTests: XCTestCase {
     /// chunked parse skips empty lines (`guard !line.isEmpty else { continue }`)
     /// while IndexedEntrySource counts every newline-separated line —
     /// see the "Empty lines" gap captured in PR3+'s open questions.
+    // MARK: - Non-monotonic timestamps (install.log-style multi-writer logs)
+
+    /// Synthetic fixture with one deliberate out-of-order timestamp.
+    /// Source indices 0..3 climb monotonic at 10:00:00..10:00:03, index
+    /// 4 jumps BACK to 10:00:01 (the "OOO" entry), index 5 jumps
+    /// forward to 10:00:05, then 6..11 continue monotonic at
+    /// 10:00:06..10:00:11. The OOO bucket (`[01, 02)`) contains only
+    /// source row 4 — exactly the case the old bisect+walk couldn't
+    /// reach: the bisect lands past row 4 in source order and the walk
+    /// breaks at the first `ts >= endEpoch`. 12 timestamped lines clear
+    /// `derivedHistogram`'s 10-row minimum so the parity test can also
+    /// use this fixture.
+    private func writeOOOFixture() -> URL {
+        return writeTempFile(contents: """
+        Jan 01 10:00:00 host proc[1]: a
+        Jan 01 10:00:02 host proc[1]: b
+        Jan 01 10:00:03 host proc[1]: c
+        Jan 01 10:00:04 host proc[1]: d
+        Jan 01 10:00:01 host proc[1]: error ooo entry
+        Jan 01 10:00:05 host proc[1]: e
+        Jan 01 10:00:06 host proc[1]: f
+        Jan 01 10:00:07 host proc[1]: g
+        Jan 01 10:00:08 host proc[1]: h
+        Jan 01 10:00:09 host proc[1]: i
+        Jan 01 10:00:10 host proc[1]: j
+        Jan 01 10:00:11 host proc[1]: k
+
+        """)
+    }
+
+    func testOOOFixtureBuildsSortedIndex() throws {
+        let url = writeOOOFixture()
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        XCTAssertNotNil(
+            source.logIndex.sortedByTimestamp,
+            "Build pass must detect the inversion and emit a sorted companion"
+        )
+        XCTAssertEqual(source.logIndex.sortedByTimestamp?.count, 12)
+
+        // Sorted positions are by (timestamp, sourceIndex). With the
+        // fixture above the expected leading mapping is: src order
+        // 0, 4, 1, 2, 3, 5 → timestamps 00, 01, 02, 03, 04, 05.
+        // The tail (6..11) is already in sorted order.
+        XCTAssertEqual(
+            source.logIndex.sortedByTimestamp,
+            [0, 4, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11]
+        )
+    }
+
+    func testMonotonicFixtureDoesNotAllocateSortedIndex() throws {
+        let url = writeTempFile(contents: """
+        Jan 01 10:00:00 host proc[1]: a
+        Jan 01 10:00:01 host proc[1]: b
+        Jan 01 10:00:02 host proc[1]: c
+        Jan 01 10:00:03 host proc[1]: d
+
+        """)
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        XCTAssertNil(
+            source.logIndex.sortedByTimestamp,
+            "Monotonic logs must take the zero-allocation fast path"
+        )
+    }
+
+    /// Bucket containing only the OOO entry. The old bisect+walk would
+    /// fall through to `nil`; the sorted path must return its row.
+    func testFirstRowInTimeRangeReachesOOOEntry() throws {
+        let url = writeOOOFixture()
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+
+        // Pull the actual extracted ts values so the test is robust
+        // against year-context drift (FastTimestampScanner uses the
+        // current calendar year for BSD-syslog dates).
+        guard let ts = source.logIndex.timestamps else {
+            return XCTFail("expected timestamps captured for BSD-syslog fixture")
+        }
+        // sortedByTimestamp[1] points at the OOO source row (ts=01).
+        let oooSrc = source.logIndex.sortedByTimestamp![1]
+        let oooTs = ts[oooSrc]
+        let nextTs = ts[source.logIndex.sortedByTimestamp![2]]  // ts=02
+        let row = source.firstRowInTimeRange(
+            startEpoch: oooTs,
+            endEpoch: nextTs,
+            matchingLevels: nil,
+            restrictTo: nil
+        )
+        XCTAssertEqual(row, oooSrc, "Sorted-path bisect must reach the OOO entry")
+    }
+
+    /// Same bucket, but the click came from a pane with an active
+    /// filter. When the OOO row is IN the filter, the click must
+    /// resolve to it.
+    func testFirstRowInTimeRangeOOOWithFilterIncluding() throws {
+        let url = writeOOOFixture()
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        let ts = source.logIndex.timestamps!
+        let sorted = source.logIndex.sortedByTimestamp!
+        let oooSrc = sorted[1]
+        let nextTs = ts[sorted[2]]
+
+        // Filter includes 0, 4 (the OOO row), 5 — all sorted by source row.
+        let filtered = [0, 4, 5]
+        let row = source.firstRowInTimeRange(
+            startEpoch: ts[oooSrc],
+            endEpoch: nextTs,
+            matchingLevels: nil,
+            restrictTo: filtered
+        )
+        XCTAssertEqual(row, oooSrc)
+    }
+
+    /// When the filter EXCLUDES the OOO row, the bucket is effectively
+    /// empty — must return nil cleanly without falling into a loop or
+    /// reading off the end.
+    func testFirstRowInTimeRangeOOOWithFilterExcluding() throws {
+        let url = writeOOOFixture()
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        let ts = source.logIndex.timestamps!
+        let sorted = source.logIndex.sortedByTimestamp!
+        let oooSrc = sorted[1]
+        let nextTs = ts[sorted[2]]
+
+        // Excludes source row 4 (the OOO entry). Remaining rows are at
+        // 10:00:00 (src 0) and 10:00:02+ (src 1, 2, 3, 5) — none fall
+        // inside [01, 02).
+        let filtered = [0, 1, 2, 3, 5]
+        let row = source.firstRowInTimeRange(
+            startEpoch: ts[oooSrc],
+            endEpoch: nextTs,
+            matchingLevels: nil,
+            restrictTo: filtered
+        )
+        XCTAssertNil(row)
+    }
+
+    /// Level-aware lookup over the OOO bucket. The fixture marks the
+    /// OOO row's message with `error` so LevelDetector's keyword scan
+    /// classifies it as `.error`.
+    func testFirstRowInTimeRangeOOOWithLevelMatching() throws {
+        let url = writeOOOFixture()
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        let ts = source.logIndex.timestamps!
+        let sorted = source.logIndex.sortedByTimestamp!
+        let oooSrc = sorted[1]
+        let nextTs = ts[sorted[2]]
+
+        let row = source.firstRowInTimeRange(
+            startEpoch: ts[oooSrc],
+            endEpoch: nextTs,
+            matchingLevels: [.error, .critical],
+            restrictTo: nil
+        )
+        XCTAssertEqual(row, oooSrc, "Level filter should still find the OOO error row")
+    }
+
+    /// Bucket counts must agree between the linear-scan histogram and a
+    /// manual time-bucket bin. Catches any drift between the build pass
+    /// and the sort post-pass that could let the histogram show counts
+    /// the sorted-path lookup can't reach.
+    func testDerivedHistogramParityWithOOOFixture() throws {
+        let url = writeOOOFixture()
+        let source = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        guard let histogram = source.derivedHistogram(buckets: 60) else {
+            return XCTFail("expected derived histogram for OOO fixture")
+        }
+        // Sum of all bar.total across buckets must equal the count of
+        // finite-timestamp rows in the fixture.
+        let total = histogram.bars.reduce(0) { $0 + $1.total }
+        XCTAssertEqual(total, 12)
+    }
+
+    /// Cache round-trip: open the OOO fixture twice with the same URL.
+    /// The first open builds the index and persists v3 cache; the
+    /// second open hits the cache and must reconstruct
+    /// `sortedByTimestamp` byte-for-byte.
+    func testCacheRoundTripPreservesSortedIndex() throws {
+        let url = writeOOOFixture()
+        let first = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        let originalSorted = first.logIndex.sortedByTimestamp
+        XCTAssertNotNil(originalSorted)
+
+        let second = try IndexedEntrySource(fileURL: url, parser: PlainTextParser())
+        XCTAssertEqual(second.logIndex.sortedByTimestamp, originalSorted)
+
+        // And the click resolution still works on the cache-loaded path.
+        let ts = second.logIndex.timestamps!
+        let sorted = second.logIndex.sortedByTimestamp!
+        let oooSrc = sorted[1]
+        let row = second.firstRowInTimeRange(
+            startEpoch: ts[oooSrc],
+            endEpoch: ts[sorted[2]],
+            matchingLevels: nil,
+            restrictTo: nil
+        )
+        XCTAssertEqual(row, oooSrc)
+    }
+
     func testLineCountMatchesInMemorySource() throws {
         let lineTexts = (1...500).map { "Jan 01 10:00:00 host proc[1]: msg \($0)" }
         let url = writeTempFile(contents: lineTexts.joined(separator: "\n") + "\n")

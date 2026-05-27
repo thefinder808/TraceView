@@ -166,6 +166,24 @@ final class IndexedEntrySource: EntrySource {
         restrictTo filteredIndices: [Int]? = nil
     ) -> Int? {
         guard let timestamps = logIndex.timestamps else { return nil }
+
+        // Non-monotonic dispatch. The build pass detects out-of-order
+        // timestamps (typical on multi-writer logs like install.log) and
+        // emits a `sortedByTimestamp` companion. When present we bisect
+        // over THAT view, where the walk's "break on ts >= endEpoch"
+        // invariant actually holds. The monotonic fast path below stays
+        // verbatim so the common case pays no extra branches.
+        if let sorted = logIndex.sortedByTimestamp {
+            return firstRowInTimeRangeSorted(
+                timestamps: timestamps,
+                sorted: sorted,
+                startEpoch: startEpoch,
+                endEpoch: endEpoch,
+                matchingLevels: matchingLevels,
+                restrictTo: filteredIndices
+            )
+        }
+
         let count = filteredIndices?.count ?? timestamps.count
         guard count > 0 else { return nil }
 
@@ -210,6 +228,82 @@ final class IndexedEntrySource: EntrySource {
             j += 1
         }
         return nil
+    }
+
+    /// Non-monotonic variant of `firstRowInTimeRange`. Bisects over
+    /// `sorted` (positions ordered by timestamp), then walks forward
+    /// applying the level filter and — if `restrictTo` is non-nil —
+    /// a binary-search membership check against the filtered set
+    /// (which is sorted by source-row index, not timestamp). The
+    /// `break on ts >= endEpoch` invariant holds here because `sorted`
+    /// positions ARE monotonic in timestamp by construction.
+    private func firstRowInTimeRangeSorted(
+        timestamps: [Double],
+        sorted: [Int],
+        startEpoch: Double,
+        endEpoch: Double,
+        matchingLevels: Set<LogLevel>?,
+        restrictTo filteredIndices: [Int]?
+    ) -> Int? {
+        let count = sorted.count
+        guard count > 0 else { return nil }
+
+        // Bisect for the smallest position whose mapped timestamp is
+        // >= startEpoch. NaN entries sit at the head of `sorted` by
+        // construction; the same "NaN counts as less than" predicate
+        // used in the monotonic path skips past them.
+        var lo = 0
+        var hi = count
+        while lo < hi {
+            let mid = (lo + hi) / 2
+            let ts = timestamps[sorted[mid]]
+            if ts.isFinite && ts >= startEpoch {
+                hi = mid
+            } else {
+                lo = mid + 1
+            }
+        }
+
+        var j = lo
+        while j < count {
+            let srcIdx = sorted[j]
+            let ts = timestamps[srcIdx]
+            if ts.isFinite && ts >= endEpoch { break }
+            if ts.isFinite && ts >= startEpoch {
+                if let filteredIndices,
+                   !Self.binaryContains(filteredIndices, srcIdx) {
+                    j += 1
+                    continue
+                }
+                if let matchingLevels {
+                    let level = FastLevelScanner.decode(logIndex.levels[srcIdx])
+                    if matchingLevels.contains(level) {
+                        return srcIdx
+                    }
+                } else {
+                    return srcIdx
+                }
+            }
+            j += 1
+        }
+        return nil
+    }
+
+    /// Binary search membership check for an `Int` in a sorted `[Int]`.
+    /// Used on the non-monotonic histogram-click path to honor an
+    /// active filter without paying a per-call `Set<Int>` allocation.
+    /// `filteredIndices` from `IndexedFilterScanner` is sorted by
+    /// source-row index by construction (see its scan loop).
+    private static func binaryContains(_ array: [Int], _ value: Int) -> Bool {
+        var lo = 0
+        var hi = array.count
+        while lo < hi {
+            let mid = (lo + hi) / 2
+            let probe = array[mid]
+            if probe == value { return true }
+            if probe < value { lo = mid + 1 } else { hi = mid }
+        }
+        return false
     }
 
     private static let histogramLabelFormatterShort: DateFormatter = {

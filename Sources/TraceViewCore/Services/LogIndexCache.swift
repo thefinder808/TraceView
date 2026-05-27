@@ -14,33 +14,41 @@ import Foundation
 ///
 ///     [Header — 40 bytes]
 ///       magic:           UInt32  (0x54564C49 'TVLI')
-///       version:         UInt32  (1)
+///       version:         UInt32  (3)
 ///       parserKind:      UInt32  (0=plainText, 1=sccm, 2=csv, 3=other)
-///       flags:           UInt32  (bit 0 = hasTimestamps)
+///       flags:           UInt32  (bit 0 = hasTimestamps, bit 1 = hasComponents,
+///                                 bit 2 = hasSortedTimestamps)
 ///       sourceFileSize:  Int64
 ///       sourceFileMtime: Double  (timeIntervalSince1970)
 ///       lineCount:       UInt64
-///     [Body]
-///       offsets:    lineCount × UInt64
-///       levels:     lineCount × UInt8
-///       timestamps: lineCount × Double  (only when flag bit 0 set)
+///     [Body — sections present in fixed order, gated by flag bits]
+///       offsets:            lineCount × UInt64   (always)
+///       levels:             lineCount × UInt8    (always)
+///       timestamps:         lineCount × Double   (flagHasTimestamps)
+///       components section: variable            (flagHasComponents)
+///         uniqueCount: UInt32
+///         foreach: length:UInt32 + UTF-8 bytes
+///         componentIndex: lineCount × UInt16
+///       sortedByTimestamp: lineCount × UInt32   (flagHasSortedTimestamps)
 ///
-/// Total: 40 + 8N + N + (8N if timestamps) = 17N + 40 bytes on a
-/// PlainText/SCCM index, 9N + 40 on CSV / other.
+/// Total: 40 + 8N + N + (8N if timestamps) + (~2N + ~constant if components)
+/// + (4N if sortedTimestamps).
 ///
 /// Writes are atomic (.tmp + rename). Best-effort: failures are
 /// logged and the in-memory index keeps working.
 enum LogIndexCache {
     static let magic: UInt32 = 0x5456_4C49  // 'TVLI'
-    /// Bumped to 2 in Phase 4.5 PR2 to add the components section. Any
-    /// version mismatch invalidates the cache so the rebuild populates
-    /// the new fields.
-    static let version: UInt32 = 2
+    /// Version 3 (this revision) adds the optional `sortedByTimestamp`
+    /// trailing section for non-monotonic logs. Version mismatch
+    /// invalidates the cache so the rebuild populates the new field.
+    /// Prior values: 1 (initial), 2 (added components section).
+    static let version: UInt32 = 3
     static let headerSize = 40
 
     /// Flag bits packed into the header's `flags: UInt32`.
     private static let flagHasTimestamps: UInt32 = 0x1
     private static let flagHasComponents: UInt32 = 0x2
+    private static let flagHasSortedTimestamps: UInt32 = 0x4
 
     /// Snapshot returned from `tryLoad` — the bytes are read out of the
     /// mmap'd cache file into Swift Arrays so LogIndex's existing
@@ -54,6 +62,10 @@ enum LogIndexCache {
         let timestamps: [Double]?
         let componentIndex: [UInt16]?
         let uniqueComponents: [String]?
+        /// Stored on disk as `[UInt32]` (4 bytes/entry — line counts
+        /// stay well under 2^32 even on 5 GB inputs); decoded to Int
+        /// here so callers consume native Swift indices.
+        let sortedByTimestamp: [Int]?
         let parserKind: ParserKind
     }
 
@@ -154,9 +166,18 @@ enum LogIndexCache {
         timestamps: [Double]?,
         componentIndex: [UInt16]?,
         uniqueComponents: [String]?,
+        sortedByTimestamp: [Int]?,
         parserKind: ParserKind
     ) -> Bool {
         guard let cacheURL = cacheURL(forSourceURL: sourceURL) else { return false }
+        // Source row indices fit in UInt32 with room to spare — even the
+        // 5 GB BSD-syslog fixture is ~2^25 lines. Skip the cache write
+        // rather than truncate to garbage indices when an absurd file
+        // would overflow the UInt32 line-count ceiling. Best-effort
+        // contract: failure is allowed, crashing is not.
+        if let sortedByTimestamp, sortedByTimestamp.count >= Int(UInt32.max) {
+            return false
+        }
         let attrs = sourceAttributes(of: sourceURL)
         let tempURL = cacheURL.appendingPathExtension("tmp")
 
@@ -169,6 +190,7 @@ enum LogIndexCache {
             var flags: UInt32 = 0
             if timestamps != nil { flags |= flagHasTimestamps }
             if componentIndex != nil && uniqueComponents != nil { flags |= flagHasComponents }
+            if sortedByTimestamp != nil { flags |= flagHasSortedTimestamps }
 
             var header = Data(capacity: headerSize)
             appendUInt32(&header, magic)
@@ -215,6 +237,15 @@ enum LogIndexCache {
                     try handle.write(contentsOf: data)
                 }
             }
+            // Sorted-by-timestamp index (optional). Written as UInt32 to
+            // halve the disk footprint vs the in-memory [Int].
+            if let sortedByTimestamp {
+                var section = Data(capacity: sortedByTimestamp.count * MemoryLayout<UInt32>.size)
+                for srcIdx in sortedByTimestamp {
+                    appendUInt32(&section, UInt32(srcIdx))
+                }
+                try handle.write(contentsOf: section)
+            }
             try handle.close()
 
             // Atomic rename. If the destination exists, this replaces it.
@@ -255,6 +286,7 @@ enum LogIndexCache {
         guard abs(sourceMtimeHeader - sourceMtime) < 0.001 else { return nil }
         let hasTimestamps = (flags & flagHasTimestamps) != 0
         let hasComponents = (flags & flagHasComponents) != 0
+        let hasSortedTimestamps = (flags & flagHasSortedTimestamps) != 0
 
         // Slice the fixed-size sections first; components section is
         // variable-length so we parse it from where the fixed sections
@@ -286,12 +318,15 @@ enum LogIndexCache {
             }
         }
 
+        // Cursor walks past the optional variable-length components
+        // section, then optionally past the fixed-size sortedByTimestamp
+        // tail. The final guard ensures `data` ends exactly at our
+        // cursor — any trailing bytes mean a corrupt or version-skewed
+        // file we should refuse rather than silently mis-parse.
+        var cursor = fixedEnd
         var componentIndex: [UInt16]? = nil
         var uniqueComponents: [String]? = nil
         if hasComponents {
-            // Parse the variable-length unique-components table, then
-            // the fixed-size componentIndex array.
-            var cursor = fixedEnd
             guard cursor + MemoryLayout<UInt32>.size <= data.count else { return nil }
             let uniqueCount = Int(readUInt32(data, offset: cursor))
             cursor += MemoryLayout<UInt32>.size
@@ -307,17 +342,30 @@ enum LogIndexCache {
                 cursor += length
             }
             let componentBytes = lineCount * MemoryLayout<UInt16>.size
-            guard cursor + componentBytes == data.count else { return nil }
+            guard cursor + componentBytes <= data.count else { return nil }
             let componentRange = cursor..<(cursor + componentBytes)
             componentIndex = [UInt16](unsafeUninitializedCapacity: lineCount) { buf, count in
                 data.copyBytes(to: buf, from: componentRange)
                 count = lineCount
             }
             uniqueComponents = components
-        } else {
-            // No components — expected size matches the fixed sections only.
-            guard data.count == fixedEnd else { return nil }
+            cursor += componentBytes
         }
+
+        var sortedByTimestamp: [Int]? = nil
+        if hasSortedTimestamps {
+            let sortedBytes = lineCount * MemoryLayout<UInt32>.size
+            guard cursor + sortedBytes <= data.count else { return nil }
+            let sortedRange = cursor..<(cursor + sortedBytes)
+            let raw = [UInt32](unsafeUninitializedCapacity: lineCount) { buf, count in
+                data.copyBytes(to: buf, from: sortedRange)
+                count = lineCount
+            }
+            sortedByTimestamp = raw.map(Int.init)
+            cursor += sortedBytes
+        }
+
+        guard cursor == data.count else { return nil }
 
         return CachedIndex(
             offsets: offsets,
@@ -325,6 +373,7 @@ enum LogIndexCache {
             timestamps: timestamps,
             componentIndex: componentIndex,
             uniqueComponents: uniqueComponents,
+            sortedByTimestamp: sortedByTimestamp,
             parserKind: decodeParserKind(parserKindRead) ?? expectedKind
         )
     }

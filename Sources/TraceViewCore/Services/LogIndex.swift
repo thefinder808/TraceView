@@ -41,10 +41,25 @@ final class LogIndex {
     /// `parserKind` is PlainText or SCCM; nil otherwise.
     let componentIndex: [UInt16]?
     let uniqueComponents: [String]?
+    /// Source-row indices in timestamp order, populated only when the
+    /// build pass detected non-monotonic timestamps (e.g. install.log
+    /// written by multiple concurrent daemons). Nil for the common
+    /// monotonic case so the bisect in `IndexedEntrySource` stays on
+    /// the zero-allocation fast path. When present, sort key is
+    /// `(timestamp, sourceIndex)` with NaN entries placed at the head
+    /// via the predicate in `build()`. The bisect predicate then
+    /// treats NaN as "less than start" and walks past them naturally.
+    let sortedByTimestamp: [Int]?
     let parserKind: ParserKind
     let indexElapsed: TimeInterval
     let warmElapsed: TimeInterval
-    var buildElapsed: TimeInterval { indexElapsed + warmElapsed }
+    /// Time to build `sortedByTimestamp`. Zero when monotonic (no
+    /// sort happened) AND zero on the cache-hit path (the sort
+    /// happened on the original build whose timing was recorded
+    /// then). Treat `buildElapsed` accordingly when comparing
+    /// fresh-build vs cache-load timings.
+    let sortedSortElapsed: TimeInterval
+    var buildElapsed: TimeInterval { indexElapsed + warmElapsed + sortedSortElapsed }
 
     var lineCount: Int { offsets.count }
     var totalBytes: Int { data.count }
@@ -57,9 +72,11 @@ final class LogIndex {
         timestamps: [Double]?,
         componentIndex: [UInt16]?,
         uniqueComponents: [String]?,
+        sortedByTimestamp: [Int]?,
         parserKind: ParserKind,
         indexElapsed: TimeInterval,
-        warmElapsed: TimeInterval
+        warmElapsed: TimeInterval,
+        sortedSortElapsed: TimeInterval
     ) {
         self.fileURL = fileURL
         self.data = data
@@ -68,9 +85,11 @@ final class LogIndex {
         self.timestamps = timestamps
         self.componentIndex = componentIndex
         self.uniqueComponents = uniqueComponents
+        self.sortedByTimestamp = sortedByTimestamp
         self.parserKind = parserKind
         self.indexElapsed = indexElapsed
         self.warmElapsed = warmElapsed
+        self.sortedSortElapsed = sortedSortElapsed
     }
 
     static func build(fileURL: URL, parserKind: ParserKind = .other) throws -> LogIndex {
@@ -118,6 +137,17 @@ final class LogIndex {
         var componentTable: [String: UInt16]? = captureComponents ? ["": 0] : nil
         var uniqueComponentsBuf: [String]? = captureComponents ? [""] : nil
 
+        // Track monotonicity of finite timestamps as the build pass
+        // writes them. We compare each new finite timestamp against the
+        // previous finite one (skipping NaN/continuation lines so they
+        // never falsify the flag). On non-monotonic, we build a sorted
+        // companion index after this pass so `firstRowInTimeRange` has
+        // a view it can bisect over. install.log is the canonical
+        // trigger — concurrent daemons writing into the same file
+        // interleave timestamps slightly out of order.
+        var isMonotonic = true
+        var prevFiniteTs = -Double.infinity
+
         // Second pass: fill the offsets array in pre-allocated capacity,
         // plus the levels and (optional) timestamps in lock-step. Line 0
         // starts at byte 0; subsequent lines start right after each
@@ -147,12 +177,17 @@ final class LogIndex {
                             kind: parserKind
                         )
                         if captureTimestamps {
-                            timestampsBuf![k - 1] = FastTimestampScanner.parse(
+                            let ts = FastTimestampScanner.parse(
                                 in: buf,
                                 range: lineStart..<lineEnd,
                                 kind: parserKind,
                                 yearContext: yearContext
                             )
+                            timestampsBuf![k - 1] = ts
+                            if ts.isFinite {
+                                if ts < prevFiniteTs { isMonotonic = false }
+                                prevFiniteTs = ts
+                            }
                         }
                         if captureComponents {
                             componentIndexBuf![k - 1] = Self.componentIndex(
@@ -186,12 +221,17 @@ final class LogIndex {
                         kind: parserKind
                     )
                     if captureTimestamps {
-                        timestampsBuf![k - 1] = FastTimestampScanner.parse(
+                        let ts = FastTimestampScanner.parse(
                             in: buf,
                             range: lineStart..<totalCount,
                             kind: parserKind,
                             yearContext: yearContext
                         )
+                        timestampsBuf![k - 1] = ts
+                        if ts.isFinite {
+                            if ts < prevFiniteTs { isMonotonic = false }
+                            prevFiniteTs = ts
+                        }
                     }
                     if captureComponents {
                         componentIndexBuf![k - 1] = Self.componentIndex(
@@ -214,6 +254,36 @@ final class LogIndex {
 
         let indexElapsed = Date().timeIntervalSince(start)
 
+        // Build the sorted companion index only when timestamps were
+        // captured AND the build pass observed at least one inversion.
+        // Monotonic logs (the common case) pay nothing — the field stays
+        // nil and IndexedEntrySource takes the existing fast path.
+        // NaN entries naturally sort to the head via the predicate
+        // below; the bisect's "NaN counts as less than" check then
+        // skips past them without a special case.
+        var sortedByTimestamp: [Int]? = nil
+        var sortedSortElapsed: TimeInterval = 0
+        if let ts = timestampsBuf, !isMonotonic {
+            let sortStart = Date()
+            sortedByTimestamp = (0..<ts.count).sorted { lhs, rhs in
+                let l = ts[lhs]
+                let r = ts[rhs]
+                if !l.isFinite && r.isFinite { return true }
+                if l.isFinite && !r.isFinite { return false }
+                if l.isFinite && r.isFinite && l != r { return l < r }
+                // Source-index tiebreak. Applies to:
+                //   - equal-timestamp finite rows (deterministic order
+                //     for firstRowInTimeRange's "first match" guarantee)
+                //   - both-NaN rows (NaN != NaN in IEEE, so the
+                //     earlier branches all return false and we'd
+                //     otherwise leave NaN relative order to the sort
+                //     algorithm. Tiebreak here makes the whole array
+                //     deterministic across rebuilds and cache loads.)
+                return lhs < rhs
+            }
+            sortedSortElapsed = Date().timeIntervalSince(sortStart)
+        }
+
         // Warm pass — see `warmPages` below for why this is load-bearing.
         let warmStart = Date()
         Self.warmPages(of: data)
@@ -227,9 +297,11 @@ final class LogIndex {
             timestamps: timestampsBuf,
             componentIndex: componentIndexBuf,
             uniqueComponents: uniqueComponentsBuf,
+            sortedByTimestamp: sortedByTimestamp,
             parserKind: parserKind,
             indexElapsed: indexElapsed,
-            warmElapsed: warmElapsed
+            warmElapsed: warmElapsed,
+            sortedSortElapsed: sortedSortElapsed
         )
     }
 
@@ -314,9 +386,11 @@ final class LogIndex {
                 timestamps: cached.timestamps,
                 componentIndex: cached.componentIndex,
                 uniqueComponents: cached.uniqueComponents,
+                sortedByTimestamp: cached.sortedByTimestamp,
                 parserKind: cached.parserKind,
                 indexElapsed: indexElapsed,
-                warmElapsed: warmElapsed
+                warmElapsed: warmElapsed,
+                sortedSortElapsed: 0
             )
         }
 
@@ -331,6 +405,7 @@ final class LogIndex {
                 timestamps: index.timestamps,
                 componentIndex: index.componentIndex,
                 uniqueComponents: index.uniqueComponents,
+                sortedByTimestamp: index.sortedByTimestamp,
                 parserKind: parserKind
             )
         }
