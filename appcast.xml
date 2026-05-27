@@ -9,9 +9,9 @@
             <sparkle:shortVersionString>1.1.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <enclosure url="https://thefinder808.github.io/TraceView/TraceView-1.1.2.dmg" length="2208599" type="application/octet-stream" sparkle:edSignature="D66e6V/4pRSDHIdOE+hgdHPn2bza6p/1ETLmvcRUkqezDIiSdV+DAX7n+1x4LwIRK38oXnipYirPrOYpVUhsCw=="/>
+            <enclosure url="https://thefinder808.github.io/TraceView/releases/TraceView-1.1.2.dmg" length="2208599" type="application/octet-stream" sparkle:edSignature="D66e6V/4pRSDHIdOE+hgdHPn2bza6p/1ETLmvcRUkqezDIiSdV+DAX7n+1x4LwIRK38oXnipYirPrOYpVUhsCw=="/>
             <sparkle:deltas>
-                <enclosure url="https://thefinder808.github.io/TraceView/TraceView1.1.2-1.1.1.delta" sparkle:deltaFrom="1.1.1" length="95350" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="dwrmFXBPH8InlyU+7odFw/CAkcnkTdv7cWoMtBG9aT7f2bm0ihdad0QALLZUmuWuz2pSNaUNCrmw98g2Tzk3Ag=="/>
+                <enclosure url="https://thefinder808.github.io/TraceView/releases/TraceView1.1.2-1.1.1.delta" sparkle:deltaFrom="1.1.1" length="95350" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="dwrmFXBPH8InlyU+7odFw/CAkcnkTdv7cWoMtBG9aT7f2bm0ihdad0QALLZUmuWuz2pSNaUNCrmw98g2Tzk3Ag=="/>
             </sparkle:deltas>
         </item>
         <item>
@@ -21,7 +21,7 @@
             <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <enclosure url="https://thefinder808.github.io/TraceView/TraceView-1.1.1.dmg" length="2208241" type="application/octet-stream" sparkle:edSignature="jq5aX2HuEJl1jWz+ARCiBKE8zliuo21sK+Y2LorD8UnjmPU9h4hTtaiAHDghneshFMy+MiGtyp71MjqcMkLCBg=="/>
+            <enclosure url="https://thefinder808.github.io/TraceView/releases/TraceView-1.1.1.dmg" length="2208241" type="application/octet-stream" sparkle:edSignature="jq5aX2HuEJl1jWz+ARCiBKE8zliuo21sK+Y2LorD8UnjmPU9h4hTtaiAHDghneshFMy+MiGtyp71MjqcMkLCBg=="/>
         </item>
     </channel>
 </rss>
