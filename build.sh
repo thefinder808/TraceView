@@ -349,7 +349,16 @@ generate_appcast_for_release() {
 
   # Pull prior releases from the gh-pages branch so generate_appcast can
   # produce delta updates against them. No-op on first release.
+  #
+  # `rm -rf` deletes the worktree's directory but leaves git's worktree
+  # registration intact — the next `worktree add` then fails with
+  # "missing but already registered". `worktree prune` clears any
+  # registrations whose directories no longer exist, restoring a clean
+  # slate without needing to call `worktree remove` (which itself
+  # fails when the directory is gone). Cheap, idempotent, safe to run
+  # even on the very first release.
   rm -rf "$gh_pages_wt"
+  git worktree prune
   if git show-ref --verify --quiet refs/remotes/origin/gh-pages \
      || git show-ref --verify --quiet refs/heads/gh-pages; then
     git worktree add "$gh_pages_wt" gh-pages 2>/dev/null \
@@ -377,6 +386,12 @@ publish_appcast() {
     exit 1
   fi
   if [[ ! -d "$gh_pages_wt" ]]; then
+    # Mirror the prune-before-add dance from generate_appcast_for_release:
+    # a previous run's `rm -rf build/gh-pages` would leave the worktree
+    # registration behind, breaking re-adds with "missing but already
+    # registered." Pruning here is a no-op when the registration is
+    # already clean.
+    git worktree prune
     git worktree add "$gh_pages_wt" gh-pages 2>/dev/null \
       || { git fetch origin gh-pages && git worktree add "$gh_pages_wt" gh-pages; }
   fi
