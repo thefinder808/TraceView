@@ -3,8 +3,20 @@
     <channel>
         <title>TraceView</title>
         <item>
+            <title>1.1.2</title>
+            <pubDate>Wed, 27 May 2026 10:30:39 -0500</pubDate>
+            <sparkle:version>1.1.2</sparkle:version>
+            <sparkle:shortVersionString>1.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://thefinder808.github.io/TraceView/TraceView-1.1.2.dmg" length="2208599" type="application/octet-stream" sparkle:edSignature="D66e6V/4pRSDHIdOE+hgdHPn2bza6p/1ETLmvcRUkqezDIiSdV+DAX7n+1x4LwIRK38oXnipYirPrOYpVUhsCw=="/>
+            <sparkle:deltas>
+                <enclosure url="https://thefinder808.github.io/TraceView/TraceView1.1.2-1.1.1.delta" sparkle:deltaFrom="1.1.1" length="95350" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="977808" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="dwrmFXBPH8InlyU+7odFw/CAkcnkTdv7cWoMtBG9aT7f2bm0ihdad0QALLZUmuWuz2pSNaUNCrmw98g2Tzk3Ag=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>1.1.1</title>
-            <pubDate>Tue, 26 May 2026 08:12:46 -0500</pubDate>
+            <pubDate>Wed, 27 May 2026 10:30:39 -0500</pubDate>
             <sparkle:version>1.1.1</sparkle:version>
             <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
