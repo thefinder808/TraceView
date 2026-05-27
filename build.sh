@@ -45,6 +45,11 @@ NOTARY_PROFILE="traceview-notary"
 
 # Sparkle auto-update configuration. The appcast feed lives on GitHub Pages.
 SU_FEED_URL="https://thefinder808.github.io/TraceView/appcast.xml"
+# DMG/delta enclosures live one level down under /releases/ on gh-pages —
+# generate_appcast emits flat URLs by default, so we need the prefix to
+# match where publish_appcast actually places the binaries. Mismatched URLs
+# break Sparkle auto-update silently with a 404 from GitHub Pages.
+SU_DOWNLOAD_URL_PREFIX="https://thefinder808.github.io/TraceView/releases/"
 # EdDSA public key, generated once via:
 #   .build/artifacts/sparkle/Sparkle/bin/generate_keys
 # Private key is auto-stored in the login Keychain as "https://sparkle-project.org".
@@ -354,7 +359,7 @@ generate_appcast_for_release() {
     echo "  (no gh-pages branch yet — generating initial appcast only)"
   fi
 
-  "$generate_appcast" "$appcast_dir"
+  "$generate_appcast" --download-url-prefix "$SU_DOWNLOAD_URL_PREFIX" "$appcast_dir"
   echo "✓ Appcast at ${appcast_dir}/appcast.xml"
 }
 
