@@ -41,6 +41,15 @@ final class LogDocument: ObservableObject, Identifiable {
     @Published var encoding: String.Encoding = .utf8
     @Published var isCompressed: Bool = false
 
+    /// Set when a unified-log stream fails to start, exits unexpectedly,
+    /// or otherwise produces nothing because of a system-level denial
+    /// (typical on managed Macs where the user can't run
+    /// `log stream --predicate ...` without admin). Nil on success.
+    /// LogDocumentView renders a banner over the empty table when this
+    /// is set, so the tab no longer looks like a bug — the user sees a
+    /// real reason and stderr output if any.
+    @Published var streamError: String? = nil
+
     // Derived summary state, computed by the document once per append and
     // read by every pane showing this doc.
     @Published private(set) var histogram: LogHistogram?
@@ -808,9 +817,20 @@ final class LogDocument: ObservableObject, Identifiable {
 
     private func startLogStream(predicate: String?) {
         parser = UnifiedLogParser()
+        streamError = nil
         let stream = UnifiedLogStream()
         stream.onNewLines = { [weak self] lines in
             self?.appendLines(lines)
+        }
+        // Surface spawn errors and unexpected non-zero exits (typical on
+        // managed Macs where the user lacks the entitlement / admin role
+        // to run `log stream --predicate …`). Hop to main here because
+        // `terminationHandler` fires on an arbitrary thread.
+        stream.onError = { [weak self] message in
+            DispatchQueue.main.async {
+                self?.streamError = message
+                self?.isLive = false
+            }
         }
         stream.start(predicate: predicate)
         logStream = stream
@@ -821,6 +841,7 @@ final class LogDocument: ObservableObject, Identifiable {
         logStream?.stop()
         logStream = nil
         isLive = false
+        streamError = nil
     }
 
     // MARK: - File watching

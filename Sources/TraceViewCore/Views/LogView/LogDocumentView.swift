@@ -47,6 +47,7 @@ struct LogDocumentView: View {
             VStack(spacing: 0) {
                 ZStack(alignment: .bottomTrailing) {
                     loadingOverlay(theme: theme)
+                    streamErrorOverlay(theme: theme)
 
                     logTable()
 
@@ -248,6 +249,39 @@ struct LogDocumentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(theme.tableBackground.opacity(0.6))
             .zIndex(2)
+        }
+    }
+
+    /// Empty-table message shown when a unified-log stream couldn't
+    /// start or exited early. Surfaces what was previously a silent
+    /// no-op (typical on managed Macs where `log stream --predicate …`
+    /// is denied). Renders only when `streamError` is set — file-backed
+    /// docs and successful streams stay clear of the overlay.
+    @ViewBuilder
+    private func streamErrorOverlay(theme: AppTheme) -> some View {
+        if let message = document.streamError {
+            VStack(spacing: 10) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(theme.warningText)
+                Text("Stream unavailable")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(message)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(theme.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: 480)
+                Text("Some predicates (Kernel, User) need admin on managed Macs. Close this tab and try a different filter, or open Console.app to check what `log stream` allows here.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(theme.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 480)
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(theme.tableBackground.opacity(0.95))
+            .zIndex(3)
         }
     }
 
