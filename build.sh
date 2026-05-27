@@ -113,6 +113,8 @@ make_info_plist() {
   <true/>
   <key>NSHumanReadableCopyright</key>
   <string>© 2026 Nathaniel Graham. MIT License.</string>
+  <key>NSAppleEventsUsageDescription</key>
+  <string>TraceView uses Apple events to relaunch itself after installing an automatic update.</string>
   <key>SUFeedURL</key>
   <string>${SU_FEED_URL}</string>
 ${sparkle_ed_key_block}  <key>SUEnableAutomaticChecks</key>
