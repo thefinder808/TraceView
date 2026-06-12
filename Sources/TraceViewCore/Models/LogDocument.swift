@@ -37,6 +37,9 @@ final class LogDocument: ObservableObject, Identifiable {
 
     @Published var isFollowing: Bool = true
     @Published var isLive: Bool = false
+    /// Live connection state for `.remote` sources; nil for every other
+    /// source kind. Surfaced in the status bar.
+    @Published var connectionState: RemoteConnectionState?
     @Published var fileSize: UInt64 = 0
     @Published var encoding: String.Encoding = .utf8
     @Published var isCompressed: Bool = false
@@ -95,6 +98,10 @@ final class LogDocument: ObservableObject, Identifiable {
     private var parser: any LogParser = PlainTextParser()
     private var fileWatcher: FileWatcher?
     private var logStream: UnifiedLogStream?
+    private var remoteStream: RemoteLogStream?
+    /// First batch from a remote stream auto-detects the parser; cleared
+    /// after the first detection so later batches reuse the choice.
+    private var remoteParserUndetected = false
     private var partialLineBuffer: String = ""
     private var histogramTask: Task<Void, Never>?
     /// Wall-clock time the most recent histogram compute succeeded.
@@ -196,6 +203,7 @@ final class LogDocument: ObservableObject, Identifiable {
     deinit {
         fileWatcher?.stop()
         logStream?.stop()
+        remoteStream?.stop()
         loadTask?.cancel()
         loadParseTask?.cancel()
         histogramTask?.cancel()
@@ -283,6 +291,9 @@ final class LogDocument: ObservableObject, Identifiable {
             startLogStream(predicate: predicate)
         case .stdin:
             break
+        case .remote(let connection):
+            guard remoteStream == nil else { return }
+            startRemoteStream(connection)
         case .merged:
             guard mergedAppendCancellables.isEmpty else { return }
             // loadMerged is @MainActor; load() callers (LogDocumentView's
@@ -823,6 +834,36 @@ final class LogDocument: ObservableObject, Identifiable {
         isLive = false
     }
 
+    // MARK: - Remote stream (SSH tail)
+
+    private func startRemoteStream(_ connection: RemoteConnection) {
+        // Default to plain text; the first batch auto-detects via the registry.
+        parser = PlainTextParser()
+        remoteParserUndetected = true
+
+        let stream = RemoteLogStream()
+        stream.onNewLines = { [weak self] lines in
+            guard let self else { return }
+            if self.remoteParserUndetected {
+                self.parser = ParserRegistry.shared.detectParser(sampleLines: Array(lines.prefix(50)))
+                self.remoteParserUndetected = false
+            }
+            self.appendLines(lines)
+        }
+        stream.onStateChange = { [weak self] state in
+            self?.connectionState = state
+        }
+        stream.start(connection: connection)
+        remoteStream = stream
+        isLive = true
+    }
+
+    func stopRemoteStream() {
+        remoteStream?.stop()
+        remoteStream = nil
+        isLive = false
+    }
+
     // MARK: - File watching
 
     private func startWatching(url: URL) {
@@ -1158,7 +1199,7 @@ final class LogDocument: ObservableObject, Identifiable {
     private static func defaultsKey(for source: LogSource) -> String? {
         switch source {
         case .file(let url): return "traceview.bookmarks.\(url.path)"
-        case .unifiedLog, .stdin, .merged: return nil
+        case .unifiedLog, .stdin, .merged, .remote: return nil
         }
     }
 

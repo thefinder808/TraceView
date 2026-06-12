@@ -33,6 +33,8 @@ final class AppState: ObservableObject {
     @Published var isSidebarVisible: Bool = true
     @Published var showErrorLookup: Bool = false
     @Published var showCommandPalette: Bool = false
+    /// Drives the "New Remote Connection" sheet (File menu + sidebar button).
+    @Published var showNewConnectionSheet: Bool = false
     /// Pane-targeted export request. Each LogDocumentView attaches a sheet
     /// that only presents when this matches its own pane, so the active
     /// pane's filtered entries get exported and the inactive pane stays put.
@@ -521,6 +523,28 @@ final class AppState: ObservableObject {
         )
         doc.isLive = true
         addDocument(doc)
+    }
+
+    // MARK: - Remote connections
+
+    /// Open (or focus) a saved remote connection in the given pane. Dedupes
+    /// on the connection's id so opening the same connection twice just
+    /// re-activates the existing tab instead of spawning a second ssh.
+    func openRemoteConnection(_ connection: RemoteConnection, into pane: Pane = .primary) {
+        if let existing = documents.first(where: {
+            if case .remote(let c) = $0.source { return c.id == connection.id }
+            return false
+        }) {
+            addTab(documentID: existing.id, to: pane)
+            return
+        }
+
+        let doc = LogDocument(
+            source: .remote(connection),
+            displayName: connection.displayName
+        )
+        doc.isLive = true
+        addDocument(doc, to: pane)
     }
 
     // MARK: - Navigation
