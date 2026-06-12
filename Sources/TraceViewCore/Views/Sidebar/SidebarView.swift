@@ -3,6 +3,7 @@ import SwiftUI
 struct SidebarView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var settingsManager: SettingsManager
     @State private var logsExpanded = false
     @State private var crashesExpanded = false
     @State private var diagnosticsExpanded = false
@@ -94,6 +95,32 @@ struct SidebarView: View {
                 SidebarSystemRow(label: "All System", icon: "waveform", predicate: nil)
                 SidebarSystemRow(label: "Kernel", icon: "cpu", predicate: "process == 'kernel'")
                 SidebarSystemRow(label: "User", icon: "person", predicate: "senderImagePath CONTAINS '/usr'")
+
+                // Connections — saved remote log sources (v1: SSH tail).
+                sectionHeader("Connections", theme: theme)
+
+                ForEach(settingsManager.savedRemoteConnections) { connection in
+                    SidebarConnectionRow(connection: connection)
+                }
+
+                Button {
+                    appState.showNewConnectionSheet = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle")
+                            .font(.system(size: 12))
+                            .foregroundStyle(theme.tertiaryText)
+                        Text("New Connection…")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(theme.tertiaryText)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 34)
+                    .padding(.horizontal, 6)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
         }
         .background(theme.sidebarBackground)
@@ -578,5 +605,65 @@ struct SidebarSystemRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Remote Connection Row
+
+struct SidebarConnectionRow: View {
+    let connection: RemoteConnection
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var settingsManager: SettingsManager
+    @EnvironmentObject var themeManager: ThemeManager
+
+    var body: some View {
+        let theme = themeManager.current
+
+        Button {
+            appState.openRemoteConnection(connection, into: .primary)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "network")
+                    .font(.system(size: 12))
+                    .foregroundStyle(theme.secondaryText)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(connection.displayName)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(theme.secondaryText)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text(subtitle)
+                        .font(.system(size: 9))
+                        .foregroundStyle(theme.tertiaryText)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 34)
+            .padding(.horizontal, 6)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button("Open in Left Pane") {
+                appState.openRemoteConnection(connection, into: .primary)
+            }
+            Button("Open in Right Pane") {
+                appState.openRemoteConnection(connection, into: .secondary)
+            }
+            Divider()
+            Button("Delete Connection", role: .destructive) {
+                settingsManager.savedRemoteConnections.removeAll { $0.id == connection.id }
+            }
+        }
+    }
+
+    private var subtitle: String {
+        guard case .ssh(let cfg) = connection.kind else { return "" }
+        return cfg.target
     }
 }

@@ -66,6 +66,22 @@ struct StatusBarView: View {
                 statusDivider(theme: theme)
             }
 
+            // Remote connection state (connecting / reconnecting / failed).
+            // Hidden once connected — the Following indicator takes over.
+            if let connectionLabel = connectionStatus {
+                statusItem(theme: theme) {
+                    Circle()
+                        .fill(connectionLabel.color)
+                        .frame(width: 6, height: 6)
+                    Text(connectionLabel.text)
+                        .fontWeight(.medium)
+                        .foregroundStyle(connectionLabel.color)
+                }
+                .hoverTooltip(connectionLabel.tooltip, edge: .top)
+
+                statusDivider(theme: theme)
+            }
+
             // Following / Paused / Stalled + rolling rate
             statusItem(theme: theme) {
                 streamHealth(theme: theme)
@@ -124,6 +140,23 @@ struct StatusBarView: View {
             Text("Stalled")
                 .fontWeight(.medium)
                 .foregroundStyle(theme.warningText)
+        }
+    }
+
+    /// Remote-source connection state, or nil for non-remote docs and the
+    /// happy `.connected` state (the Following indicator covers that).
+    private var connectionStatus: (text: String, color: Color, tooltip: String)? {
+        guard let state = document.connectionState else { return nil }
+        let theme = themeManager.current
+        switch state {
+        case .connecting:
+            return ("Connecting…", theme.warningText, "Establishing SSH connection…")
+        case .connected:
+            return nil
+        case .reconnecting:
+            return ("Reconnecting…", theme.warningText, "Connection dropped — retrying with backoff.")
+        case .failed(let message):
+            return ("Disconnected", theme.errorText, message)
         }
     }
 

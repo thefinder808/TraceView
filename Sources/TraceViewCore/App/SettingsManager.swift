@@ -7,6 +7,7 @@ final class SettingsManager: ObservableObject {
     private static let showTimestampKey = "traceview.showTimestamp"
     private static let showComponentKey = "traceview.showComponent"
     private static let savedFiltersKey = "traceview.savedFilters"
+    private static let savedRemoteConnectionsKey = "traceview.savedRemoteConnections"
     private static let detailDisplayModeKey = "traceview.detailDisplayMode"
     private static let highlightRulesKey = "traceview.highlightRules"
     private static let findModeKey = "traceview.findMode"
@@ -59,6 +60,17 @@ final class SettingsManager: ObservableObject {
         didSet {
             if let data = try? JSONEncoder().encode(savedFilters) {
                 UserDefaults.standard.set(data, forKey: Self.savedFiltersKey)
+            }
+        }
+    }
+
+    /// Saved remote log connections (v1: SSH tail). METADATA ONLY — host,
+    /// port, remote command, etc. No credentials are ever stored here; SSH
+    /// auth rides on the user's ~/.ssh keys + ssh-agent.
+    @Published var savedRemoteConnections: [RemoteConnection] {
+        didSet {
+            if let data = try? JSONEncoder().encode(savedRemoteConnections) {
+                UserDefaults.standard.set(data, forKey: Self.savedRemoteConnectionsKey)
             }
         }
     }
@@ -161,6 +173,13 @@ final class SettingsManager: ObservableObject {
             self.savedFilters = decoded
         } else {
             self.savedFilters = []
+        }
+
+        if let data = defaults.data(forKey: Self.savedRemoteConnectionsKey),
+           let decoded = try? JSONDecoder().decode([RemoteConnection].self, from: data) {
+            self.savedRemoteConnections = decoded
+        } else {
+            self.savedRemoteConnections = []
         }
 
         let rawMode = defaults.string(forKey: Self.detailDisplayModeKey) ?? DetailDisplayMode.inline.rawValue

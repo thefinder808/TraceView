@@ -70,6 +70,9 @@ struct ContentView: View {
         .sheet(isPresented: $appState.showCreateMergedView) {
             CreateMergedViewSheet()
         }
+        .sheet(isPresented: $appState.showNewConnectionSheet) {
+            RemoteConnectionSheet()
+        }
     }
 
     // MARK: - Root layout

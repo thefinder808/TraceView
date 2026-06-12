@@ -82,6 +82,11 @@ public struct TraceViewApp: App {
                 }
                 .keyboardShortcut("u", modifiers: [.command, .shift])
 
+                Button("New Remote Connection...") {
+                    appState.showNewConnectionSheet = true
+                }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+
                 Divider()
 
                 // ⌘W closes the primary pane's active tab. The split pane's
