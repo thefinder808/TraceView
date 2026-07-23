@@ -19,6 +19,7 @@ struct LogScrollView: NSViewRepresentable {
     let showLineNumbers: Bool
     let showTimestamp: Bool
     let showComponent: Bool
+    let horizontalMessageScroll: Bool
     let isFollowing: Bool
     @Binding var selectedEntry: LogEntry?
     @Binding var expandedEntryID: Int?
@@ -50,13 +51,18 @@ struct LogScrollView: NSViewRepresentable {
         container.scrollView.autohidesScrollers = true
         container.scrollView.drawsBackground = false
 
-        // Two notifications drive the runtime:
+        // Notifications that drive the runtime:
         //   - frameDidChange on the clip view → width sync (window resize,
         //     scroller fade, pane drag).
+        //   - boundsDidChange on the clip view → horizontal-scroll tracking
+        //     (keep the header aligned + grow the no-wrap content width as
+        //     longer lines scroll into view). Fires for every scroll, live
+        //     or programmatic, unlike didLiveScroll.
         //   - didLiveScroll on the scroll view → scroll-up detection
         //     (drives the "Jump to Bottom" pill when the user scrolls
         //     away from the tail while following).
         container.scrollView.contentView.postsFrameChangedNotifications = true
+        container.scrollView.contentView.postsBoundsChangedNotifications = true
 
         // Wire the document-view callback to the binding via the coordinator
         // (a closure captured by the document view can't write `@Binding`
@@ -158,7 +164,8 @@ struct LogScrollView: NSViewRepresentable {
             highlightRules: highlightRules,
             expandedEntryID: expandedEntryID,
             inlineExpansionEnabled: inlineExpansionEnabled,
-            sourceNameForID: sourceNameForID
+            sourceNameForID: sourceNameForID,
+            horizontalMessageScroll: horizontalMessageScroll
         )
 
         // Go-to-line: if a pending line number is set, scroll + select
@@ -243,6 +250,12 @@ struct LogScrollView: NSViewRepresentable {
             )
             NotificationCenter.default.addObserver(
                 self,
+                selector: #selector(clipViewBoundsChanged(_:)),
+                name: NSView.boundsDidChangeNotification,
+                object: container.scrollView.contentView
+            )
+            NotificationCenter.default.addObserver(
+                self,
                 selector: #selector(scrollViewDidScroll(_:)),
                 name: NSScrollView.didLiveScrollNotification,
                 object: container.scrollView
@@ -278,6 +291,21 @@ struct LogScrollView: NSViewRepresentable {
         /// driven by AppKit layout passes), so we sync here too.
         @objc private func clipViewFrameChanged(_ notification: Notification) {
             container?.syncLayout()
+        }
+
+        /// Clip-view bounds origin changed — the user (or code) scrolled.
+        /// Keep the header's horizontal offset aligned with the body and, in
+        /// no-wrap mode, grow the message content width as longer lines
+        /// scroll into view (widening the document + horizontal scroller).
+        /// Vertical-only scrolls leave the horizontal offset untouched (the
+        /// header setter no-ops on an unchanged value).
+        @objc private func clipViewBoundsChanged(_ notification: Notification) {
+            guard let container else { return }
+            container.syncHeaderHorizontalOffset()
+            if container.horizontalMessageScroll,
+               container.documentView.updateMessageContentWidth() {
+                container.syncLayout()
+            }
         }
 
         @objc private func willStartLiveScroll(_ notification: Notification) {
@@ -320,8 +348,7 @@ struct LogScrollView: NSViewRepresentable {
         private func scrollToTimestamp(_ target: Date) {
             guard let container, let row = nearestRow(forTimestamp: target) else { return }
             suppressReportsUntil = Date().addingTimeInterval(0.25)
-            let documentView = container.documentView
-            documentView.scrollToVisible(documentView.rowFrame(for: row))
+            container.documentView.scrollRowToVisible(row)
         }
 
         /// Compute and fire the visible-top report if the top entry
@@ -472,6 +499,11 @@ final class LogScrollContainerView: NSView {
     /// `onColumnsReordered` callback.
     var userOrder: [ColumnID]?
 
+    /// No-wrap horizontal-scroll mode for the message column. Mirrors
+    /// `SettingsManager.horizontalMessageScroll`; drives the horizontal
+    /// scroller, the message-column width, and the document frame width.
+    private(set) var horizontalMessageScroll = false
+
     // MARK: - Persistence callbacks
 
     var onColumnResized: (ColumnID, CGFloat) -> Void = { _, _ in }
@@ -535,9 +567,27 @@ final class LogScrollContainerView: NSView {
         highlightRules: [HighlightRule],
         expandedEntryID: Int?,
         inlineExpansionEnabled: Bool,
-        sourceNameForID: @escaping (UUID) -> String?
+        sourceNameForID: @escaping (UUID) -> String?,
+        horizontalMessageScroll: Bool
     ) {
+        let wasHorizontalMessageScroll = self.horizontalMessageScroll
         self.visibility = visibility
+        self.horizontalMessageScroll = horizontalMessageScroll
+        // Enabling the scroller lets AppKit show the horizontal bar when the
+        // document outgrows the clip; autohide keeps it invisible otherwise.
+        scrollView.hasHorizontalScroller = horizontalMessageScroll
+
+        // Leaving no-wrap mode: the document is about to shrink back to the
+        // clip width and the scroller disappears. Snap the horizontal scroll
+        // back to the left explicitly so a previously scrolled-right view
+        // (and the header offset that tracks it) can't be left stranded
+        // shifted with no scroller to correct it.
+        if wasHorizontalMessageScroll && !horizontalMessageScroll {
+            let clip = scrollView.contentView
+            clip.scroll(to: NSPoint(x: 0, y: clip.bounds.origin.y))
+            scrollView.reflectScrolledClipView(clip)
+        }
+
         documentView.apply(
             entries: entries,
             theme: theme,
@@ -547,7 +597,8 @@ final class LogScrollContainerView: NSView {
             highlightRules: highlightRules,
             expandedEntryID: expandedEntryID,
             inlineExpansionEnabled: inlineExpansionEnabled,
-            sourceNameForID: sourceNameForID
+            sourceNameForID: sourceNameForID,
+            horizontalScrollEnabled: horizontalMessageScroll
         )
         syncLayout()
     }
@@ -558,25 +609,54 @@ final class LogScrollContainerView: NSView {
     /// `applyState` and from the frame-change observer on live-resize.
     func syncLayout() {
         let clipWidth = scrollView.contentView.frame.width
-        if documentView.frame.size.width != clipWidth {
-            documentView.setFrameSize(NSSize(
-                width: clipWidth,
-                height: documentView.frame.size.height
-            ))
+
+        // No-wrap mode: measure the visible messages so the column can grow
+        // to fit them; nil in normal mode (message fills the remainder and
+        // truncates).
+        let messageContentWidth: CGFloat?
+        if horizontalMessageScroll {
+            documentView.updateMessageContentWidth()
+            messageContentWidth = documentView.messageContentWidth
+        } else {
+            messageContentWidth = nil
         }
-        guard let theme = documentView.theme else { return }
+
         let columns = LogScrollColumnLayout.compute(
             boundsWidth: clipWidth,
             visibility: visibility,
             savedWidths: userWidths,
-            order: userOrder
+            order: userOrder,
+            messageContentWidth: messageContentWidth
         )
+
+        // Document width: the clip width normally, or the full column extent
+        // when no-wrap mode pushes the message column past the viewport.
+        let totalWidth = columns.last.map { $0.x + $0.width } ?? clipWidth
+        let docWidth = horizontalMessageScroll ? max(clipWidth, totalWidth) : clipWidth
+        if documentView.frame.size.width != docWidth {
+            documentView.setFrameSize(NSSize(
+                width: docWidth,
+                height: documentView.frame.size.height
+            ))
+        }
+
         documentView.applyLayout(columns)
+        syncHeaderHorizontalOffset()
+
+        guard let theme = documentView.theme else { return }
         headerView.apply(
             columns: columns,
             theme: theme,
             fontSize: documentView.fontSize
         )
+    }
+
+    /// Keep the header's horizontal content offset in lockstep with the body
+    /// so column titles stay above their columns when the table is scrolled
+    /// horizontally in no-wrap mode. A no-op (offset 0) in normal mode where
+    /// the document never scrolls horizontally.
+    func syncHeaderHorizontalOffset() {
+        headerView.contentOffsetX = scrollView.contentView.bounds.origin.x
     }
 
     // MARK: - Mouse-driven layout edits (from header)

@@ -45,6 +45,14 @@ struct SettingsView: View {
                 Toggle("Show Line Numbers", isOn: $settingsManager.showLineNumbers)
                 Toggle("Show Timestamps", isOn: $settingsManager.showTimestamp)
                 Toggle("Show Component", isOn: $settingsManager.showComponent)
+
+                Toggle("Scroll long messages horizontally", isOn: $settingsManager.horizontalMessageScroll)
+
+                Text(settingsManager.horizontalMessageScroll
+                     ? "The message column extends to fit the full line and a horizontal scroller appears — read long lines inline instead of expanding the row."
+                     : "Long messages are truncated with an ellipsis at the window edge. Turn on to read them inline via horizontal scrolling.")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
             }
 
             // Detail view

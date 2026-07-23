@@ -27,6 +27,20 @@ final class LogScrollHeaderView: NSView {
     private(set) var theme: (any AppTheme)?
     private(set) var fontSize: Double = 12.0
 
+    /// Horizontal scroll offset of the body, in content coordinates. The
+    /// header is a sibling of the scroll view (pinned, never scrolled), so
+    /// in no-wrap horizontal-scroll mode it must offset its own content to
+    /// stay aligned with the columns below. Column titles draw at
+    /// `column.x - contentOffsetX`; mouse hit-testing converts back by
+    /// adding it. Zero in normal mode, so everything below is unchanged.
+    var contentOffsetX: CGFloat = 0 {
+        didSet {
+            guard oldValue != contentOffsetX else { return }
+            needsDisplay = true
+            window?.invalidateCursorRects(for: self)
+        }
+    }
+
     // MARK: - Drag state machine
 
     /// Live drag state. `idle` is the steady state; `resizing` and
@@ -86,7 +100,7 @@ final class LogScrollHeaderView: NSView {
         // centered on its right edge. AppKit handles cursor switching
         // automatically as the mouse moves over these rects.
         for column in columns where column.id != .message {
-            let dividerX = column.x + column.width
+            let dividerX = column.x + column.width - contentOffsetX
             let rect = NSRect(
                 x: dividerX - Self.dividerHitRadius,
                 y: 0,
@@ -127,22 +141,25 @@ final class LogScrollHeaderView: NSView {
 
     override func mouseDown(with event: NSEvent) {
         let p = convert(event.locationInWindow, from: nil)
+        // Hit-test and track drags in content coordinates so they stay
+        // correct when the table is scrolled horizontally (contentOffsetX).
+        let x = p.x + contentOffsetX
 
-        if let hit = dividerHit(at: p.x) {
+        if let hit = dividerHit(at: x) {
             let startWidth = columns.first(where: { $0.id == hit.column })?.width ?? 0
             dragMode = .resizing(
                 column: hit.column,
-                startMouseX: p.x,
+                startMouseX: x,
                 startWidth: startWidth
             )
             return
         }
 
-        if let column = columnHit(at: p.x), column.id != .message {
+        if let column = columnHit(at: x), column.id != .message {
             // Arm potential reorder. The actual drag only begins once
             // mouseDragged crosses the threshold — that gates against
             // accidental reorders from a click that drifted a pixel.
-            dragMode = .preparingReorder(column: column.id, startMouseX: p.x)
+            dragMode = .preparingReorder(column: column.id, startMouseX: x)
             return
         }
 
@@ -151,23 +168,24 @@ final class LogScrollHeaderView: NSView {
 
     override func mouseDragged(with event: NSEvent) {
         let p = convert(event.locationInWindow, from: nil)
+        let x = p.x + contentOffsetX
 
         switch dragMode {
         case .idle:
             return
 
         case let .resizing(column, startMouseX, startWidth):
-            let newWidth = startWidth + (p.x - startMouseX)
+            let newWidth = startWidth + (x - startMouseX)
             onResizeDrag(column, newWidth)
 
         case let .preparingReorder(column, startMouseX):
-            if abs(p.x - startMouseX) > Self.reorderDragThreshold {
-                dragMode = .reordering(column: column, mouseX: p.x)
+            if abs(x - startMouseX) > Self.reorderDragThreshold {
+                dragMode = .reordering(column: column, mouseX: x)
                 needsDisplay = true
             }
 
         case let .reordering(column, _):
-            dragMode = .reordering(column: column, mouseX: p.x)
+            dragMode = .reordering(column: column, mouseX: x)
             needsDisplay = true
         }
     }
@@ -247,7 +265,7 @@ final class LogScrollHeaderView: NSView {
                 .paragraphStyle: paragraph,
             ]
             let textRect = NSRect(
-                x: column.x + 4,
+                x: column.x - contentOffsetX + 4,
                 y: (bounds.height - lineHeight) / 2,
                 width: max(0, column.width - 8),
                 height: lineHeight
@@ -290,7 +308,9 @@ final class LogScrollHeaderView: NSView {
                 break
             }
         }
-        let indicator = NSRect(x: dropX - 1, y: 0, width: 2, height: bounds.height)
+        // dropX and mouseX are content coordinates; shift into view space
+        // by the horizontal scroll offset for drawing.
+        let indicator = NSRect(x: dropX - contentOffsetX - 1, y: 0, width: 2, height: bounds.height)
         NSColor(theme.accentColor).setFill()
         indicator.fill()
 
@@ -298,7 +318,7 @@ final class LogScrollHeaderView: NSView {
         // Constant offset so the cursor appears to "carry" the title.
         let proxyWidth: CGFloat = 80
         let proxyRect = NSRect(
-            x: mouseX - proxyWidth / 2,
+            x: mouseX - contentOffsetX - proxyWidth / 2,
             y: 1,
             width: proxyWidth,
             height: bounds.height - 2

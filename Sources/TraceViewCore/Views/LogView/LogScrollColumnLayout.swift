@@ -117,11 +117,19 @@ enum LogScrollColumnLayout {
     /// `NSScrollView` clips). Saved widths are clamped to each column's
     /// `[minWidth, maxWidth]` band. Unlisted IDs in `order` fall in at the
     /// end using `defaultOrder`'s positions.
+    ///
+    /// `messageContentWidth`, when non-nil, is the no-wrap horizontal-scroll
+    /// mode: the message column is widened to at least that value (the
+    /// measured width of its content) so long lines extend past the viewport
+    /// and the caller's horizontal scroller reveals them. It still fills the
+    /// remainder when the content is narrower than the viewport, so the
+    /// column never leaves a gap on the right.
     static func compute(
         boundsWidth: CGFloat,
         visibility: ColumnVisibility,
         savedWidths: [ColumnID: CGFloat] = [:],
-        order: [ColumnID]? = nil
+        order: [ColumnID]? = nil,
+        messageContentWidth: CGFloat? = nil
     ) -> [ColumnFrame] {
         let resolvedOrder = resolve(order: order)
         let visibleIDs = resolvedOrder.filter { visibility.isVisible($0) }
@@ -142,7 +150,11 @@ enum LogScrollColumnLayout {
 
         if visibility.isVisible(.message) {
             let remainder = boundsWidth - nonMessageTotal
-            widths[.message] = max(ColumnID.message.minWidth, remainder)
+            var messageWidth = max(ColumnID.message.minWidth, remainder)
+            if let messageContentWidth {
+                messageWidth = max(messageWidth, messageContentWidth)
+            }
+            widths[.message] = messageWidth
         }
 
         var frames: [ColumnFrame] = []

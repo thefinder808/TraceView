@@ -82,7 +82,15 @@ struct StatusBarView: View {
                 statusDivider(theme: theme)
             }
 
-            // Following / Paused / Stalled + rolling rate
+            // Explicit Pause/Resume for live streams (unified-log, remote).
+            // Distinct from the follow indicator: this stops ingestion and
+            // buffers incoming lines; scrolling up only stops auto-scroll.
+            if document.canPauseIngestion {
+                pauseControl(theme: theme)
+                statusDivider(theme: theme)
+            }
+
+            // Following / Not following / Paused / Stalled + rolling rate
             statusItem(theme: theme) {
                 streamHealth(theme: theme)
             }
@@ -95,10 +103,13 @@ struct StatusBarView: View {
 
     @State private var pulseOpacity: Double = 0.6
 
-    private enum StreamState { case following, paused, stalled }
+    private enum StreamState { case following, notFollowing, ingestionPaused, stalled }
 
     private var streamState: StreamState {
-        if !document.isFollowing { return .paused }
+        // Ingestion pause takes precedence: while frozen, follow state is
+        // moot (no lines are arriving to follow), so surface the pause.
+        if document.isIngestionPaused { return .ingestionPaused }
+        if !document.isFollowing { return .notFollowing }
         // Stalled only applies to unified-log streams where silence is
         // unexpected. Static file watchers sit quiet whenever the file
         // isn't being appended to — that's normal, not a problem.
@@ -107,6 +118,41 @@ struct StatusBarView: View {
             return .stalled
         }
         return .following
+    }
+
+    /// Amber "Paused" readout for the ingestion-paused state, with the
+    /// buffered (and, if the cap was hit, dropped) line counts so the user
+    /// knows how much a resume will replay.
+    private var ingestionPausedLabel: String {
+        guard document.pausedBufferedCount > 0 else { return "Paused" }
+        var label = "Paused · \(Formatters.formatCount(document.pausedBufferedCount)) buffered"
+        if document.pausedDroppedCount > 0 {
+            label += " · \(Formatters.formatCount(document.pausedDroppedCount)) dropped"
+        }
+        return label
+    }
+
+    /// Pause/Resume toggle shown for live streams. Pausing freezes the
+    /// table and buffers incoming lines; resuming replays them.
+    @ViewBuilder
+    private func pauseControl(theme: any AppTheme) -> some View {
+        Button {
+            document.setIngestionPaused(!document.isIngestionPaused)
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: document.isIngestionPaused ? "play.fill" : "pause.fill")
+                    .font(.system(size: 9))
+                Text(document.isIngestionPaused ? "Resume" : "Pause")
+                    .fontWeight(.medium)
+            }
+            .padding(.horizontal, 8)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(document.isIngestionPaused ? theme.accentColor : theme.secondaryText)
+        .help(document.isIngestionPaused
+              ? "Resume the live stream and append the lines buffered while paused."
+              : "Pause the live stream. Incoming lines are buffered (not dropped) and appended when you resume.")
     }
 
     @ViewBuilder
@@ -127,12 +173,19 @@ struct StatusBarView: View {
                     .foregroundStyle(theme.tertiaryText)
                     .monospacedDigit()
             }
-        case .paused:
+        case .notFollowing:
             Circle()
                 .fill(theme.pausedIndicator)
                 .frame(width: 6, height: 6)
-            Text("Paused")
+            Text("Not following")
                 .foregroundStyle(theme.pausedIndicator)
+        case .ingestionPaused:
+            Image(systemName: "pause.circle.fill")
+                .font(.system(size: 10))
+                .foregroundStyle(theme.warningText)
+            Text(ingestionPausedLabel)
+                .fontWeight(.medium)
+                .foregroundStyle(theme.warningText)
         case .stalled:
             Circle()
                 .fill(theme.warningText)
