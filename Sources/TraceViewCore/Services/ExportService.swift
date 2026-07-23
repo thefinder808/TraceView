@@ -62,15 +62,32 @@ enum ExportService {
         }
     }
 
-    private static func exportCSV<C: Sequence>(entries: C) -> String where C.Element == LogEntry {
+    /// Render the given entries as CSV. Exposed (non-private) so
+    /// `ExportServiceCSVTests` can exercise the escaping without driving an
+    /// `NSSavePanel`. The header row and column order match the on-disk
+    /// format `Line,Timestamp,Level,Component,Message`.
+    static func exportCSV<C: Sequence>(entries: C) -> String where C.Element == LogEntry {
         var lines = ["Line,Timestamp,Level,Component,Message"]
         for entry in entries {
             let ts = entry.timestamp.map { Formatters.formatDateTime($0) } ?? ""
             let comp = entry.component ?? ""
-            let msg = entry.message.replacingOccurrences(of: "\"", with: "\"\"")
-            lines.append("\(entry.lineNumber),\"\(ts)\",\(entry.level.shortName),\"\(comp)\",\"\(msg)\"")
+            // Every free-text column goes through csvField so a comma,
+            // quote, or newline in the value can't break the row/column
+            // structure. Line number and level are numeric/enum and safe
+            // to emit bare.
+            lines.append("\(entry.lineNumber),\(csvField(ts)),\(entry.level.shortName),\(csvField(comp)),\(csvField(entry.message))")
         }
         return lines.joined(separator: "\n")
+    }
+
+    /// Escape one CSV field per RFC 4180: wrap in double quotes and double
+    /// any embedded quote. Applied to every free-text field. The previous
+    /// implementation only escaped the message's quotes and interpolated
+    /// the component raw inside quotes, so a component like `foo"bar`
+    /// produced malformed CSV (`"foo"bar"`) that split into extra columns
+    /// in any spec-compliant reader.
+    static func csvField(_ value: String) -> String {
+        "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
     }
 
     private static func exportJSON<C: Sequence>(entries: C) -> String where C.Element == LogEntry {
