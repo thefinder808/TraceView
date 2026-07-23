@@ -570,11 +570,24 @@ final class LogScrollContainerView: NSView {
         sourceNameForID: @escaping (UUID) -> String?,
         horizontalMessageScroll: Bool
     ) {
+        let wasHorizontalMessageScroll = self.horizontalMessageScroll
         self.visibility = visibility
         self.horizontalMessageScroll = horizontalMessageScroll
         // Enabling the scroller lets AppKit show the horizontal bar when the
         // document outgrows the clip; autohide keeps it invisible otherwise.
         scrollView.hasHorizontalScroller = horizontalMessageScroll
+
+        // Leaving no-wrap mode: the document is about to shrink back to the
+        // clip width and the scroller disappears. Snap the horizontal scroll
+        // back to the left explicitly so a previously scrolled-right view
+        // (and the header offset that tracks it) can't be left stranded
+        // shifted with no scroller to correct it.
+        if wasHorizontalMessageScroll && !horizontalMessageScroll {
+            let clip = scrollView.contentView
+            clip.scroll(to: NSPoint(x: 0, y: clip.bounds.origin.y))
+            scrollView.reflectScrolledClipView(clip)
+        }
+
         documentView.apply(
             entries: entries,
             theme: theme,

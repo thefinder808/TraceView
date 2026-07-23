@@ -514,9 +514,13 @@ final class LogScrollDocumentView: NSView {
     ///
     /// Only visible rows are measured (bounded work, cheap even on indexed
     /// sources), and the monospaced message font lets each row cost O(1) —
-    /// character count × advance — with no text layout. `NSString.length`
-    /// slightly over-counts multi-scalar graphemes, which is safe here: a
-    /// hair too wide never truncates.
+    /// character count × advance — with no text layout. This is exact for
+    /// ASCII, the common case for the logs this targets. It slightly
+    /// OVER-counts multi-scalar graphemes (harmless — a hair too wide never
+    /// truncates), but UNDER-counts full-width glyphs (e.g. CJK), which
+    /// advance at ~2× the mono width while `NSString.length` counts them as
+    /// one unit — such a line can still truncate, and the expand-in-place
+    /// drawer remains the way to read it in full.
     @discardableResult
     func updateMessageContentWidth() -> Bool {
         // Only measure the VISIBLE rows. Without a clip view we can't tell
