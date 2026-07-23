@@ -53,6 +53,22 @@ final class LogDocument: ObservableObject, Identifiable {
     /// real reason and stderr output if any.
     @Published var streamError: String? = nil
 
+    /// Ingestion pause — distinct from `isFollowing`, which only governs
+    /// auto-scroll. When true, new lines from a live stream are held in
+    /// `pausedBuffer` instead of being parsed and appended, so the table
+    /// freezes; they're replayed in arrival order on resume. Only the
+    /// push-based live streams (unified-log, remote) expose the control —
+    /// see `canPauseIngestion`.
+    @Published private(set) var isIngestionPaused: Bool = false
+
+    /// Lines currently held in the pause buffer, published for the status
+    /// bar's "Paused · N buffered" readout.
+    @Published private(set) var pausedBufferedCount: Int = 0
+
+    /// Lines dropped because the pause buffer hit its cap during a long
+    /// pause on a fast stream, so the resumed view is honest about the gap.
+    @Published private(set) var pausedDroppedCount: Int = 0
+
     // Derived summary state, computed by the document once per append and
     // read by every pane showing this doc.
     @Published private(set) var histogram: LogHistogram?
@@ -112,6 +128,9 @@ final class LogDocument: ObservableObject, Identifiable {
     /// after the first detection so later batches reuse the choice.
     private var remoteParserUndetected = false
     private var partialLineBuffer: String = ""
+    /// Raw lines held while ingestion is paused; flushed on resume. See
+    /// `PausedLineBuffer` for the buffer-then-drop-oldest overflow policy.
+    private var pausedBuffer = PausedLineBuffer()
     private var histogramTask: Task<Void, Never>?
     /// Wall-clock time the most recent histogram compute succeeded.
     /// Drives the max-staleness escape valve in `recomputeHistogram(_:)`
@@ -841,6 +860,7 @@ final class LogDocument: ObservableObject, Identifiable {
             DispatchQueue.main.async {
                 self?.streamError = message
                 self?.isLive = false
+                self?.discardPauseState()
             }
         }
         stream.start(predicate: predicate)
@@ -853,6 +873,7 @@ final class LogDocument: ObservableObject, Identifiable {
         logStream = nil
         isLive = false
         streamError = nil
+        discardPauseState()
     }
 
     // MARK: - Remote stream (SSH tail)
@@ -883,6 +904,7 @@ final class LogDocument: ObservableObject, Identifiable {
         remoteStream?.stop()
         remoteStream = nil
         isLive = false
+        discardPauseState()
     }
 
     // MARK: - File watching
@@ -944,7 +966,18 @@ final class LogDocument: ObservableObject, Identifiable {
     /// Append new lines from file watcher or unified-log stream. Parses
     /// inline (cheap), updates derived state, then fanned out to panes via
     /// `didAppend` so each pane runs its own filter on the new slice.
+    ///
+    /// While ingestion is paused the raw lines are diverted to
+    /// `pausedBuffer` and replayed here verbatim on resume, so numbering
+    /// and derived state stay identical to the un-paused path.
     private func appendLines(_ lines: [String]) {
+        if isIngestionPaused {
+            pausedBuffer.append(lines)
+            pausedBufferedCount = pausedBuffer.count
+            pausedDroppedCount = pausedBuffer.droppedCount
+            return
+        }
+
         var newEntries: [LogEntry] = []
         newEntries.reserveCapacity(lines.count)
         let startLine = entries.count + 1
@@ -963,6 +996,55 @@ final class LogDocument: ObservableObject, Identifiable {
         updateColumnFlags(scanning: newEntries)
         incrementLevelCounts(with: newEntries)
         recomputeHistogram(immediate: false)
+    }
+
+    // MARK: - Ingestion pause
+
+    /// Whether the Pause/Resume ingestion control applies to this document.
+    /// True only for a live, push-based stream — unified-log or remote SSH
+    /// tail — whose new lines funnel through `appendLines`. File tails,
+    /// stdin, merged views, and static files don't surface the control.
+    var canPauseIngestion: Bool {
+        guard isLive else { return false }
+        switch source {
+        case .unifiedLog, .remote: return true
+        case .file, .stdin, .merged: return false
+        }
+    }
+
+    func setIngestionPaused(_ paused: Bool) {
+        paused ? pauseIngestion() : resumeIngestion()
+    }
+
+    /// Pause ingestion. Lines arriving while paused are buffered (not
+    /// dropped) and replayed on resume — see `PausedLineBuffer`.
+    func pauseIngestion() {
+        guard canPauseIngestion, !isIngestionPaused else { return }
+        isIngestionPaused = true
+    }
+
+    /// Resume ingestion and flush everything buffered during the pause, in
+    /// arrival order, back through the normal append path — which numbers
+    /// the surviving lines contiguously from the current end.
+    func resumeIngestion() {
+        guard isIngestionPaused else { return }
+        isIngestionPaused = false
+        let buffered = pausedBuffer.drain()
+        pausedBufferedCount = 0
+        pausedDroppedCount = 0
+        if !buffered.isEmpty {
+            appendLines(buffered)
+        }
+    }
+
+    /// Drop pause state without replaying the buffer. Used when the stream
+    /// stops or dies — the buffered lines belong to a session that's over.
+    private func discardPauseState() {
+        guard isIngestionPaused || !pausedBuffer.isEmpty else { return }
+        isIngestionPaused = false
+        pausedBuffer.reset()
+        pausedBufferedCount = 0
+        pausedDroppedCount = 0
     }
 
     // MARK: - Derived summaries
