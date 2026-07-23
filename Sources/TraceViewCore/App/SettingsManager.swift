@@ -6,6 +6,7 @@ final class SettingsManager: ObservableObject {
     private static let showLineNumbersKey = "traceview.showLineNumbers"
     private static let showTimestampKey = "traceview.showTimestamp"
     private static let showComponentKey = "traceview.showComponent"
+    private static let horizontalMessageScrollKey = "traceview.horizontalMessageScroll"
     private static let savedFiltersKey = "traceview.savedFilters"
     private static let savedRemoteConnectionsKey = "traceview.savedRemoteConnections"
     private static let detailDisplayModeKey = "traceview.detailDisplayMode"
@@ -54,6 +55,14 @@ final class SettingsManager: ObservableObject {
 
     @Published var showComponent: Bool {
         didSet { UserDefaults.standard.set(showComponent, forKey: Self.showComponentKey) }
+    }
+
+    /// When true, the message column extends to fit its full content and a
+    /// horizontal scroller appears, so long single lines can be read inline
+    /// without opening the expand-in-place drawer. When false (default),
+    /// long messages truncate with an ellipsis at the viewport edge.
+    @Published var horizontalMessageScroll: Bool {
+        didSet { UserDefaults.standard.set(horizontalMessageScroll, forKey: Self.horizontalMessageScrollKey) }
     }
 
     @Published var savedFilters: [LogFilterPreset] {
@@ -167,6 +176,10 @@ final class SettingsManager: ObservableObject {
         } else {
             self.showComponent = defaults.bool(forKey: Self.showComponentKey)
         }
+
+        // Default off — long messages truncate unless the user opts into
+        // horizontal scrolling.
+        self.horizontalMessageScroll = defaults.bool(forKey: Self.horizontalMessageScrollKey)
 
         if let data = defaults.data(forKey: Self.savedFiltersKey),
            let decoded = try? JSONDecoder().decode([LogFilterPreset].self, from: data) {

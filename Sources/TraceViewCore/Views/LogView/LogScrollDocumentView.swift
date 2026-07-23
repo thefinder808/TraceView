@@ -69,6 +69,28 @@ final class LogScrollDocumentView: NSView {
     private(set) var columns: [ColumnFrame] = []
     private var sourceNameForID: (UUID) -> String? = { _ in nil }
 
+    /// No-wrap horizontal-scroll mode. When true the message column is
+    /// widened to fit its content (`messageContentWidth`) so long lines can
+    /// be read inline via the horizontal scroller instead of truncating at
+    /// the viewport edge. Fed from `SettingsManager.horizontalMessageScroll`
+    /// through the apply chain.
+    private(set) var horizontalScrollEnabled: Bool = false
+
+    /// High-water mark for the widest message measured among visible rows,
+    /// including the column's text insets. The container reads
+    /// `messageContentWidth` to size the message column and the document
+    /// frame. Grow-only within a mode/font/theme/filter generation so the
+    /// horizontal scroll range doesn't jitter as rows scroll by; reset in
+    /// `apply(...)` when any of those change. Zero when the mode is off.
+    private var measuredMessageContentWidth: CGFloat = 0
+
+    /// Width the message column needs to show its content without
+    /// truncation, or 0 when horizontal-scroll mode is off (message fills
+    /// the remainder and truncates, as before).
+    var messageContentWidth: CGFloat {
+        horizontalScrollEnabled ? measuredMessageContentWidth : 0
+    }
+
     /// True while the table should pin to the last row. Mirrors the
     /// `LogDocument.isFollowing` flag fed through `LogScrollView`. The
     /// follow timer reads this on every tick; setting it to false stops
@@ -171,6 +193,10 @@ final class LogScrollDocumentView: NSView {
         let bodyLineHeight: CGFloat
         let smallLineHeight: CGFloat
         let badgeLineHeight: CGFloat
+        /// Advance width of one character in the monospaced message font.
+        /// Drives the O(1)-per-row message-width estimate used to size the
+        /// no-wrap horizontal scroll range (char count × advance).
+        let messageAdvanceWidth: CGFloat
         let lineNumber: [NSAttributedString.Key: Any]
         let timestamp: [NSAttributedString.Key: Any]
         let component: [NSAttributedString.Key: Any]
@@ -206,8 +232,23 @@ final class LogScrollDocumentView: NSView {
 
     private func followTick() {
         guard isFollowing, !entries.isEmpty else { return }
-        let lastRow = entries.count - 1
-        scrollToVisible(rowFrame(for: lastRow))
+        scrollRowToVisible(entries.count - 1)
+    }
+
+    /// Scroll `row` into view vertically while preserving the current
+    /// horizontal scroll offset. A full-width `rowFrame` passed to
+    /// `scrollToVisible` would otherwise yank the view back to x = 0 in
+    /// horizontal-scroll mode (fighting the user who scrolled right to read
+    /// a long line). With the mode off this is identical to scrolling the
+    /// row frame — the clip already spans the full document width.
+    func scrollRowToVisible(_ row: Int) {
+        guard row >= 0, row < entries.count else { return }
+        var rect = rowFrame(for: row)
+        if let clip = enclosingScrollView?.contentView {
+            rect.origin.x = clip.bounds.origin.x
+            rect.size.width = clip.bounds.width
+        }
+        scrollToVisible(rect)
     }
 
     /// `isFlipped = true` puts the origin at the top-left so row 0 is at
@@ -265,7 +306,8 @@ final class LogScrollDocumentView: NSView {
         highlightRules: [HighlightRule],
         expandedEntryID: Int?,
         inlineExpansionEnabled: Bool,
-        sourceNameForID: @escaping (UUID) -> String?
+        sourceNameForID: @escaping (UUID) -> String?,
+        horizontalScrollEnabled: Bool
     ) {
         self.isFollowing = isFollowing
         let oldCount = self.entries.count
@@ -316,6 +358,23 @@ final class LogScrollDocumentView: NSView {
             return entries[oldCount - 1].lineNumber == oldLastLine
         }()
         previousLastEntryLine = entries.last?.lineNumber
+
+        // No-wrap horizontal-scroll mode. Reset the measured content-width
+        // high-water mark when the mode flips, the metrics change (font or
+        // theme), or the visible set is replaced non-trailingly (filter,
+        // reload) — otherwise a since-filtered-out long line would keep the
+        // scroll range stretched. A pure trailing append keeps the mark so
+        // live tailing doesn't thrash the horizontal range. The container's
+        // syncLayout re-measures the visible rows right after this apply.
+        let horizontalModeChanged = self.horizontalScrollEnabled != horizontalScrollEnabled
+        self.horizontalScrollEnabled = horizontalScrollEnabled
+        if !horizontalScrollEnabled
+            || horizontalModeChanged
+            || fontSizeChanged
+            || themeChanged
+            || (countChanged && !isTrailingAppend) {
+            measuredMessageContentWidth = 0
+        }
 
         // Invalidate BEFORE marking dirty so the next draw rebuilds the
         // cache against the new keying tuple. Order matters: if needsDisplay
@@ -446,6 +505,47 @@ final class LogScrollDocumentView: NSView {
     func applyLayout(_ newColumns: [ColumnFrame]) {
         self.columns = newColumns
         needsDisplay = true
+    }
+
+    /// Measure the widest message among currently visible rows and grow the
+    /// content-width high-water mark used to size the message column in
+    /// no-wrap horizontal-scroll mode. Returns true if the mark grew, so the
+    /// container knows to re-run layout and widen the document + scroller.
+    ///
+    /// Only visible rows are measured (bounded work, cheap even on indexed
+    /// sources), and the monospaced message font lets each row cost O(1) —
+    /// character count × advance — with no text layout. `NSString.length`
+    /// slightly over-counts multi-scalar graphemes, which is safe here: a
+    /// hair too wide never truncates.
+    @discardableResult
+    func updateMessageContentWidth() -> Bool {
+        // Only measure the VISIBLE rows. Without a clip view we can't tell
+        // which rows those are; measuring `bounds` would walk every row and
+        // parse-storm an indexed source, so bail until we're in a scroll
+        // view (syncLayout re-measures once we are).
+        guard horizontalScrollEnabled, let cache = currentAttrs(),
+              baseRowHeight > 0, !entries.isEmpty,
+              let clipView = enclosingScrollView?.contentView else { return false }
+        let visibleRect = clipView.documentVisibleRect
+        let start = max(0, firstRow(in: visibleRect))
+        let end = min(entries.count, lastRow(in: visibleRect))
+        guard start < end else { return false }
+
+        var widest: CGFloat = 0
+        for row in start..<end {
+            let length = (entries[row].message as NSString).length
+            let w = CGFloat(length) * cache.messageAdvanceWidth
+            if w > widest { widest = w }
+        }
+        // Match the draw loop's 8pt horizontal inset (4 left + 4 right) and
+        // add a couple of characters of slack so the final glyph never
+        // clips against the truncation ellipsis.
+        let needed = widest + 8 + cache.messageAdvanceWidth * 2
+        if needed > measuredMessageContentWidth {
+            measuredMessageContentWidth = needed
+            return true
+        }
+        return false
     }
 
     private func updateFrameHeight() {
@@ -587,7 +687,7 @@ final class LogScrollDocumentView: NSView {
     func scrollAndSelect(row: Int) {
         guard row >= 0, row < entries.count else { return }
         updateSelection(to: row)
-        scrollToVisible(rowFrame(for: row))
+        scrollRowToVisible(row)
     }
 
     private func updateSelection(to newRow: Int?) {
@@ -645,7 +745,7 @@ final class LogScrollDocumentView: NSView {
         // moving the selection, same as click selection.
         onScrollUp()
         updateSelection(to: newRow)
-        scrollToVisible(rowFrame(for: newRow))
+        scrollRowToVisible(newRow)
     }
 
     /// How many full rows fit in the visible viewport. Used for PgUp/PgDn
@@ -756,6 +856,10 @@ final class LogScrollDocumentView: NSView {
         let bodyLine: CGFloat = monoFont.ascender - monoFont.descender + monoFont.leading
         let smallLine: CGFloat = smallFont.ascender - smallFont.descender + smallFont.leading
         let badgeLine: CGFloat = badgeFont.ascender - badgeFont.descender + badgeFont.leading
+        // Monospaced, so every character advances the same width. Measure
+        // one glyph once here rather than laying out each message.
+        let messageAdvance: CGFloat = ("0" as NSString)
+            .size(withAttributes: [.font: monoFont]).width
 
         func attrs(
             font: NSFont,
@@ -814,6 +918,7 @@ final class LogScrollDocumentView: NSView {
             bodyLineHeight: bodyLine,
             smallLineHeight: smallLine,
             badgeLineHeight: badgeLine,
+            messageAdvanceWidth: messageAdvance,
             lineNumber: lineNumberAttrs,
             timestamp: timestampAttrs,
             component: componentAttrs,

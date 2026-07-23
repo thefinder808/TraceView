@@ -317,4 +317,53 @@ final class LogScrollColumnLayoutTests: XCTestCase {
             running += frame.width
         }
     }
+
+    // MARK: - No-wrap horizontal-scroll (messageContentWidth)
+
+    /// A message content width wider than the remaining space widens the
+    /// message column to fit it, so the total layout overflows past
+    /// `boundsWidth` and the caller's horizontal scroller can reveal it.
+    func testMessageContentWidthWiderThanRemainderExtendsColumn() {
+        let frames = LogScrollColumnLayout.compute(
+            boundsWidth: 1000,
+            visibility: allConfigurableVisible,
+            messageContentWidth: 4000
+        )
+        let message = frames.first { $0.id == .message }!
+        XCTAssertEqual(message.width, 4000)
+
+        // Total extent exceeds the viewport — there is something to scroll to.
+        let total = frames.reduce(CGFloat(0)) { $0 + $1.width }
+        XCTAssertGreaterThan(total, 1000)
+    }
+
+    /// When the content is narrower than the remaining space, the message
+    /// column still fills the remainder (no gap on the right) — the max()
+    /// with the remainder wins.
+    func testMessageContentWidthNarrowerThanRemainderStillFills() {
+        let frames = LogScrollColumnLayout.compute(
+            boundsWidth: 1200,
+            visibility: allConfigurableVisible,
+            messageContentWidth: 50
+        )
+        let totalNonMessage = frames.filter { $0.id != .message }
+            .reduce(CGFloat(0)) { $0 + $1.width }
+        let message = frames.first { $0.id == .message }!
+        XCTAssertEqual(message.width, 1200 - totalNonMessage, accuracy: 0.5)
+    }
+
+    /// nil (normal mode) is identical to not passing the argument at all —
+    /// message fills the remainder.
+    func testNilMessageContentWidthMatchesDefault() {
+        let withNil = LogScrollColumnLayout.compute(
+            boundsWidth: 1024,
+            visibility: allConfigurableVisible,
+            messageContentWidth: nil
+        )
+        let plain = LogScrollColumnLayout.compute(
+            boundsWidth: 1024,
+            visibility: allConfigurableVisible
+        )
+        XCTAssertEqual(withNil.map(\.width), plain.map(\.width))
+    }
 }

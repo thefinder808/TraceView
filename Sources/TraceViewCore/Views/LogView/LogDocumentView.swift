@@ -177,6 +177,7 @@ struct LogDocumentView: View {
             showLineNumbers: settingsManager.showLineNumbers,
             showTimestamp: settingsManager.showTimestamp && document.hasTimestamps,
             showComponent: settingsManager.showComponent && document.hasComponents,
+            horizontalMessageScroll: settingsManager.horizontalMessageScroll,
             isFollowing: document.isFollowing,
             selectedEntry: $selectedEntry,
             expandedEntryID: $expandedEntryID,
