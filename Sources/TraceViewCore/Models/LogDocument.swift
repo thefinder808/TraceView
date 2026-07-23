@@ -1025,7 +1025,10 @@ final class LogDocument: ObservableObject, Identifiable {
 
     /// Resume ingestion and flush everything buffered during the pause, in
     /// arrival order, back through the normal append path — which numbers
-    /// the surviving lines contiguously from the current end.
+    /// the surviving lines contiguously from the current end. The replay is
+    /// synchronous on the main thread; the buffer's cap (see
+    /// `PausedLineBuffer`) keeps that worst-case parse within the app's
+    /// eager-parse budget so a resume doesn't stall the UI.
     func resumeIngestion() {
         guard isIngestionPaused else { return }
         isIngestionPaused = false

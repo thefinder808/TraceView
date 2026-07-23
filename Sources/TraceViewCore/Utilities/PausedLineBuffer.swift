@@ -7,22 +7,29 @@ import Foundation
 ///
 /// **Overflow policy — buffer, then drop oldest.** Incoming lines are
 /// *buffered* (not dropped) so a normal pause loses nothing on resume. The
-/// buffer is capped only so a very long pause on a high-rate stream can't
-/// grow memory without bound: once appending would exceed `capacity`, the
-/// oldest buffered lines are discarded (and tallied in `droppedCount`) so
-/// the most recent activity — what a live-tail user wants to catch up on —
-/// survives. Because lines are stored raw and only numbered when they're
-/// finally appended on resume, dropping the oldest leaves no gap in the
-/// visible line numbers; `droppedCount` is the honest record of the loss.
+/// buffer is capped once appending would exceed `capacity`, at which point
+/// the oldest buffered lines are discarded (and tallied in `droppedCount`)
+/// so the most recent activity — what a live-tail user wants to catch up
+/// on — survives. Because lines are stored raw and only numbered when
+/// they're finally appended on resume, dropping the oldest leaves no gap in
+/// the visible line numbers; `droppedCount` is the honest record of the
+/// loss.
 ///
-/// The default cap of 100k lines is ~10-20 MB at typical log-line sizes,
-/// far more than any normal pause accumulates.
+/// The cap bounds two things, not just memory:
+///  - Memory: 10k raw lines is only a couple of MB.
+///  - Resume latency: `resumeIngestion` replays the whole buffer through
+///    the normal (synchronous, main-thread) parse+append path in one shot.
+///    10k matches `LogDocument`'s eager-parse threshold (`eagerLineThreshold`)
+///    — the point below which the initial load parses eagerly rather than
+///    chunking — so a worst-case full-buffer resume stays within the same
+///    parse budget the app already treats as acceptable, instead of a
+///    multi-second stall.
 struct PausedLineBuffer {
     private(set) var lines: [String] = []
     private(set) var droppedCount: Int = 0
     let capacity: Int
 
-    init(capacity: Int = 100_000) {
+    init(capacity: Int = 10_000) {
         self.capacity = max(1, capacity)
     }
 
