@@ -438,14 +438,14 @@ enum LogIndexCache {
 
     private static func readUInt32(_ data: Data, offset: Int) -> UInt32 {
         var v: UInt32 = 0
-        withUnsafeMutableBytes(of: &v) { dst in
+        _ = withUnsafeMutableBytes(of: &v) { dst in
             data.copyBytes(to: dst, from: offset..<(offset + MemoryLayout<UInt32>.size))
         }
         return UInt32(littleEndian: v)
     }
     private static func readUInt64(_ data: Data, offset: Int) -> UInt64 {
         var v: UInt64 = 0
-        withUnsafeMutableBytes(of: &v) { dst in
+        _ = withUnsafeMutableBytes(of: &v) { dst in
             data.copyBytes(to: dst, from: offset..<(offset + MemoryLayout<UInt64>.size))
         }
         return UInt64(littleEndian: v)
@@ -455,7 +455,7 @@ enum LogIndexCache {
     }
     private static func readDouble(_ data: Data, offset: Int) -> Double {
         var v: Double = 0
-        withUnsafeMutableBytes(of: &v) { dst in
+        _ = withUnsafeMutableBytes(of: &v) { dst in
             data.copyBytes(to: dst, from: offset..<(offset + MemoryLayout<Double>.size))
         }
         return v
