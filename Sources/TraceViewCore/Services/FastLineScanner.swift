@@ -175,7 +175,7 @@ enum FastLevelScanner {
 
     /// Mirror of `parseLevelAndComponent`'s `bracketLevelPattern`. The
     /// regex is:
-    ///   `^\[?(LEVEL)\]?\s*:?\s*(?:component:\s+)?(.*)`
+    ///   `^\[?(LEVEL)\b\]?\s*:?\s*(?:component:\s+)?(.*)`
     /// All terminators after the level word are optional. Effectively
     /// any line whose first non-whitespace word (optionally bracketed) is
     /// a recognized level, terminated by a word boundary, returns that

@@ -95,15 +95,17 @@ struct PlainTextParser: LogParser {
         pattern: #"^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\s+(.*)"#
     )
 
-    // Captures three groups: level, optional component, message. Component
-    // token is constrained to letter-initial alphanumeric/dot/underscore/
-    // dash up to 30 chars and requires `\s+` after the `:` separator — the
-    // whitespace requirement inherently excludes URLs (`http://`,
-    // `data:image/...`, `file:///`) since none have whitespace after the
-    // scheme colon. Paths like `/path/to/file` are excluded by the leading
-    // `[A-Za-z]` anchor.
+    // Captures three groups: level, optional component, message. The `\b`
+    // after the level keeps words that merely start with a level name
+    // ("Information loaded", "Errors: none") from being split mid-word.
+    // Component token is constrained to letter-initial alphanumeric/dot/
+    // underscore/dash up to 30 chars and requires `\s+` after the `:`
+    // separator — the whitespace requirement inherently excludes URLs
+    // (`http://`, `data:image/...`, `file:///`) since none have whitespace
+    // after the scheme colon. Paths like `/path/to/file` are excluded by
+    // the leading `[A-Za-z]` anchor.
     private static let bracketLevelPattern: NSRegularExpression? = try? NSRegularExpression(
-        pattern: #"^\[?(DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|ERR|CRITICAL|FATAL|CRIT)\]?\s*:?\s*(?:([A-Za-z][A-Za-z0-9._-]{0,30}):\s+)?(.*)"#,
+        pattern: #"^\[?(DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|ERR|CRITICAL|FATAL|CRIT)\b\]?\s*:?\s*(?:([A-Za-z][A-Za-z0-9._-]{0,30}):\s+)?(.*)"#,
         options: .caseInsensitive
     )
 
